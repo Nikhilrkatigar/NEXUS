@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Championship - NEXUS CMS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header">
+    <h1>General Championship</h1>
+    <p>College-wise tally - wins, points, and overall rankings across all events</p>
+  </div>
+
+  <div class="stat-grid" id="champStats"></div>
+
+  <div class="cms-card" style="margin-bottom:24px">
+    <div class="cms-card-title">Event-wise Winners</div>
+    <table class="cms-table" id="eventWinnersTable">
+      <thead><tr><th>Event</th><th>Winner</th><th>Runner Up</th><th>Second Runner Up</th></tr></thead>
+      <tbody id="eventWinnersTbody"></tbody>
+    </table>
+  </div>
+
+  <div class="cms-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="cms-card-title" style="margin-bottom:0">Overall College Tally</div>
+      <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="exportChampionshipCSV()">Export</button>
+    </div>
+    <div id="collegeTally"></div>
+  </div>
+</main>
+
+<script>
+let registrations = [];
+let allScores = {};
+
+const EVENT_LABELS = {
+  FINVERSE_R1: 'FINVERSE - Link and Think',
+  FINVERSE_R2: 'FINVERSE - Cash Clash',
+  FINVERSE_R3: 'FINVERSE - Bid to Win',
+  ASVENTIQ_R1: 'ASVENTIQ - IdeaNest',
+  ASVENTIQ_R2: 'ASVENTIQ - BrandShift',
+  ASVENTIQ_R3: 'ASVENTIQ - AdvWar',
+  MINDWAR_R1: 'MIND WAR - Battle Argument Arena',
+  MINDWAR_R2: 'MIND WAR - Final Phase',
+  DANCE: 'Dance Competition',
+  RAMPWALK: 'Ramp Walk',
+  RISING_PALADIN: 'Rising Paladin',
+  MATCHWIZ: 'Matchwiz',
+  STARTATHON: 'Startathon'
+};
+
+const CRITERIA_COLS = {
+  FINVERSE_R1: ['brand_id', 'accuracy', 'response'],
+  FINVERSE_R2: ['allocation', 'impact', 'feasibility', 'response'],
+  FINVERSE_R3: ['strategy', 'valuation'],
+  ASVENTIQ_R1: ['innovation', 'clarity', 'fit', 'feasibility', 'revenue'],
+  ASVENTIQ_R2: ['creativity', 'relevance', 'appeal', 'color', 'explanation'],
+  ASVENTIQ_R3: ['creativity', 'clarity', 'targeting', 'communication'],
+  MINDWAR_R1: ['content', 'communication', 'confidence', 'relevance', 'coordination'],
+  MINDWAR_R2: ['presence', 'confidence', 'communication', 'accuracy'],
+  DANCE: ['choreo', 'sync', 'expression', 'costume', 'impact'],
+  RAMPWALK: ['confidence', 'walk', 'costume', 'theme'],
+  RISING_PALADIN: ['performance', 'skill'],
+  MATCHWIZ: ['teamwork', 'accuracy', 'speed'],
+  STARTATHON: ['idea', 'presentation', 'qna']
+};
+
+const EVENT_NAME_MAP = {
+  FINVERSE_FINANCE: 'FINVERSE_R1',
+  ASVENTIQ_MARKETING: 'ASVENTIQ_R1',
+  MIND_WAR_HR: 'MINDWAR_R1',
+  DANCE_COMPETITION: 'DANCE',
+  RAMP_WALK: 'RAMPWALK',
+  RISING_PALADIN: 'RISING_PALADIN',
+  MATCHWIZ: 'MATCHWIZ',
+  STARTATHON_THE_HUSTLE_HUB: 'STARTATHON'
+};
+
+function normalizeEventName(value) {
+  return String(value || '').toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+function mapEventKey(eventName) {
+  return EVENT_NAME_MAP[normalizeEventName(eventName)] || null;
+}
+
+function computeEventRankings() {
+  const results = {};
+
+  Object.keys(EVENT_LABELS).forEach((eventKey) => {
+    const scoreSheet = allScores[eventKey] || {};
+    const manualEntries = scoreSheet._manual || [];
+    const columns = CRITERIA_COLS[eventKey] || [];
+    const eventRegs = registrations.filter((registration) => mapEventKey(registration.event) === eventKey);
+
+    const regEntries = eventRegs.map((registration) => ({
+      id: `reg_${registration.id}`,
+      college: registration.college,
+      label: registration.college + ((registration.participants && registration.participants[0] && registration.participants[0].name) ? ` - ${registration.participants[0].name}` : '')
+    }));
+    const manualMapped = manualEntries.map((entry) => ({
+      id: `manual_${entry.id}`,
+      college: entry.label,
+      label: entry.label
+    }));
+
+    const scored = [...regEntries, ...manualMapped]
+      .map((entry) => {
+        const saved = scoreSheet[entry.id] || {};
+        const total = columns.reduce((sum, column) => sum + (parseFloat(saved[column]) || 0), 0);
+        return Object.assign({}, entry, { total });
+      })
+      .filter((entry) => entry.total > 0)
+      .sort((a, b) => b.total - a.total);
+
+    if (scored.length) {
+      results[eventKey] = scored;
+    }
+  });
+
+  return results;
+}
+
+function computeCollegeTally(rankings) {
+  const collegeTally = {};
+
+  Object.values(rankings).forEach((rankedEntries) => {
+    rankedEntries.forEach((entry, index) => {
+      if (!collegeTally[entry.college]) {
+        collegeTally[entry.college] = { wins: 0, second: 0, third: 0, points: 0 };
+      }
+
+      if (index === 0) {
+        collegeTally[entry.college].wins += 1;
+        collegeTally[entry.college].points += 5;
+      }
+      if (index === 1) {
+        collegeTally[entry.college].second += 1;
+        collegeTally[entry.college].points += 3;
+      }
+      if (index === 2) {
+        collegeTally[entry.college].third += 1;
+        collegeTally[entry.college].points += 1;
+      }
+    });
+  });
+
+  return Object.entries(collegeTally).sort((a, b) => b[1].points - a[1].points || b[1].wins - a[1].wins);
+}
+
+function render() {
+  const rankings = computeEventRankings();
+  const totalColleges = [...new Set(registrations.map((registration) => registration.college))].length;
+
+  document.getElementById('champStats').innerHTML = [
+    { num: Object.keys(rankings).length, label: 'Events Scored', color: '#f5a623' },
+    { num: Object.keys(EVENT_LABELS).length - Object.keys(rankings).length, label: 'Events Pending', color: '#e63c5c' },
+    { num: totalColleges, label: 'Colleges Competing', color: '#00d4ff' },
+    { num: registrations.length, label: 'Total Registrations', color: '#10b981' }
+  ].map((item) => `<div class="stat-card"><div class="stat-card-num" style="color:${item.color}">${item.num}</div><div class="stat-card-label">${item.label}</div></div>`).join('');
+
+  document.getElementById('eventWinnersTbody').innerHTML = Object.entries(EVENT_LABELS).map(([eventKey, eventName]) => {
+    const rankedEntries = rankings[eventKey] || [];
+    const medal = (position) => rankedEntries[position]
+      ? `<span style="font-weight:600">${rankedEntries[position].college}</span><br><span style="font-size:11px;color:var(--muted)">${rankedEntries[position].total} pts</span>`
+      : '<span style="color:var(--muted);font-size:12px">-</span>';
+
+    return `
+      <tr>
+        <td style="font-weight:600">${eventName}</td>
+        <td>${medal(0)}</td>
+        <td>${medal(1)}</td>
+        <td>${medal(2)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const sortedColleges = computeCollegeTally(rankings);
+  document.getElementById('collegeTally').innerHTML = sortedColleges.length ? `
+    <table class="cms-table">
+      <thead><tr><th>Rank</th><th>College</th><th>Wins</th><th>2nd</th><th>3rd</th><th>Total Points</th></tr></thead>
+      <tbody>${sortedColleges.map(([college, data], index) => `
+        <tr style="${index < 3 ? 'background:rgba(245,166,35,0.03)' : ''}">
+          <td style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px">${index + 1}</td>
+          <td style="font-weight:600">${college}</td>
+          <td style="color:#f5a623;font-weight:700;text-align:center">${data.wins}</td>
+          <td style="color:#c8d6e0;text-align:center">${data.second}</td>
+          <td style="color:#d4845a;text-align:center">${data.third}</td>
+          <td><span style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--accent)">${data.points}</span> <span style="font-size:11px;color:var(--muted)">pts</span></td>
+        </tr>
+      `).join('')}</tbody>
+    </table>
+    <div style="margin-top:16px;font-size:12px;color:var(--muted)">Points: 1st place = 5 pts · 2nd place = 3 pts · 3rd place = 1 pt</div>
+  ` : '<div style="text-align:center;color:var(--muted);padding:24px;font-size:13px">No scores entered yet. Go to Scores section to enter event results.</div>';
+}
+
+function exportChampionshipCSV() {
+  const sortedColleges = computeCollegeTally(computeEventRankings());
+  const csv = [['Rank', 'College', 'Wins', '2nd Place', '3rd Place', 'Points'], ...sortedColleges.map(([college, data], index) => [index + 1, college, data.wins, data.second, data.third, data.points])]
+    .map((row) => row.map((value) => `"${value}"`).join(','))
+    .join('\n');
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  link.download = 'championship.csv';
+  link.click();
+  showToast('Championship data exported!');
+}
+
+(async function () {
+  const user = await NexusCMS.initPage('championship');
+  if (!user) return;
+
+  await NexusCMS.addAuditLog('Viewed Championship');
+  [registrations, allScores] = await Promise.all([
+    NexusCMS.fetchRegistrations(),
+    NexusCMS.fetchScores()
+  ]);
+  render();
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[App] Service Worker registered:', reg);
+        setInterval(() => {
+          reg.update().catch(err => console.warn('[App] Update check failed:', err));
+        }, 60000);
+      })
+      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

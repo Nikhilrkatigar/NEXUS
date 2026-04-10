@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Events - NEXUS CMS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+<style>
+.editor-block{margin-top:24px}
+.editor-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.entity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.entity-card{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:18px}
+.entity-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.event-preview-image{width:100%;height:180px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.04);margin-bottom:14px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.event-preview-image img{width:100%;height:100%;object-fit:cover;display:block}
+.upload-row{display:flex;gap:8px;align-items:center}
+.upload-row input[type="file"]{padding:10px}
+.upload-note{font-size:11px;color:var(--muted);margin-top:6px}
+.subeditor{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.subeditor-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.subeditor-list{display:flex;flex-direction:column;gap:10px}
+.subeditor-item{padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)}
+.helper{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+    <div><h1>Events</h1><p>Edit the public events section, event cards, rounds, and rules modal content.</p></div>
+    <div style="display:flex;gap:10px">
+      <a href="../index.html#events" target="_blank" class="cms-btn" style="background:rgba(245,166,35,0.1);color:#f5a623;text-decoration:none;padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px">Preview</a>
+      <button class="cms-btn cms-btn-primary" onclick="saveEventsSettings()">Save Changes</button>
+    </div>
+  </div>
+
+  <div class="cms-card">
+    <div class="cms-card-title">Events Section Header</div>
+    <div class="form-group"><label>Section Tag</label><input type="text" id="eventsSectionTag" placeholder="Compete"></div>
+    <div class="form-group"><label>Section Title</label><input type="text" id="eventsSectionTitle" placeholder="All Events"></div>
+    <div class="form-group"><label>Section Description</label><textarea id="eventsSectionDesc" rows="3" placeholder="Choose your battleground..."></textarea></div>
+  </div>
+
+  <div class="cms-card editor-block">
+    <div class="editor-actions">
+      <div>
+        <div class="cms-card-title" style="margin-bottom:4px">Events Editor</div>
+        <p class="helper">Add new events, delete old ones, upload or link images, and manage round-by-round rules.</p>
+      </div>
+      <button class="cms-btn cms-btn-primary" onclick="addEvent()">Add Event Box</button>
+    </div>
+    <div id="eventsEditorGrid" class="entity-grid"></div>
+  </div>
+</main>
+<script>
+const DEFAULT_SECTION = {
+  eventsSectionTag: 'Compete',
+  eventsSectionTitle: 'All Events',
+  eventsSectionDesc: 'Choose your battleground. Every event is a chance to prove your edge.'
+};
+
+const DEFAULT_EVENTS = [
+  {
+    id: 'finverse',
+    name: 'FINVERSE',
+    dept: 'Finance',
+    deptColor: '#00d4ff',
+    tagline: 'Where numbers meet nerves',
+    badge: 'Finance',
+    badgeBg: 'rgba(0,212,255,0.1)',
+    badgeColor: '#00d4ff',
+    facultyHead: 'Prof. Mahesh Hiremath',
+    organizers: 'Veerbhadra, Samruddhi, Khushi, Prajwal, Ritu, Abhishek',
+    imageUrl: '',
+    rounds: [
+      { id: 'r1', num: 'R1', title: 'Link & Think', desc: 'Logo identification and brand slogans', time: '30 min', color: '#00d4ff' },
+      { id: 'r2', num: 'R2', title: 'Cash Clash', desc: 'Budget Battle - Finance Ministers', time: '60 min', color: '#00bfe0' },
+      { id: 'r3', num: 'R3', title: 'Bid to Win', desc: 'Live Auction - highest bidder wins', time: '90 min', color: '#0099bb' }
+    ],
+    rules: {
+      title: 'FINVERSE - Rules & Regulations',
+      sections: [
+        { id: 's1', heading: 'Round 1: Link & Think', rules: ['Each team: 1 participant','Accurate spelling required for full marks'] },
+        { id: 's2', heading: 'Round 2: Cash Clash', rules: ['1 participant per team','Judges decision is final'] }
+      ]
+    }
+  },
+  {
+    id: 'asventiq',
+    name: 'ASVENTIQ',
+    dept: 'Marketing',
+    deptColor: '#f5a623',
+    tagline: 'Build. Brand. Advertise. Win.',
+    badge: 'Marketing',
+    badgeBg: 'rgba(245,166,35,0.1)',
+    badgeColor: '#f5a623',
+    facultyHead: 'Prof. P. Monica',
+    organizers: 'Sumaya, Madhu, Vishal, Madhura, Likith',
+    imageUrl: '',
+    rounds: [
+      { id: 'r1', num: 'R1', title: 'IdeaNest', desc: 'Business plan - startup to solve real problems', time: '60 min', color: '#f5a623' }
+    ],
+    rules: {
+      title: 'ASVENTIQ - Rules & Regulations',
+      sections: [
+        { id: 's1', heading: 'General Rules', rules: ['Create a startup idea solving a real problem'] }
+      ]
+    }
+  }
+];
+
+let settings = {};
+let events = [];
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function uid(prefix) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function slugify(value) {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || uid('event');
+}
+
+function normalizeColor(value, fallback) {
+  return /^#[0-9a-fA-F]{6}$/.test(String(value || '')) ? value : fallback;
+}
+
+function makeEvent() {
+  return {
+    id: uid('event'),
+    name: '',
+    dept: '',
+    deptColor: '#f5a623',
+    tagline: '',
+    badge: '',
+    badgeBg: 'rgba(245,166,35,0.1)',
+    badgeColor: '#f5a623',
+    facultyHead: '',
+    organizers: '',
+    imageUrl: '',
+    rounds: [
+      { id: uid('round'), num: 'R1', title: '', desc: '', time: '', color: '#f5a623' }
+    ],
+    rules: {
+      title: 'Rules & Regulations',
+      sections: [
+        { id: uid('section'), heading: 'General Rules', rules: [''] }
+      ]
+    }
+  };
+}
+
+function renderEvents() {
+  const grid = document.getElementById('eventsEditorGrid');
+  grid.innerHTML = events.map((event, index) => `
+    <div class="entity-card">
+      <div class="entity-card-header">
+        <strong>Event ${index + 1}</strong>
+        <button class="cms-btn cms-btn-danger cms-btn-sm" onclick="removeEvent('${event.id}')">Remove</button>
+      </div>
+      <div class="event-preview-image">${event.imageUrl ? `<img src="${event.imageUrl}" alt="${event.name || 'Event image'}">` : 'No image yet'}</div>
+      <div class="form-group"><label>Event Name</label><input type="text" value="${event.name || ''}" oninput="updateEvent('${event.id}','name',this.value)"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Event ID / Slug</label><input type="text" value="${event.id || ''}" oninput="updateEvent('${event.id}','id',this.value)"></div>
+        <div class="form-group"><label>Department</label><input type="text" value="${event.dept || ''}" oninput="updateEvent('${event.id}','dept',this.value)"></div>
+      </div>
+      <div class="form-group"><label>Description / Tagline</label><textarea rows="2" oninput="updateEvent('${event.id}','tagline',this.value)">${event.tagline || ''}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Badge Text</label><input type="text" value="${event.badge || ''}" oninput="updateEvent('${event.id}','badge',this.value)"></div>
+        <div class="form-group"><label>Faculty Head</label><input type="text" value="${event.facultyHead || ''}" oninput="updateEvent('${event.id}','facultyHead',this.value)"></div>
+      </div>
+      <div class="form-group"><label>Organizers</label><input type="text" value="${event.organizers || ''}" oninput="updateEvent('${event.id}','organizers',this.value)"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Dept Color</label><input type="color" value="${normalizeColor(event.deptColor, '#f5a623')}" style="height:46px" oninput="updateEvent('${event.id}','deptColor',this.value)"></div>
+        <div class="form-group"><label>Badge Text Color</label><input type="color" value="${normalizeColor(event.badgeColor, '#f5a623')}" style="height:46px" oninput="updateEvent('${event.id}','badgeColor',this.value)"></div>
+      </div>
+      <div class="form-group"><label>Badge Background</label><input type="text" value="${event.badgeBg || ''}" placeholder="rgba(...)" oninput="updateEvent('${event.id}','badgeBg',this.value)"></div>
+      <div class="form-group"><label>Image Link</label><input type="url" value="${event.imageUrl || ''}" placeholder="https://example.com/event.jpg" oninput="updateEvent('${event.id}','imageUrl',this.value)"></div>
+      <div class="form-group">
+        <label>Upload Event Image</label>
+        <div class="upload-row">
+          <input type="file" accept="image/*" id="event_upload_${event.id}">
+          <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="uploadEventImage('${event.id}')">Upload</button>
+        </div>
+        <div class="upload-note">Upload replaces the image link for this event.</div>
+      </div>
+
+      <div class="subeditor">
+        <div class="subeditor-header">
+          <strong>Rounds</strong>
+          <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addRound('${event.id}')">Add Round</button>
+        </div>
+        <div class="subeditor-list">
+          ${(event.rounds || []).map((round) => `
+            <div class="subeditor-item">
+              <div class="subeditor-header">
+                <span>${round.title || 'New round'}</span>
+                <button class="cms-btn cms-btn-danger cms-btn-sm" onclick="removeRound('${event.id}','${round.id}')">Remove</button>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label>Round Label</label><input type="text" value="${round.num || ''}" oninput="updateRound('${event.id}','${round.id}','num',this.value)"></div>
+                <div class="form-group"><label>Time</label><input type="text" value="${round.time || ''}" oninput="updateRound('${event.id}','${round.id}','time',this.value)"></div>
+              </div>
+              <div class="form-group"><label>Title</label><input type="text" value="${round.title || ''}" oninput="updateRound('${event.id}','${round.id}','title',this.value)"></div>
+              <div class="form-group"><label>Description</label><textarea rows="2" oninput="updateRound('${event.id}','${round.id}','desc',this.value)">${round.desc || ''}</textarea></div>
+              <div class="form-group"><label>Color</label><input type="color" value="${normalizeColor(round.color, '#f5a623')}" style="height:46px" oninput="updateRound('${event.id}','${round.id}','color',this.value)"></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="subeditor">
+        <div class="form-group"><label>Rules Modal Title</label><input type="text" value="${event.rules?.title || ''}" oninput="updateEventRuleTitle('${event.id}',this.value)"></div>
+        <div class="subeditor-header">
+          <strong>Rule Sections</strong>
+          <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addRuleSection('${event.id}')">Add Section</button>
+        </div>
+        <div class="subeditor-list">
+          ${(event.rules?.sections || []).map((section) => `
+            <div class="subeditor-item">
+              <div class="subeditor-header">
+                <span>${section.heading || 'New section'}</span>
+                <button class="cms-btn cms-btn-danger cms-btn-sm" onclick="removeRuleSection('${event.id}','${section.id}')">Remove</button>
+              </div>
+              <div class="form-group"><label>Section Heading</label><input type="text" value="${section.heading || ''}" oninput="updateRuleSectionHeading('${event.id}','${section.id}',this.value)"></div>
+              <div class="form-group"><label>Rules, one per line</label><textarea rows="6" oninput="updateRuleSectionRules('${event.id}','${section.id}',this.value)">${(section.rules || []).join('\n')}</textarea></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateEvent(id, key, value) {
+  events = events.map((event) => {
+    if (event.id !== id) return event;
+    const next = { ...event, [key]: value };
+    if (key === 'id') next.id = slugify(value || event.name || 'event');
+    if (key === 'name' && (!event.id || event.id === slugify(event.name))) next.id = slugify(value);
+    return next;
+  });
+  renderEvents();
+}
+
+function addEvent() {
+  events.push(makeEvent());
+  renderEvents();
+}
+
+function removeEvent(id) {
+  events = events.filter((event) => event.id !== id);
+  renderEvents();
+}
+
+async function uploadEventImage(id) {
+  const input = document.getElementById(`event_upload_${id}`);
+  const file = input && input.files ? input.files[0] : null;
+  if (!file) {
+    showToast('Choose an image first.', 'error');
+    return;
+  }
+  try {
+    const imageUrl = await NexusCMS.uploadImage(file);
+    updateEvent(id, 'imageUrl', imageUrl);
+    showToast('Event image uploaded successfully!');
+  } catch (error) {
+    showToast(error.message || 'Upload failed', 'error');
+  }
+}
+
+function updateRound(eventId, roundId, key, value) {
+  events = events.map((event) => event.id === eventId ? { ...event, rounds: (event.rounds || []).map((round) => round.id === roundId ? { ...round, [key]: value } : round) } : event);
+  renderEvents();
+}
+
+function addRound(eventId) {
+  events = events.map((event) => event.id === eventId ? { ...event, rounds: [...(event.rounds || []), { id: uid('round'), num: `R${(event.rounds || []).length + 1}`, title: '', desc: '', time: '', color: '#f5a623' }] } : event);
+  renderEvents();
+}
+
+function removeRound(eventId, roundId) {
+  events = events.map((event) => event.id === eventId ? { ...event, rounds: (event.rounds || []).filter((round) => round.id !== roundId) } : event);
+  renderEvents();
+}
+
+function updateEventRuleTitle(eventId, value) {
+  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), title: value, sections: event.rules?.sections || [] } } : event);
+  renderEvents();
+}
+
+function addRuleSection(eventId) {
+  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), title: event.rules?.title || 'Rules & Regulations', sections: [...(event.rules?.sections || []), { id: uid('section'), heading: '', rules: [''] }] } } : event);
+  renderEvents();
+}
+
+function removeRuleSection(eventId, sectionId) {
+  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), sections: (event.rules?.sections || []).filter((section) => section.id !== sectionId) } } : event);
+  renderEvents();
+}
+
+function updateRuleSectionHeading(eventId, sectionId, value) {
+  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), sections: (event.rules?.sections || []).map((section) => section.id === sectionId ? { ...section, heading: value } : section) } } : event);
+  renderEvents();
+}
+
+function updateRuleSectionRules(eventId, sectionId, value) {
+  const rules = String(value || '').split('\n').map((line) => line.trim()).filter(Boolean);
+  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), sections: (event.rules?.sections || []).map((section) => section.id === sectionId ? { ...section, rules } : section) } } : event);
+  renderEvents();
+}
+
+async function saveEventsSettings() {
+  const nextSettings = { ...settings };
+  nextSettings.eventsSectionTag = document.getElementById('eventsSectionTag').value;
+  nextSettings.eventsSectionTitle = document.getElementById('eventsSectionTitle').value;
+  nextSettings.eventsSectionDesc = document.getElementById('eventsSectionDesc').value;
+  nextSettings.events = events.map((event) => ({
+    id: slugify(event.id || event.name),
+    name: String(event.name || '').trim(),
+    dept: String(event.dept || '').trim(),
+    deptColor: String(event.deptColor || '#f5a623').trim(),
+    tagline: String(event.tagline || '').trim(),
+    badge: String(event.badge || '').trim(),
+    badgeBg: String(event.badgeBg || 'rgba(245,166,35,0.1)').trim(),
+    badgeColor: String(event.badgeColor || '#f5a623').trim(),
+    facultyHead: String(event.facultyHead || '').trim(),
+    organizers: String(event.organizers || '').trim(),
+    imageUrl: String(event.imageUrl || '').trim(),
+    rounds: (event.rounds || []).map((round, index) => ({
+      id: round.id || uid('round'),
+      num: String(round.num || `R${index + 1}`).trim(),
+      title: String(round.title || '').trim(),
+      desc: String(round.desc || '').trim(),
+      time: String(round.time || '').trim(),
+      color: String(round.color || '#f5a623').trim()
+    })).filter((round) => round.title || round.desc || round.num),
+    rules: {
+      title: String(event.rules?.title || `${event.name || 'Event'} - Rules & Regulations`).trim(),
+      sections: (event.rules?.sections || []).map((section) => ({
+        id: section.id || uid('section'),
+        heading: String(section.heading || '').trim(),
+        rules: (section.rules || []).map((rule) => String(rule || '').trim()).filter(Boolean)
+      })).filter((section) => section.heading || section.rules.length)
+    }
+  })).filter((event) => event.name);
+
+  await NexusCMS.updateSettings(nextSettings);
+  settings = nextSettings;
+  showToast('Events saved!');
+}
+
+(async function () {
+  const user = await NexusCMS.initPage('events', { requiredRoles: ['superadmin'] });
+  if (!user) return;
+
+  settings = { ...DEFAULT_SECTION, ...(await NexusCMS.fetchSettings()) };
+  document.getElementById('eventsSectionTag').value = settings.eventsSectionTag || DEFAULT_SECTION.eventsSectionTag;
+  document.getElementById('eventsSectionTitle').value = settings.eventsSectionTitle || DEFAULT_SECTION.eventsSectionTitle;
+  document.getElementById('eventsSectionDesc').value = settings.eventsSectionDesc || DEFAULT_SECTION.eventsSectionDesc;
+  events = Array.isArray(settings.events) && settings.events.length ? clone(settings.events) : clone(DEFAULT_EVENTS);
+  renderEvents();
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[App] Service Worker registered:', reg);
+        setInterval(() => {
+          reg.update().catch(err => console.warn('[App] Update check failed:', err));
+        }, 60000);
+      })
+      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

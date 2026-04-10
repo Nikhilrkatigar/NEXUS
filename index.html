@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — The Leadership Shift</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060810;
+  --bg2: #0b0f1a;
+  --surface: #111827;
+  --accent: #f5a623;
+  --accent2: #e63c5c;
+  --accent3: #00d4ff;
+  --text: #f0f0f0;
+  --muted: #7a8499;
+  --border: rgba(245,166,35,0.2);
+  --glow: 0 0 40px rgba(245,166,35,0.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;cursor:auto}
+
+/* Custom cursor */
+.cursor{position:fixed;width:12px;height:12px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform 0.1s;mix-blend-mode:difference}
+.cursor-trail{position:fixed;width:32px;height:32px;border:1px solid rgba(245,166,35,0.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all 0.15s ease}
+
+/* Noise overlay */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:0.4;pointer-events:none;z-index:1000}
+
+/* Navbar */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:20px 48px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(20px);background:rgba(6,8,16,0.7);border-bottom:1px solid rgba(245,166,35,0.08);transition:all 0.3s}
+.nav-logo{display:flex;align-items:center;gap:12px}
+.nav-logo-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#000}
+.nav-brand{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.05em}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:14px;font-weight:500;letter-spacing:0.03em;transition:color 0.2s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--accent);transition:width 0.3s}
+.nav-links a:hover{color:var(--accent)}
+.nav-links a:hover::after{width:100%}
+.nav-cta{background:var(--accent);color:#000;padding:10px 22px;border-radius:6px;font-weight:700;font-size:13px;letter-spacing:0.05em;text-decoration:none;transition:all 0.2s;font-family:'Syne',sans-serif}
+.nav-cta:hover{background:#fff;transform:translateY(-1px)}
+
+/* Hero */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:120px 48px 80px}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(245,166,35,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(245,166,35,0.04) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 60% at 50% 50%,black 30%,transparent 80%)}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);animation:orbFloat 8s ease-in-out infinite}
+.hero-orb-1{width:500px;height:500px;background:radial-gradient(circle,rgba(245,166,35,0.12),transparent 70%);top:-100px;right:-100px;animation-delay:0s}
+.hero-orb-2{width:400px;height:400px;background:radial-gradient(circle,rgba(230,60,92,0.1),transparent 70%);bottom:-50px;left:-50px;animation-delay:-3s}
+.hero-orb-3{width:300px;height:300px;background:radial-gradient(circle,rgba(0,212,255,0.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-5s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(20px,-20px) scale(1.05)}66%{transform:translate(-15px,15px) scale(0.95)}}
+
+.hero-content{text-align:center;position:relative;z-index:2;max-width:900px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);padding:6px 16px;border-radius:100px;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:32px;opacity:0;animation:fadeUp 0.8s 0.2s forwards}
+.hero-eyebrow::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.5)}}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(52px,8vw,110px);font-weight:800;line-height:0.95;letter-spacing:-0.03em;opacity:0;animation:fadeUp 0.8s 0.4s forwards}
+.hero-title span{display:block}
+.hero-title .line2{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(15px,2vw,20px);color:var(--muted);margin:24px auto;max-width:540px;line-height:1.6;opacity:0;animation:fadeUp 0.8s 0.6s forwards;font-weight:300}
+.hero-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:40px;opacity:0;animation:fadeUp 0.8s 0.8s forwards}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#d4890f);color:#000;padding:16px 36px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;text-decoration:none;transition:all 0.3s;display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 20px 40px rgba(245,166,35,0.3)}
+.btn-secondary{background:transparent;color:var(--text);padding:16px 36px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:600;font-size:15px;text-decoration:none;border:1px solid rgba(255,255,255,0.15);transition:all 0.3s;display:inline-flex;align-items:center;gap:8px}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.hero-stats{display:flex;gap:48px;justify-content:center;margin-top:64px;opacity:0;animation:fadeUp 0.8s 1s forwards}
+.stat{text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--accent);line-height:1}
+.stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* Scroll indicator */
+.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;animation:fadeUp 1s 1.4s both}
+.scroll-line{width:1px;height:48px;background:linear-gradient(to bottom,var(--accent),transparent);animation:scrollAnim 2s ease-in-out infinite}
+@keyframes scrollAnim{0%,100%{transform:scaleY(1);opacity:1}50%{transform:scaleY(0.5);opacity:0.3}}
+
+/* Section common */
+section{padding:100px 48px;position:relative}
+.section-tag{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;font-weight:600}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,56px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+.section-sub{color:var(--muted);font-size:16px;max-width:500px;line-height:1.7;margin-top:16px;font-weight:300}
+
+/* About */
+#about{background:var(--bg)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1200px;margin:0 auto}
+.about-left .section-title{margin-bottom:24px}
+.about-features{display:flex;flex-direction:column;gap:20px;margin-top:40px}
+.feature-item{display:flex;align-items:flex-start;gap:16px;padding:20px;background:var(--surface);border:1px solid rgba(255,255,255,0.05);border-radius:12px;transition:all 0.3s}
+.feature-item:hover{border-color:rgba(245,166,35,0.3);transform:translateX(4px)}
+.feature-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.feature-text h4{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:4px}
+.feature-text p{font-size:13px;color:var(--muted);line-height:1.5}
+.about-visual{position:relative}
+.about-card{background:var(--surface);border:1px solid rgba(245,166,35,0.15);border-radius:20px;padding:40px;position:relative;overflow:hidden}
+.about-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3))}
+.about-img-placeholder{width:100%;height:300px;background:linear-gradient(135deg,rgba(245,166,35,0.05),rgba(230,60,92,0.05));border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px dashed rgba(255,255,255,0.1);font-size:13px;color:var(--muted);flex-direction:column;gap:8px}
+.college-logo-area{display:flex;align-items:center;gap:16px;margin-top:24px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.06)}
+.logo-circle{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#000}
+.college-info h3{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.college-info p{font-size:12px;color:var(--muted)}
+
+/* Timeline */
+#timeline{background:var(--bg2)}
+.timeline-header{text-align:center;margin-bottom:80px;max-width:600px;margin-left:auto;margin-right:auto}
+.timeline-wrap{max-width:900px;margin:0 auto;position:relative}
+.timeline-line{position:absolute;left:50%;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,var(--accent),var(--accent2),var(--accent3),transparent);transform:translateX(-50%)}
+.tl-item{display:flex;gap:40px;margin-bottom:60px;position:relative;align-items:flex-start}
+.tl-item:nth-child(odd){flex-direction:row-reverse;text-align:right}
+.tl-item:nth-child(odd) .tl-content{align-items:flex-end}
+.tl-dot{position:absolute;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid var(--bg2);z-index:2;top:18px;box-shadow:0 0 20px rgba(245,166,35,0.5)}
+.tl-item:nth-child(2) .tl-dot{background:var(--accent2);box-shadow:0 0 20px rgba(230,60,92,0.5)}
+.tl-item:nth-child(3) .tl-dot{background:var(--accent3);box-shadow:0 0 20px rgba(0,212,255,0.5)}
+.tl-spacer{flex:1}
+.tl-content{flex:1;display:flex;flex-direction:column}
+.tl-time{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:8px}
+.tl-card{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:24px;transition:all 0.3s}
+.tl-card:hover{border-color:rgba(245,166,35,0.2);box-shadow:var(--glow)}
+.tl-card h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px}
+.tl-card p{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* Events */
+#events{background:var(--bg)}
+.events-header{text-align:center;max-width:700px;margin:0 auto 64px}
+.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:24px;max-width:1200px;margin:0 auto}
+.event-card{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;transition:all 0.4s;position:relative;cursor:pointer}
+.event-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(245,166,35,0.03));opacity:0;transition:opacity 0.3s}
+.event-card:hover{transform:translateY(-6px);border-color:rgba(245,166,35,0.25);box-shadow:0 30px 60px rgba(0,0,0,0.4),var(--glow)}
+.event-card:hover::before{opacity:1}
+.event-card-media{height:200px;overflow:hidden;border-bottom:1px solid rgba(255,255,255,0.06)}
+.event-card-media img{width:100%;height:100%;object-fit:cover;display:block}
+.event-card-header{padding:28px 28px 20px;position:relative}
+.event-dept{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;margin-bottom:12px}
+.event-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;line-height:1.1;margin-bottom:8px}
+.event-tagline{font-size:13px;color:var(--muted);line-height:1.5}
+.event-badge{position:absolute;top:28px;right:28px;padding:4px 12px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
+.event-rounds{padding:0 28px 20px;display:flex;flex-direction:column;gap:8px}
+.round-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.04)}
+.round-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.round-info h5{font-size:13px;font-weight:600;font-family:'Syne',sans-serif}
+.round-info p{font-size:11px;color:var(--muted)}
+.event-footer{padding:20px 28px;border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center}
+.event-organizers{font-size:11px;color:var(--muted)}
+.event-organizers strong{color:var(--text);font-weight:500}
+.event-rules-btn{font-size:12px;font-weight:600;color:var(--accent);background:rgba(245,166,35,0.08);padding:6px 14px;border-radius:6px;text-decoration:none;transition:all 0.2s;cursor:pointer}
+.event-rules-btn:hover{background:rgba(245,166,35,0.15)}
+
+/* Prizes */
+#prizes{background:var(--bg2)}
+.prizes-header{text-align:center;max-width:600px;margin:0 auto 64px}
+.prizes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:900px;margin:0 auto}
+.prize-card{border-radius:16px;padding:40px 32px;text-align:center;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.prize-card::after{content:'';position:absolute;inset:0;opacity:0.03;background:radial-gradient(circle at 50% 0,white,transparent 70%)}
+.prize-1{background:linear-gradient(145deg,#1a1505,#0f0d00);border-color:rgba(245,166,35,0.3)}
+.prize-2{background:linear-gradient(145deg,#10141a,#0a0c10);border-color:rgba(180,200,220,0.2)}
+.prize-3{background:linear-gradient(145deg,#140c08,#0f0905);border-color:rgba(180,100,50,0.2)}
+.prize-rank{font-size:40px;margin-bottom:16px}
+.prize-place{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.prize-amount{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;line-height:1}
+.prize-sub{font-size:12px;color:var(--muted);margin-top:8px}
+.prize-1 .prize-amount{color:var(--accent)}
+.prize-2 .prize-amount{color:#c8d6e0}
+.prize-3 .prize-amount{color:#d4845a}
+
+/* Registration */
+#register{background:var(--bg);padding:100px 48px}
+.register-wrap{max-width:800px;margin:0 auto}
+.register-card{background:var(--surface);border:1px solid rgba(245,166,35,0.15);border-radius:24px;overflow:hidden;position:relative}
+.register-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3))}
+.register-header{padding:48px 48px 32px;text-align:center}
+.register-header h2{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;margin-bottom:8px}
+.register-header p{color:var(--muted);font-size:15px}
+.register-form{padding:0 48px 48px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.form-group{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.form-group label{font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted)}
+.form-group input,.form-group select,.form-group textarea{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:all 0.2s;-webkit-appearance:none}
+.form-group input:focus,.form-group select:focus{border-color:rgba(245,166,35,0.4);background:rgba(245,166,35,0.04);box-shadow:0 0 0 3px rgba(245,166,35,0.06)}
+.form-group select{background:rgba(17,24,39,0.9);color:#f0f0f0}
+.form-group select option{background:#111827;color:#f0f0f0;font-weight:500}
+.form-group select option:checked{background:linear-gradient(135deg,#f5a623,#d4890f);color:#000}
+.form-group textarea{resize:vertical;min-height:80px}
+.participants-section{background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);border-radius:12px;padding:24px;margin-bottom:20px}
+.participants-section h4{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:16px;color:var(--muted)}
+.participant-entry{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.participant-entry:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.participant-label{font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase}
+.btn-submit{width:100%;background:linear-gradient(135deg,var(--accent),#d4890f);color:#000;padding:18px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;border:none;cursor:pointer;transition:all 0.3s;letter-spacing:0.03em}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 20px 40px rgba(245,166,35,0.3)}
+
+/* Success modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:800;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.modal-overlay.active{display:flex}
+.modal-box{background:var(--surface);border:1px solid rgba(245,166,35,0.2);border-radius:20px;padding:48px;text-align:center;max-width:480px;width:90%;position:relative;animation:modalIn 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes modalIn{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.reg-code{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--accent);letter-spacing:0.15em;margin:24px 0;padding:20px;background:rgba(245,166,35,0.08);border-radius:12px;border:1px dashed rgba(245,166,35,0.3)}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;transition:color 0.2s}
+.modal-close:hover{color:var(--text)}
+
+/* Team / Organizers */
+#team{background:var(--bg2)}
+.team-header{text-align:center;max-width:600px;margin:0 auto 64px}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px;max-width:1200px;margin:0 auto}
+.team-card{background:var(--surface);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:28px 20px;text-align:center;transition:all 0.3s}
+.team-card:hover{transform:translateY(-4px);border-color:rgba(245,166,35,0.2)}
+.team-avatar{width:72px;height:72px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:#000;overflow:hidden}
+.team-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.team-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px}
+.team-role{font-size:12px;color:var(--muted)}
+.team-dept{font-size:11px;margin-top:6px;padding:3px 10px;border-radius:100px;display:inline-block}
+
+/* Rules modal */
+.rules-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:900;overflow-y:auto}
+.rules-modal.active{display:block}
+.rules-inner{max-width:700px;margin:80px auto;padding:0 24px 80px}
+.rules-close-btn{position:fixed;top:24px;right:24px;background:var(--surface);border:1px solid rgba(255,255,255,0.1);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:20px;cursor:pointer;transition:all 0.2s}
+.rules-close-btn:hover{border-color:var(--accent);color:var(--accent)}
+.rules-content{background:var(--surface);border:1px solid rgba(245,166,35,0.1);border-radius:20px;padding:48px}
+.rules-content h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:24px;color:var(--accent)}
+.rules-content h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin:24px 0 12px;color:var(--text)}
+.rules-content ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.rules-content ul li{font-size:14px;color:var(--muted);line-height:1.6;padding-left:20px;position:relative}
+.rules-content ul li::before{content:'→';position:absolute;left:0;color:var(--accent);font-weight:700}
+
+/* Footer */
+footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding:60px 48px 32px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:60px;max-width:1200px;margin:0 auto}
+.footer-brand h3{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:12px}
+.footer-brand p{font-size:14px;color:var(--muted);line-height:1.7;max-width:320px}
+.footer-col h4{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer-col ul li a{text-decoration:none;color:var(--muted);font-size:14px;transition:color 0.2s}
+.footer-col ul li a:hover{color:var(--accent)}
+.footer-bottom{max-width:1200px;margin:40px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+
+/* Reveal animations */
+.reveal{opacity:0;transform:translateY(40px);transition:all 0.8s cubic-bezier(0.16,1,0.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:0.1s}
+.reveal-delay-2{transition-delay:0.2s}
+.reveal-delay-3{transition-delay:0.3s}
+.reveal-delay-4{transition-delay:0.4s}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid rgba(245,166,35,0.3);border-radius:12px;padding:16px 20px;z-index:600;font-size:14px;display:flex;align-items:center;gap:12px;transform:translateY(100px);opacity:0;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+
+/* Responsive */
+@media(max-width:900px){
+  nav{padding:16px 24px}
+  .nav-links{display:none}
+  section{padding:80px 24px}
+  .about-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .prizes-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .hero-stats{gap:24px}
+  .timeline-line{display:none}
+  .tl-item,.tl-item:nth-child(odd){flex-direction:column;text-align:left}
+  .tl-item:nth-child(odd) .tl-content{align-items:flex-start}
+  .tl-dot{display:none}
+  .register-header,.register-form{padding:32px 24px}
+  .participant-entry{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+
+<!-- Nav -->
+<nav id="navbar">
+  <div class="nav-logo">
+    <div class="nav-logo-mark" id="collegeLogo">N</div>
+    <span class="nav-brand" id="collegeName">NEXUS 2026</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#timeline">Schedule</a></li>
+    <li><a href="#events">Events</a></li>
+    <li><a href="#prizes">Prizes</a></li>
+    <li><a href="#team">Team</a></li>
+  </ul>
+  <a href="#register" class="nav-cta">Register Now</a>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">BA Department Presents</div>
+    <h1 class="hero-title">
+      <span class="line1" id="heroTitle">NEXUS</span>
+      <span class="line2" id="heroSubtitle">The Leadership Shift</span>
+    </h1>
+    <p class="hero-sub" id="heroDesc">A multi-domain fest where future leaders compete, collaborate, and conquer. Finance. Marketing. HR. Culture. Sports. One stage. Your moment.</p>
+    <div class="hero-actions">
+      <a href="#register" class="btn-primary">Register Your Team →</a>
+      <a href="#events" class="btn-secondary">Explore Events</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num" id="statTeams">50+</div><div class="stat-label">Teams</div></div>
+      <div class="stat"><div class="stat-num" id="statEvents">10+</div><div class="stat-label">Events</div></div>
+      <div class="stat"><div class="stat-num" id="statColleges">20+</div><div class="stat-label">Colleges</div></div>
+      <div class="stat"><div class="stat-num" id="statPrize">₹50K+</div><div class="stat-label">Prize Pool</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-left reveal">
+      <div class="section-tag">About the Fest</div>
+      <h2 class="section-title" id="aboutTitle">Where Leaders Are Born</h2>
+      <p class="section-sub" id="aboutDesc">NEXUS – The Leadership Shift is the flagship fest of the BA Department, bringing together the sharpest minds from colleges across the region to battle it out in Finance, Marketing, HR, and Cultural events.</p>
+      <div class="about-features">
+        <div class="feature-item">
+          <div class="feature-icon" style="background:rgba(245,166,35,0.1);">🏆</div>
+          <div class="feature-text"><h4>Inter-College Competition</h4><p>Teams from across the region competing across 10+ events in real business scenarios.</p></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon" style="background:rgba(230,60,92,0.1);">⚡</div>
+          <div class="feature-text"><h4>Real-World Simulations</h4><p>From budget battles to stress rounds — every event mirrors actual industry challenges.</p></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon" style="background:rgba(0,212,255,0.1);">🎯</div>
+          <div class="feature-text"><h4>Expert Judging Panel</h4><p>Industry veterans and distinguished faculty evaluate every performance with precision.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="about-visual reveal reveal-delay-2">
+      <div class="about-card">
+        <div class="about-img-placeholder" id="festBannerArea">
+          <span style="font-size:40px">🎓</span>
+          <span>College/Fest Banner Image</span>
+          <span style="font-size:11px;opacity:0.5">(Editable in CMS → Media)</span>
+        </div>
+        <div class="college-logo-area">
+          <div class="logo-circle" id="collegeLogoLarge">BA</div>
+          <div class="college-info">
+            <h3 id="collegeFullName">Your College Name</h3>
+            <p id="collegeDept">Department of Business Administration</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Timeline -->
+<section id="timeline">
+  <div class="timeline-header reveal">
+    <div class="section-tag">Schedule</div>
+    <h2 class="section-title">Event Timeline</h2>
+    <p class="section-sub" style="margin:16px auto 0">Plan your day. Every round, every moment, mapped out for you.</p>
+  </div>
+  <div class="timeline-wrap" id="timelineWrap">
+    <div class="timeline-line"></div>
+    <!-- Timeline items injected by JS -->
+  </div>
+</section>
+
+<!-- Events -->
+<section id="events">
+  <div class="events-header reveal">
+    <div class="section-tag" id="eventsTag">Compete</div>
+    <h2 class="section-title" id="eventsTitle">All Events</h2>
+    <p class="section-sub" style="margin:16px auto 0" id="eventsDesc">Choose your battleground. Every event is a chance to prove your edge.</p>
+  </div>
+  <div class="events-grid" id="eventsGrid">
+    <!-- Events injected by JS -->
+  </div>
+</section>
+
+<!-- Prizes -->
+<section id="prizes">
+  <div class="prizes-header reveal">
+    <div class="section-tag">Rewards</div>
+    <h2 class="section-title" id="prizesTitle">Win Big. Lead Bigger.</h2>
+    <p class="section-sub" style="margin:16px auto 0" id="prizesDesc">Top teams take home trophies, certificates, and cash prizes across all event categories.</p>
+  </div>
+  <div class="prizes-grid reveal reveal-delay-1">
+    <div class="prize-card prize-2">
+      <div class="prize-rank">🥈</div>
+      <div class="prize-place">Runner Up</div>
+      <div class="prize-amount" id="prize2">₹15,000</div>
+      <div class="prize-sub">+ Medals + Certificate</div>
+    </div>
+    <div class="prize-card prize-1" style="transform:scale(1.04)">
+      <div class="prize-rank">🏆</div>
+      <div class="prize-place">Champion</div>
+      <div class="prize-amount" id="prize1">₹30,000</div>
+      <div class="prize-sub">+ Trophy + Certificate</div>
+    </div>
+    <div class="prize-card prize-3">
+      <div class="prize-rank">🥉</div>
+      <div class="prize-place">2nd Runner Up</div>
+      <div class="prize-amount" id="prize3">₹5,000</div>
+      <div class="prize-sub">+ Medals + Certificate</div>
+    </div>
+  </div>
+</section>
+
+<!-- Registration -->
+<section id="register">
+  <div class="register-wrap">
+    <div class="register-card reveal">
+      <div class="register-header">
+        <div class="section-tag" style="text-align:center">Participate</div>
+        <h2>Register Your Team</h2>
+        <p>Build and register your team with our smart composition validator.</p>
+      </div>
+      <div class="register-form" style="text-align: center; padding: 48px;">
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6;">
+          Our registration form ensures your team meets all event requirements:
+        </p>
+        <div style="background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.2); border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: left; font-size: 13px;">
+          <div style="margin-bottom: 12px;"><strong style="color: var(--accent);">✓ Team Events (FINVERSE, ASVENTIQ, MIND WAR):</strong><br>5 members: 2 HR, 2 Marketing, 1 Finance</div>
+          <div><strong style="color: var(--accent);">✓ Cultural Events:</strong><br>Dance (max 4), Ramp Walk (1 member)</div>
+        </div>
+        <a href="/register.html" class="btn-primary" style="display: inline-flex; text-decoration: none;">Open Registration Form →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Team -->
+<section id="team">
+  <div class="team-header reveal">
+    <div class="section-tag">The People Behind NEXUS</div>
+    <h2 class="section-title">Organisers & Faculty</h2>
+  </div>
+  <div class="team-grid" id="teamGrid">
+    <!-- Injected by JS -->
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <h3>NEXUS 2026</h3>
+      <p id="footerDesc">The Leadership Shift — BA Department's flagship inter-college fest. A platform for future leaders to rise.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Events</h4>
+      <ul>
+        <li><a href="#events">FINVERSE</a></li>
+        <li><a href="#events">Asventiq</a></li>
+        <li><a href="#events">Mind War</a></li>
+        <li><a href="#events">Dance Comp</a></li>
+        <li><a href="#events">Ramp Walk</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#register">Register</a></li>
+        <li><a href="#timeline">Schedule</a></li>
+        <li><a href="#prizes">Prizes</a></li>
+        <li><a href="/cms/login.html">CMS Login</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 NEXUS – The Leadership Shift. All rights reserved.</span>
+    <span id="footerCollege">BA Department</span>
+  </div>
+</footer>
+
+<!-- Registration Success Modal -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('successModal').classList.remove('active')">✕</button>
+    <div style="font-size:48px;margin-bottom:16px">🎉</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:8px">Registration Confirmed!</h2>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Your unique registration code:</p>
+    <div class="reg-code" id="regCodeDisplay">00000</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6">Please save this code. Present it at the event registration desk to confirm your participation.</p>
+    <button class="btn-submit" style="margin-top:24px" onclick="document.getElementById('successModal').classList.remove('active')">Got it!</button>
+  </div>
+</div>
+
+<!-- Rules Modal -->
+<div class="rules-modal" id="rulesModal">
+  <button class="rules-close-btn" onclick="document.getElementById('rulesModal').classList.remove('active')">✕</button>
+  <div class="rules-inner">
+    <div class="rules-content" id="rulesContent"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toastMsg">Done!</span>
+</div>
+
+<script>
+// ============ DATA ============
+const EVENTS = [
+  {
+    id: 'finverse',
+    name: 'FINVERSE',
+    dept: 'Finance',
+    deptColor: '#00d4ff',
+    tagline: 'Where numbers meet nerves',
+    badge: 'Finance',
+    badgeBg: 'rgba(0,212,255,0.1)',
+    badgeColor: '#00d4ff',
+    rounds: [
+      {num:'R1',title:'Link & Think',desc:'Logo identification & brand slogans',time:'30 min',color:'#00d4ff'},
+      {num:'R2',title:'Cash Clash',desc:'Budget Battle — Finance Ministers',time:'60 min',color:'#00bfe0'},
+      {num:'R3',title:'Bid to Win',desc:'Live Auction — highest bidder wins',time:'90 min',color:'#0099bb'}
+    ],
+    facultyHead: 'Prof. Mahesh Hiremath',
+    organizers: 'Veerbhadra, Samruddhi, Khushi, Prajwal, Ritu, Abhishek',
+    rules: {
+      title: 'FINVERSE — Rules & Regulations',
+      sections: [
+        { heading: 'Round 1: Link & Think (Logo ID)', rules: ['Each team: 1 participant','Logos/slogans shown for 5–8 seconds','Write answers on provided sheet','Accurate spelling required for full marks','No overwriting or multiple answers','Use of unfair means = disqualification'] },
+        { heading: 'Round 2: Cash Clash (Budget Battle)', rules: ['1 participant per team','Virtual budget allocated (₹10,000 Cr)','Sectors: Infrastructure, Healthcare, Defence, Subsidies, Education','10–15 min prep, 5–7 min presentation','Justify all budget choices to judges','No inter-team communication','Judges\' decision is final'] },
+        { heading: 'Round 3: Bid to Win (Auction)', rules: ['1 participant per team','Fixed virtual budget given to each team','Bid for brands & companies','Highest bidder wins the asset','Strategic bidding required'] }
+      ]
+    }
+  },
+  {
+    id: 'asventiq',
+    name: 'ASVENTIQ',
+    dept: 'Marketing',
+    deptColor: '#f5a623',
+    tagline: 'Build. Brand. Advertise. Win.',
+    badge: 'Marketing',
+    badgeBg: 'rgba(245,166,35,0.1)',
+    badgeColor: '#f5a623',
+    rounds: [
+      {num:'R1',title:'IdeaNest',desc:'Business Plan — startup to solve real problems',time:'60 min',color:'#f5a623'},
+      {num:'R2',title:'BrandShift',desc:'Logo Design — hand-drawn brand identity',time:'60 min',color:'#d4890f'},
+      {num:'R3',title:'AdvWar',desc:'Advertising — instant ad for a random product',time:'60 min',color:'#b57a0d'}
+    ],
+    facultyHead: 'Prof. P. Monica',
+    organizers: 'Sumaya, Madhu, Vishal, Madhura, Likith',
+    rules: {
+      title: 'ASVENTIQ — Rules & Regulations',
+      sections: [
+        { heading: 'Round 1: IdeaNest (Business Plan)', rules: ['Create a startup idea solving a real problem','Must include: Brand Name, Product/Service, Target Audience, USP, Revenue Model','Props: A4 sheet + pen','Scored on Innovation (15), Clarity (15), Problem-Solution Fit (15), Feasibility (15), Revenue Model (15)','Total: 75 marks'] },
+        { heading: 'Round 2: BrandShift (Logo Design)', rules: ['Design a logo for your brand from Round 1','Must include brand name, symbol, color theme explanation','Output: Hand-drawn logo + 1–2 min explanation','Props: A4/chart paper, sketch pens, markers, scissors','Scored on Creativity (15), Relevance (15), Visual Appeal (15), Color Meaning (15), Explanation (15)','Total: 75 marks'] },
+        { heading: 'Round 3: AdvWar (Advertising)', rules: ['Each team picks a random product chit on the spot','Create and present an ad instantly','Products include: Notebook, Pen, Earphones, Energy Drink, Perfume, etc.','Scored on Creativity (30), Clarity (30), Audience Targeting (20), Communication (20)','Total: 100 marks'] }
+      ]
+    }
+  },
+  {
+    id: 'mindwar',
+    name: 'MIND WAR',
+    dept: 'HR',
+    deptColor: '#e63c5c',
+    tagline: 'Argue. Analyse. Dominate.',
+    badge: 'HR',
+    badgeBg: 'rgba(230,60,92,0.1)',
+    badgeColor: '#e63c5c',
+    rounds: [
+      {num:'R1',title:'Battle Argument Arena',desc:'Role Play + Case Study Debate (20 teams, 1v1)',time:'90 min',color:'#e63c5c'},
+      {num:'R2',title:'The Final Phase',desc:'Stress Round — rapid fire, 8 finalists',time:'90 min',color:'#c43050'}
+    ],
+    facultyHead: 'Prof. Mary Anthony',
+    organizers: 'Vaishnavi, Manali, Maltesh, Sayeda, Ajay',
+    rules: {
+      title: 'MIND WAR — Rules & Regulations',
+      sections: [
+        { heading: 'Round 1: Battle Argument Arena (Debate + Case Study)', rules: ['20 teams, 2 members each','Case study based on HR topics provided before debate','10 minutes preparation time','1v1 debate format between teams','Equal speaking time for all participants','No interruptions while opponent speaks','No mobile phones during the round','Total duration: 90 minutes','Judges\' decision is final'] },
+        { heading: 'Round 2: The Final Phase (Stress Round)', rules: ['Only 8 finalists from Round 1','Individual round — 1 participant at a time','Rapid-fire questions + situational challenges','Must answer within given time limit','No external help allowed','Judges may ask follow-up questions','Judged on: Presence of mind, Confidence under pressure, Communication, Decision-making','Total duration: 90 minutes'] }
+      ]
+    }
+  },
+  {
+    id: 'dance',
+    name: 'DANCE COMPETITION',
+    dept: 'Cultural',
+    deptColor: '#a855f7',
+    tagline: 'Move the stage. Move the crowd.',
+    badge: 'Cultural',
+    badgeBg: 'rgba(168,85,247,0.1)',
+    badgeColor: '#a855f7',
+    rounds: [
+      {num:'—',title:'Group Performance',desc:'Min 5 min — Max 8 min performance',time:'5–8 min',color:'#a855f7'}
+    ],
+    facultyHead: '—',
+    organizers: '—',
+    rules: {
+      title: 'Dance Competition — Rules & Regulations',
+      sections: [
+        { heading: 'Time Limit', rules: ['Minimum 5 minutes, maximum 8 minutes','Warning bell at 5 minutes','Performance must end before 8 minutes','Exceeding limit may lead to penalty/disqualification'] },
+        { heading: 'Music & Props', rules: ['Submit music track in advance (MP3 format)','Carry backup on pen drive or phone','Props allowed but must be safe','No fire, water, or hazardous materials'] },
+        { heading: 'Costume & Theme', rules: ['Costumes must be decent and appropriate','Theme-based performances encouraged','Offensive/inappropriate content = disqualification'] },
+        { heading: 'Judging Criteria (Total: 250 marks)', rules: ['Choreography & Creativity: 50','Synchronization & Coordination: 50','Expression & Energy: 50','Costume & Presentation: 50','Overall Impact: 50'] }
+      ]
+    }
+  },
+  {
+    id: 'rampwalk',
+    name: 'RAMP WALK',
+    dept: 'Cultural',
+    deptColor: '#a855f7',
+    tagline: 'Own the runway. Command the stage.',
+    badge: 'Cultural',
+    badgeBg: 'rgba(168,85,247,0.1)',
+    badgeColor: '#a855f7',
+    rounds: [
+      {num:'—',title:'Individual Walk',desc:'3–4 min on stage: entry, mid-pose, final pose',time:'3–4 min',color:'#a855f7'}
+    ],
+    facultyHead: '—',
+    organizers: '—',
+    rules: {
+      title: 'Ramp Walk — Rules & Regulations',
+      sections: [
+        { heading: 'Eligibility', rules: ['Open to individual participants','Must register before the deadline'] },
+        { heading: 'Theme & Dress Code', rules: ['Must follow given theme (if any)','Outfit must be decent, creative, appropriate','No offensive or vulgar costumes','Props allowed only if permitted'] },
+        { heading: 'Time Limit', rules: ['Each participant: 3–4 minutes on stage','Exceeding time may lead to penalty'] },
+        { heading: 'Performance Requirements', rules: ['Must include: Entry Walk + Mid-Pose + Final Pose','Smooth transitions and confidence are key'] },
+        { heading: 'Judging Criteria (Total: 250 marks)', rules: ['Confidence & Attitude: 50','Walk & Posture: 100','Costume & Styling: 50','Theme Representation: 50'] }
+      ]
+    }
+  },
+  {
+    id: 'risingpaladin',
+    name: 'RISING PALADIN',
+    dept: 'General',
+    deptColor: '#10b981',
+    tagline: 'Individual brilliance on full display.',
+    badge: 'Solo',
+    badgeBg: 'rgba(16,185,129,0.1)',
+    badgeColor: '#10b981',
+    rounds: [
+      {num:'—',title:'Individual Event',desc:'1 participant per team',time:'TBD',color:'#10b981'}
+    ],
+    facultyHead: '—',
+    organizers: '—',
+    rules: { title: 'Rising Paladin', sections: [{ heading: 'General Rules', rules: ['1 participant per team','Follow all event-day instructions','Judges\' decision is final'] }] }
+  },
+  {
+    id: 'matchwiz',
+    name: 'MATCHWIZ',
+    dept: 'General',
+    deptColor: '#10b981',
+    tagline: 'Two minds, one victory.',
+    badge: 'Duo',
+    badgeBg: 'rgba(16,185,129,0.1)',
+    badgeColor: '#10b981',
+    rounds: [
+      {num:'—',title:'Duo Event',desc:'2 participants per team',time:'TBD',color:'#10b981'}
+    ],
+    facultyHead: '—',
+    organizers: '—',
+    rules: { title: 'Matchwiz', sections: [{ heading: 'General Rules', rules: ['2 participants per team','Follow all event-day instructions','Judges\' decision is final'] }] }
+  },
+  {
+    id: 'startathon',
+    name: 'STARTATHON',
+    dept: 'Entrepreneurship',
+    deptColor: '#f59e0b',
+    tagline: 'The Hustle Hub — turn ideas into ventures.',
+    badge: 'Startup',
+    badgeBg: 'rgba(245,158,11,0.1)',
+    badgeColor: '#f59e0b',
+    rounds: [
+      {num:'—',title:'Hustle Hub',desc:'2 participants — social entrepreneur challenge',time:'TBD',color:'#f59e0b'}
+    ],
+    facultyHead: '—',
+    organizers: '—',
+    rules: { title: 'Startathon – The Hustle Hub', sections: [{ heading: 'General Rules', rules: ['2 participants per team','Novus – The Social Entrepreneur participants also participate','Judges\' decision is final'] }] }
+  }
+];
+
+const TIMELINE = [
+  { time: '9:00 AM', title: 'Registration & Check-in', desc: 'Teams arrive, collect entry passes and registration confirmation', color: 'var(--accent)' },
+  { time: '10:00 AM', title: 'Curtain Raiser', desc: 'Opening ceremony — all 5 participants attend. Welcome address, introductions, fest kick-off.', color: 'var(--accent2)' },
+  { time: '11:00 AM', title: 'Round 1 — All Tracks', desc: 'FINVERSE: Link & Think | Asventiq: IdeaNest | Mind War: Battle Argument Arena | Dance & Ramp Walk preliminary rounds', color: 'var(--accent3)' },
+  { time: '1:00 PM', title: 'Lunch Break', desc: 'Rest, network, and prep for the afternoon rounds', color: 'var(--accent)' },
+  { time: '2:00 PM', title: 'Round 2 — All Tracks', desc: 'FINVERSE: Cash Clash | Asventiq: BrandShift | Cultural performances continue', color: 'var(--accent2)' },
+  { time: '3:30 PM', title: 'Round 3 — Finals', desc: 'FINVERSE: Bid to Win | Asventiq: AdvWar | Mind War: The Final Phase (Stress Round)', color: 'var(--accent3)' },
+  { time: '5:30 PM', title: 'Valedictory & Awards', desc: 'Results announcement, prize distribution, certificates, closing ceremony', color: 'var(--accent)' }
+];
+
+const TEAM_MEMBERS = [
+  // Faculty heads
+  { name: 'Prof. Mahesh Hiremath', role: 'Faculty Head — Finance', dept: 'FINVERSE', deptColor: '#00d4ff', initial: 'MH', bg: 'linear-gradient(135deg,#00d4ff,#0099bb)' },
+  { name: 'Prof. P. Monica', role: 'Faculty Head — Marketing', dept: 'ASVENTIQ', deptColor: '#f5a623', initial: 'PM', bg: 'linear-gradient(135deg,#f5a623,#d4890f)' },
+  { name: 'Prof. Mary Anthony', role: 'Faculty Head — HR', dept: 'MIND WAR', deptColor: '#e63c5c', initial: 'MA', bg: 'linear-gradient(135deg,#e63c5c,#c43050)' },
+  // Student organizers
+  { name: 'Vaishnavi', role: 'Organiser — Round 1', dept: 'HR', deptColor: '#e63c5c', initial: 'V', bg: 'linear-gradient(135deg,#e63c5c,#ff6b6b)' },
+  { name: 'Manali', role: 'Organiser — Round 1', dept: 'HR', deptColor: '#e63c5c', initial: 'M', bg: 'linear-gradient(135deg,#e63c5c,#ff6b6b)' },
+  { name: 'Maltesh', role: 'Organiser — Round 1', dept: 'HR', deptColor: '#e63c5c', initial: 'M', bg: 'linear-gradient(135deg,#e63c5c,#ff6b6b)' },
+  { name: 'Sayeda', role: 'Organiser — Round 2', dept: 'HR', deptColor: '#e63c5c', initial: 'S', bg: 'linear-gradient(135deg,#ff6b6b,#e63c5c)' },
+  { name: 'Ajay', role: 'Organiser — Round 2', dept: 'HR', deptColor: '#e63c5c', initial: 'A', bg: 'linear-gradient(135deg,#ff6b6b,#e63c5c)' },
+  { name: 'Sumaya', role: 'Organiser — IdeaNest & AdvWar', dept: 'Marketing', deptColor: '#f5a623', initial: 'S', bg: 'linear-gradient(135deg,#f5a623,#d4890f)' },
+  { name: 'Madhu', role: 'Organiser — IdeaNest', dept: 'Marketing', deptColor: '#f5a623', initial: 'M', bg: 'linear-gradient(135deg,#f5a623,#ffc107)' },
+  { name: 'Vishal', role: 'Organiser — BrandShift', dept: 'Marketing', deptColor: '#f5a623', initial: 'V', bg: 'linear-gradient(135deg,#ffc107,#f5a623)' },
+  { name: 'Madhura', role: 'Organiser — BrandShift', dept: 'Marketing', deptColor: '#f5a623', initial: 'M', bg: 'linear-gradient(135deg,#d4890f,#f5a623)' },
+  { name: 'Likith', role: 'Organiser — AdvWar', dept: 'Marketing', deptColor: '#f5a623', initial: 'L', bg: 'linear-gradient(135deg,#f5a623,#d4890f)' },
+  { name: 'Veerbhadra', role: 'Organiser — Link & Think', dept: 'Finance', deptColor: '#00d4ff', initial: 'V', bg: 'linear-gradient(135deg,#00d4ff,#0099bb)' },
+  { name: 'Samruddhi', role: 'Organiser — Link & Think', dept: 'Finance', deptColor: '#00d4ff', initial: 'S', bg: 'linear-gradient(135deg,#00d4ff,#00b3d9)' },
+  { name: 'Khushi', role: 'Organiser — Cash Clash', dept: 'Finance', deptColor: '#00d4ff', initial: 'K', bg: 'linear-gradient(135deg,#0099bb,#00d4ff)' },
+  { name: 'Prajwal', role: 'Organiser — Cash Clash', dept: 'Finance', deptColor: '#00d4ff', initial: 'P', bg: 'linear-gradient(135deg,#00b3d9,#00d4ff)' },
+  { name: 'Ritu', role: 'Organiser — Bid to Win', dept: 'Finance', deptColor: '#00d4ff', initial: 'R', bg: 'linear-gradient(135deg,#00d4ff,#0080aa)' },
+  { name: 'Abhishek', role: 'Organiser — Bid to Win', dept: 'Finance', deptColor: '#00d4ff', initial: 'A', bg: 'linear-gradient(135deg,#0099bb,#007799)' },
+];
+
+// ============ RENDER EVENTS ============
+function renderEvents() {
+  const grid = document.getElementById('eventsGrid');
+  grid.innerHTML = EVENTS.map(e => `
+    <div class="event-card reveal">
+      ${e.imageUrl ? `<div class="event-card-media"><img src="${e.imageUrl}" alt="${e.name}"></div>` : ''}
+      <div class="event-card-header">
+        <div class="event-dept" style="color:${e.deptColor}">${e.dept} Department</div>
+        <div class="event-name">${e.name}</div>
+        <div class="event-tagline">${e.tagline}</div>
+        <div class="event-badge" style="background:${e.badgeBg};color:${e.badgeColor}">${e.badge}</div>
+      </div>
+      <div class="event-rounds">
+        ${e.rounds.map(r=>`
+          <div class="round-item">
+            <div class="round-num" style="background:${r.color}22;color:${r.color}">${r.num}</div>
+            <div class="round-info">
+              <h5>${r.title}</h5>
+              <p>${r.desc} — ${r.time}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="event-footer">
+        <div class="event-organizers">Faculty: <strong>${e.facultyHead}</strong></div>
+        <button class="event-rules-btn" onclick="showRules('${e.id}')">Rules →</button>
+      </div>
+    </div>
+  `).join('');
+  initReveal();
+}
+
+// ============ RENDER TIMELINE ============
+function renderTimeline() {
+  const wrap = document.getElementById('timelineWrap');
+  const existing = wrap.querySelector('.timeline-line');
+  wrap.innerHTML = '';
+  if(existing) wrap.appendChild(existing);
+  TIMELINE.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'tl-item reveal';
+    div.innerHTML = `
+      <div class="tl-spacer"></div>
+      <div class="tl-dot" style="background:${item.color}"></div>
+      <div class="tl-content">
+        <div class="tl-time">${item.time}</div>
+        <div class="tl-card">
+          <h3>${item.title}</h3>
+          <p>${item.desc}</p>
+        </div>
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+  initReveal();
+}
+
+// ============ RENDER TEAM ============
+function renderTeam() {
+  const grid = document.getElementById('teamGrid');
+  grid.innerHTML = TEAM_MEMBERS.map(m=>`
+    <div class="team-card reveal">
+      <div class="team-avatar" style="background:${m.bg}">${m.imageUrl ? `<img src="${m.imageUrl}" alt="${m.name}">` : `${m.initial}`}</div>
+      <div class="team-name">${m.name}</div>
+      <div class="team-role" style="color:var(--muted);font-size:12px">${m.role}</div>
+      <div class="team-dept" style="background:${m.deptColor}15;color:${m.deptColor}">${m.dept}</div>
+    </div>
+  `).join('');
+  initReveal();
+}
+
+// ============ RULES MODAL ============
+function showRules(id) {
+  const event = EVENTS.find(e=>e.id===id);
+  if(!event) return;
+  const r = event.rules;
+  document.getElementById('rulesContent').innerHTML = `
+    <h2>${r.title}</h2>
+    ${r.sections.map(s=>`
+      <h3>${s.heading}</h3>
+      <ul>${s.rules.map(rule=>`<li>${rule}</li>`).join('')}</ul>
+    `).join('')}
+  `;
+  document.getElementById('rulesModal').classList.add('active');
+}
+
+function escapeAttr(value) {
+  return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+renderEvents = function renderEvents() {
+  const grid = document.getElementById('eventsGrid');
+  grid.innerHTML = EVENTS.map(e => `
+    <div class="event-card reveal">
+      ${e.imageUrl ? `<div class="event-card-media"><img src="${e.imageUrl}" alt="${e.name}"></div>` : ''}
+      <div class="event-card-header">
+        <div class="event-dept" style="color:${e.deptColor}">${e.dept} Department</div>
+        <div class="event-name">${e.name}</div>
+        <div class="event-tagline">${e.tagline}</div>
+        <div class="event-badge" style="background:${e.badgeBg};color:${e.badgeColor}">${e.badge}</div>
+      </div>
+      <div class="event-rounds">
+        ${(Array.isArray(e.rounds) ? e.rounds : []).map(r=>`
+          <div class="round-item">
+            <div class="round-num" style="background:${r.color}22;color:${r.color}">${r.num}</div>
+            <div class="round-info">
+              <h5>${r.title}</h5>
+              <p>${r.desc} â€” ${r.time}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="event-footer">
+        <div class="event-organizers">Faculty: <strong>${e.facultyHead || 'â€”'}</strong></div>
+        <button class="event-rules-btn" data-event-id="${escapeAttr(e.id)}">Rules â†’</button>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.event-rules-btn').forEach((button) => {
+    button.addEventListener('click', () => showRules(button.dataset.eventId));
+  });
+  initReveal();
+};
+
+showRules = function showRules(id) {
+  const event = EVENTS.find(e => String(e.id) === String(id));
+  if (!event) return;
+  const rules = event.rules || {};
+  const sections = Array.isArray(rules.sections) ? rules.sections : [];
+  document.getElementById('rulesContent').innerHTML = `
+    <h2>${rules.title || `${event.name} Rules & Regulations`}</h2>
+    ${sections.length ? sections.map(s => `
+      <h3>${s.heading || 'Rules'}</h3>
+      <ul>${(Array.isArray(s.rules) ? s.rules : []).map(rule => `<li>${rule}</li>`).join('')}</ul>
+    `).join('') : '<p>No rules added yet.</p>'}
+  `;
+  document.getElementById('rulesModal').classList.add('active');
+};
+
+// ============ REGISTRATION ============
+const EVENT_PARTICIPANTS = {
+  'RISING PALADIN': 1,
+  'MATCHWIZ': 2,
+  'NOVUS – THE SOCIAL ENTREPRENEUR': 2,
+  'STARTATHON – THE HUSTLE HUB': 2,
+  'CURTAIN RAISER': 5,
+  'MIND WAR (HR)': 2,
+  'ASVENTIQ (MARKETING)': 2,
+  'FINVERSE (FINANCE)': 1,
+  'DANCE COMPETITION': 6,
+  'RAMP WALK': 1
+};
+
+document.getElementById('regEvent').addEventListener('change', function() {
+  const count = EVENT_PARTICIPANTS[this.value] || 1;
+  const container = document.getElementById('participantFields');
+  container.innerHTML = Array.from({length:count}, (_,i)=>`
+    <div class="participant-entry">
+      <div>
+        <div class="participant-label">Participant ${i+1} — Name</div>
+        <input type="text" placeholder="Full name" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none" class="p-name">
+      </div>
+      <div>
+        <div class="participant-label">Contact No.</div>
+        <input type="tel" placeholder="+91 XXXXXXXXXX" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none" class="p-phone">
+      </div>
+    </div>
+  `).join('');
+});
+
+// Trigger default
+document.getElementById('regEvent').dispatchEvent(new Event('change'));
+
+function generateCode() {
+  return String(Math.floor(10000 + Math.random() * 90000));
+}
+
+async function submitRegistration() {
+  const college = document.getElementById('regCollege').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const leader = document.getElementById('regLeader').value.trim();
+  const event = document.getElementById('regEvent').value;
+  if(!college||!email||!leader||!event) {
+    showToast('Please fill in all required fields');
+    return;
+  }
+  const participants = [...document.querySelectorAll('.p-name')].map((el,i)=>({
+    name: el.value,
+    phone: document.querySelectorAll('.p-phone')[i]?.value
+  }));
+
+  try {
+    const response = await fetch('/api/public/registrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        college,
+        email,
+        leader,
+        event,
+        participants,
+        faculty: document.getElementById('regFaculty').value,
+        facultyPhone: document.getElementById('regFacultyPhone').value,
+        address: document.getElementById('regAddress').value
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Registration failed');
+    document.getElementById('regCodeDisplay').textContent = data.registration.code;
+    document.getElementById('successModal').classList.add('active');
+  } catch (error) {
+    showToast(error.message || 'Registration failed');
+  }
+}
+
+// ============ REVEAL ============
+function initReveal() {
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible') });
+  },{threshold:0.1});
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el=>obs.observe(el));
+}
+
+// ============ CURSOR ============
+const cursor = document.getElementById('cursor');
+const cursorTrail = document.getElementById('cursorTrail');
+let mx=0,my=0,tx=0,ty=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px'});
+setInterval(()=>{tx+=(mx-tx)*0.12;ty+=(my-ty)*0.12;cursorTrail.style.left=tx+'px';cursorTrail.style.top=ty+'px'},16);
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cursor.style.transform='translate(-50%,-50%) scale(2)';cursorTrail.style.transform='translate(-50%,-50%) scale(1.5)'});
+  el.addEventListener('mouseleave',()=>{cursor.style.transform='translate(-50%,-50%) scale(1)';cursorTrail.style.transform='translate(-50%,-50%) scale(1)'});
+});
+
+// ============ TOAST ============
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ============ NAVBAR SCROLL ============
+window.addEventListener('scroll',()=>{
+  const nav = document.getElementById('navbar');
+  nav.style.background = window.scrollY > 50 ? 'rgba(6,8,16,0.95)' : 'rgba(6,8,16,0.7)';
+});
+
+// ============ COUNTER ANIMATION ============
+function animateCounters() {
+  document.querySelectorAll('.stat-num').forEach(el=>{
+    const target = el.textContent;
+    const num = parseInt(target.replace(/[^0-9]/g,''));
+    if(!num) return;
+    let cur = 0;
+    const prefix = target.match(/^[^0-9]*/)[0];
+    const suffix = target.match(/[^0-9]*$/)[0];
+    const step = Math.ceil(num/50);
+    const interval = setInterval(()=>{
+      cur = Math.min(cur+step, num);
+      el.textContent = prefix + cur + suffix;
+      if(cur>=num) clearInterval(interval);
+    },30);
+  });
+}
+const heroObs = new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting) animateCounters();
+},{threshold:0.5});
+heroObs.observe(document.getElementById('hero'));
+
+// ============ INIT ============
+renderEvents();
+renderTimeline();
+renderTeam();
+initReveal();
+</script>
+<script>
+(async function syncCMSFromBackend(){
+  try {
+    const response = await fetch('/api/public/site');
+    const data = await response.json();
+    if (!response.ok || !data.settings) return;
+
+    const s = data.settings || {};
+    const tl = data.timeline || [];
+    const set = (id,val) => { const el=document.getElementById(id); if(el&&val) el.textContent=val; };
+
+    set('heroTitle', s.eventName);
+    set('heroSubtitle', s.eventSubtitle);
+    set('heroDesc', s.heroDesc);
+    set('statTeams', s.statTeams);
+    set('statEvents', s.statEvents);
+    set('statColleges', s.statColleges);
+    set('statPrize', s.statPrize);
+    set('collegeName', (s.eventName||'NEXUS')+' 2026');
+    document.getElementById('collegeLogo').textContent = (s.eventName||'N')[0];
+    set('aboutTitle', s.aboutTitle);
+    document.getElementById('aboutTitle') && (document.getElementById('aboutTitle').textContent = s.aboutTitle||'');
+    const aboutDescEl = document.querySelector('#about .section-sub');
+    if(aboutDescEl && s.aboutDesc) aboutDescEl.textContent = s.aboutDesc;
+    set('collegeFullName', s.collegeName);
+    set('collegeDept', s.department);
+    set('collegeLogoLarge', (s.collegeName||'BA').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase());
+    set('prize1', s.prize1);
+    set('prize2', s.prize2);
+    set('prize3', s.prize3);
+    set('prizesTitle', s.prizesTitle);
+    set('eventsTag', s.eventsSectionTag);
+    set('eventsTitle', s.eventsSectionTitle);
+    set('eventsDesc', s.eventsSectionDesc);
+    set('footerCollege', s.footerCollege);
+    const footerDescEl = document.getElementById('footerDesc');
+    if(footerDescEl && s.footerDesc) footerDescEl.textContent = s.footerDesc;
+
+    if (Array.isArray(s.events) && s.events.length) {
+      EVENTS.splice(0, EVENTS.length, ...s.events.map((event) => ({
+        ...event,
+        deptColor: event.deptColor || '#f5a623',
+        badgeBg: event.badgeBg || 'rgba(245,166,35,0.1)',
+        badgeColor: event.badgeColor || '#f5a623',
+        imageUrl: event.imageUrl || '',
+        rounds: (event.rounds || []).map((round) => ({
+          ...round,
+          color: round.color || '#f5a623'
+        })),
+        rules: {
+          title: event.rules?.title || `${event.name} - Rules & Regulations`,
+          sections: event.rules?.sections || []
+        }
+      })));
+      renderEvents();
+    }
+
+    if (Array.isArray(s.teamMembers) && s.teamMembers.length) {
+      TEAM_MEMBERS.splice(0, TEAM_MEMBERS.length, ...s.teamMembers.map((member) => ({
+        ...member,
+        initial: member.initial || (member.name || '').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || '?',
+        bg: member.bg || 'linear-gradient(135deg,#f5a623,#e63c5c)',
+        deptColor: member.deptColor || '#f5a623',
+        imageUrl: member.imageUrl || ''
+      })));
+      renderTeam();
+    }
+
+    if(s.principalName||s.chairmanName||s.hodName){
+      const leaders = [];
+      if(s.principalName) leaders.push({name:s.principalName,role:'Principal',initial:(s.principalName[0]||'P'),bg:'linear-gradient(135deg,#f5a623,#d4890f)',dept:'Leadership',deptColor:'#f5a623'});
+      if(s.chairmanName) leaders.push({name:s.chairmanName,role:'Chairman',initial:(s.chairmanName[0]||'C'),bg:'linear-gradient(135deg,#e63c5c,#c43050)',dept:'Leadership',deptColor:'#e63c5c'});
+      if(s.hodName) leaders.push({name:s.hodName,role:'Head of Department',initial:(s.hodName[0]||'H'),bg:'linear-gradient(135deg,#00d4ff,#0099bb)',dept:'BA Dept',deptColor:'#00d4ff'});
+      const grid = document.getElementById('teamGrid');
+      if(grid){
+        const html = leaders.map(m=>`
+          <div class="team-card" style="border-color:rgba(245,166,35,0.2)">
+            <div class="team-avatar" style="background:${m.bg}">${m.initial}</div>
+            <div class="team-name">${m.name}</div>
+            <div class="team-role" style="color:var(--muted);font-size:12px">${m.role}</div>
+            <div class="team-dept" style="background:${m.deptColor}15;color:${m.deptColor}">${m.dept}</div>
+          </div>
+        `).join('');
+        grid.insertAdjacentHTML('afterbegin', html);
+      }
+    }
+
+    if(tl && tl.length) {
+      TIMELINE.splice(0, TIMELINE.length, ...tl.map(item => ({
+        time: item.time,
+        title: item.title,
+        desc: item.desc,
+        color: item.color
+      })));
+      renderTimeline();
+    }
+  } catch (error) {
+    console.error('Failed to load CMS settings', error);
+  }
+})();
+</script>
+</body>
+</html>
+<!-- CMS SYNC SCRIPT: Reads settings saved in CMS -->
+<script>
+(function syncCMSSettings(){
+  return;
+  const s = JSON.parse(localStorage.getItem('nexus_settings')||'null');
+  const tl = JSON.parse(localStorage.getItem('nexus_timeline')||'null');
+  if(!s) return;
+  const set = (id,val) => { const el=document.getElementById(id); if(el&&val) el.textContent=val; };
+  const setVal = (id,val) => { const el=document.getElementById(id); if(el&&val) el.value=val; };
+  const setHTML = (id,val) => { const el=document.getElementById(id); if(el&&val) el.innerHTML=val; };
+  // Hero
+  set('heroTitle', s.eventName);
+  set('heroSubtitle', s.eventSubtitle);
+  set('heroDesc', s.heroDesc);
+  set('statTeams', s.statTeams);
+  set('statEvents', s.statEvents);
+  set('statColleges', s.statColleges);
+  set('statPrize', s.statPrize);
+  // Nav
+  set('collegeName', (s.eventName||'NEXUS')+' 2026');
+  document.getElementById('collegeLogo').textContent = (s.eventName||'N')[0];
+  // About
+  set('aboutTitle', s.aboutTitle);
+  document.getElementById('aboutTitle') && (document.getElementById('aboutTitle').textContent = s.aboutTitle||'');
+  const aboutDescEl = document.querySelector('#about .section-sub');
+  if(aboutDescEl && s.aboutDesc) aboutDescEl.textContent = s.aboutDesc;
+  // College
+  set('collegeFullName', s.collegeName);
+  set('collegeDept', s.department);
+  set('collegeLogoLarge', (s.collegeName||'BA').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase());
+  // Prizes
+  set('prize1', s.prize1);
+  set('prize2', s.prize2);
+  set('prize3', s.prize3);
+  set('prizesTitle', s.prizesTitle);
+  // Footer
+  set('footerCollege', s.footerCollege);
+  const footerDescEl = document.getElementById('footerDesc');
+  if(footerDescEl && s.footerDesc) footerDescEl.textContent = s.footerDesc;
+  // Leadership — inject into team section if set
+  if(s.principalName||s.chairmanName||s.hodName){
+    const leaders = [];
+    if(s.principalName) leaders.push({name:s.principalName,role:'Principal',initial:(s.principalName[0]||'P'),bg:'linear-gradient(135deg,#f5a623,#d4890f)',dept:'Leadership',deptColor:'#f5a623'});
+    if(s.chairmanName) leaders.push({name:s.chairmanName,role:'Chairman',initial:(s.chairmanName[0]||'C'),bg:'linear-gradient(135deg,#e63c5c,#c43050)',dept:'Leadership',deptColor:'#e63c5c'});
+    if(s.hodName) leaders.push({name:s.hodName,role:'Head of Department',initial:(s.hodName[0]||'H'),bg:'linear-gradient(135deg,#00d4ff,#0099bb)',dept:'BA Dept',deptColor:'#00d4ff'});
+    // Prepend to team grid
+    const grid = document.getElementById('teamGrid');
+    if(grid){
+      const html = leaders.map(m=>`
+        <div class="team-card" style="border-color:rgba(245,166,35,0.2)">
+          <div class="team-avatar" style="background:${m.bg}">${m.initial}</div>
+          <div class="team-name">${m.name}</div>
+          <div class="team-role" style="color:var(--muted);font-size:12px">${m.role}</div>
+          <div class="team-dept" style="background:${m.deptColor}15;color:${m.deptColor}">${m.dept}</div>
+        </div>
+      `).join('');
+      grid.insertAdjacentHTML('afterbegin', html);
+    }
+  }
+  // Timeline from CMS
+  if(tl && tl.length) {
+    // Override TIMELINE variable and re-render
+    window._cmsTimeline = tl;
+  }
+})();
+// Override timeline render to use CMS data if available
+const _origRenderTimeline = renderTimeline;
+function renderTimeline() {
+  if(window._cmsTimeline) {
+    // Temporarily swap
+    const orig = window.TIMELINE;
+    window.TIMELINE = window._cmsTimeline;
+    _origRenderTimeline();
+    window.TIMELINE = orig;
+  } else {
+    _origRenderTimeline();
+  }
+}
+</script>

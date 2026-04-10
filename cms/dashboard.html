@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard — NEXUS CMS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header">
+    <h1>Dashboard</h1>
+    <p>Overview of NEXUS 2026 — The Leadership Shift</p>
+  </div>
+  <div class="stat-grid" id="statsGrid"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div class="cms-card">
+      <div class="cms-card-title">📋 Recent Registrations</div>
+      <table class="cms-table" id="recentRegsTable">
+        <thead><tr><th>Code</th><th>College</th><th>Event</th><th>Time</th></tr></thead>
+        <tbody id="recentRegsTbody"></tbody>
+      </table>
+    </div>
+    <div class="cms-card">
+      <div class="cms-card-title">📜 Recent Activity</div>
+      <table class="cms-table">
+        <thead><tr><th>Action</th><th>User</th><th>Time</th></tr></thead>
+        <tbody id="recentAuditTbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
+    <div class="cms-card">
+      <div class="cms-card-title">🏆 Top Events by Registrations</div>
+      <div id="eventBreakdown"></div>
+    </div>
+    <div class="cms-card">
+      <div class="cms-card-title">🏫 Top Colleges</div>
+      <div id="collegeBreakdown"></div>
+    </div>
+    <div class="cms-card">
+      <div class="cms-card-title">⚡ Quick Actions</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <a href="registrations.html" class="cms-btn cms-btn-primary" style="text-align:center;text-decoration:none">View All Registrations</a>
+        <a href="scores.html" class="cms-btn cms-btn-primary" style="text-align:center;text-decoration:none;background:rgba(0,212,255,0.1);color:#00d4ff">Enter Scores</a>
+        <a href="championship.html" class="cms-btn cms-btn-primary" style="text-align:center;text-decoration:none;background:rgba(16,185,129,0.1);color:#10b981">View Rankings</a>
+        <a href="settings.html" class="cms-btn cms-btn-primary" style="text-align:center;text-decoration:none;background:rgba(168,85,247,0.1);color:#a855f7">Edit Landing Page</a>
+        <a href="../index.html" target="_blank" class="cms-btn cms-btn-primary" style="text-align:center;text-decoration:none;background:rgba(245,166,35,0.1);color:#f5a623">Preview Website →</a>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+(async function () {
+  const user = await NexusCMS.initPage('dashboard');
+  if (!user) return;
+
+  await NexusCMS.addAuditLog('Viewed Dashboard');
+
+  const [regs, scores, auditLogs] = await Promise.all([
+    NexusCMS.fetchRegistrations(),
+    NexusCMS.fetchScores(),
+    NexusCMS.fetchAuditLog()
+  ]);
+
+  const statsData = [
+    { num: regs.length, label: 'Total Registrations', color: '#f5a623' },
+    { num: [...new Set(regs.map((r) => r.college))].length, label: 'Colleges', color: '#00d4ff' },
+    { num: Object.keys(scores).length, label: 'Events Scored', color: '#e63c5c' },
+    {
+      num: regs.filter((r) => {
+        const created = new Date(r.timestamp);
+        const now = new Date();
+        return created.toDateString() === now.toDateString();
+      }).length,
+      label: "Today's Registrations",
+      color: '#10b981'
+    }
+  ];
+
+  document.getElementById('statsGrid').innerHTML = statsData.map((item) => `
+    <div class="stat-card">
+      <div class="stat-card-num" style="color:${item.color}">${item.num}</div>
+      <div class="stat-card-label">${item.label}</div>
+    </div>
+  `).join('');
+
+  const recentRegs = [...regs].reverse().slice(0, 6);
+  document.getElementById('recentRegsTbody').innerHTML = recentRegs.length
+    ? recentRegs.map((r) => `
+      <tr>
+        <td><span class="badge badge-gold">#${r.code}</span></td>
+        <td>${r.college}</td>
+        <td style="font-size:11px;color:var(--muted)">${r.event}</td>
+        <td style="font-size:11px;color:var(--muted)">${new Date(r.timestamp).toLocaleTimeString()}</td>
+      </tr>
+    `).join('')
+    : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">No registrations yet</td></tr>';
+
+  const recentAudit = auditLogs.slice(0, 6);
+  document.getElementById('recentAuditTbody').innerHTML = recentAudit.length
+    ? recentAudit.map((entry) => `
+      <tr>
+        <td style="font-size:12px">${entry.action}</td>
+        <td style="font-size:12px;color:var(--muted)">${entry.user}</td>
+        <td style="font-size:11px;color:var(--muted)">${new Date(entry.timestamp).toLocaleTimeString()}</td>
+      </tr>
+    `).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px">No activity</td></tr>';
+
+  const eventCounts = {};
+  regs.forEach((registration) => {
+    eventCounts[registration.event] = (eventCounts[registration.event] || 0) + 1;
+  });
+  const sortedEvents = Object.entries(eventCounts).sort((a, b) => b[1] - a[1]);
+  const maxEvent = sortedEvents[0] ? sortedEvents[0][1] : 1;
+
+  document.getElementById('eventBreakdown').innerHTML = sortedEvents.length
+    ? sortedEvents.slice(0, 6).map(([eventName, count]) => `
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${eventName}</span><span style="color:var(--accent)">${count}</span></div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:100px;height:4px"><div style="background:var(--accent);height:4px;border-radius:100px;width:${(count / maxEvent * 100).toFixed(0)}%;transition:width 1s"></div></div>
+      </div>
+    `).join('')
+    : '<p style="color:var(--muted);font-size:13px">No data yet</p>';
+
+  const collegeCounts = {};
+  regs.forEach((registration) => {
+    collegeCounts[registration.college] = (collegeCounts[registration.college] || 0) + 1;
+  });
+  const sortedColleges = Object.entries(collegeCounts).sort((a, b) => b[1] - a[1]);
+  const maxCollege = sortedColleges[0] ? sortedColleges[0][1] : 1;
+
+  document.getElementById('collegeBreakdown').innerHTML = sortedColleges.length
+    ? sortedColleges.slice(0, 6).map(([college, count]) => `
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${college}</span><span style="color:#00d4ff">${count}</span></div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:100px;height:4px"><div style="background:#00d4ff;height:4px;border-radius:100px;width:${(count / maxCollege * 100).toFixed(0)}%;transition:width 1s"></div></div>
+      </div>
+    `).join('')
+    : '<p style="color:var(--muted);font-size:13px">No data yet</p>';
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[App] Service Worker registered:', reg);
+        setInterval(() => {
+          reg.update().catch(err => console.warn('[App] Update check failed:', err));
+        }, 60000);
+      })
+      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

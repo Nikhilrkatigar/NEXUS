@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Audit Log - NEXUS CMS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><h1>Audit Log</h1><p>Track all CMS actions with user and timestamp</p></div>
+    <div style="display:flex;gap:10px">
+      <button class="cms-btn cms-btn-primary" onclick="exportAudit()">Export CSV</button>
+      <button class="cms-btn cms-btn-danger" onclick="clearAudit()">Clear Log</button>
+    </div>
+  </div>
+  <div class="cms-card" style="margin-bottom:16px">
+    <div style="display:flex;gap:12px;align-items:center">
+      <input type="text" id="auditSearch" placeholder="Search actions, users..." style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;flex:1" oninput="renderAudit()">
+      <span id="auditCount" style="font-size:13px;color:var(--muted)"></span>
+    </div>
+  </div>
+  <div class="cms-card">
+    <table class="cms-table" id="auditTable">
+      <thead><tr><th>#</th><th>Timestamp</th><th>Action</th><th>User</th><th>IP</th></tr></thead>
+      <tbody id="auditTbody"></tbody>
+    </table>
+  </div>
+</main>
+<script>
+let logs = [];
+
+function renderAudit() {
+  const search = document.getElementById('auditSearch').value.toLowerCase();
+  const filtered = search
+    ? logs.filter((entry) => entry.action.toLowerCase().includes(search) || entry.user.toLowerCase().includes(search))
+    : logs;
+
+  document.getElementById('auditCount').textContent = `${filtered.length} entries`;
+  document.getElementById('auditTbody').innerHTML = filtered.length
+    ? filtered.map((entry, index) => `
+      <tr>
+        <td style="color:var(--muted);font-size:11px">${index + 1}</td>
+        <td style="font-size:12px;color:var(--muted);white-space:nowrap">${new Date(entry.timestamp).toLocaleString()}</td>
+        <td style="font-size:13px">${entry.action}</td>
+        <td><span class="badge badge-blue" style="font-size:10px">${entry.user}</span></td>
+        <td style="font-size:12px;color:var(--muted);font-family:monospace">${entry.ip || '-'}</td>
+      </tr>
+    `).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">No audit entries</td></tr>';
+}
+
+function exportAudit() {
+  const csv = [['#', 'Timestamp', 'Action', 'User', 'IP'], ...logs.map((entry, index) => [index + 1, entry.timestamp, entry.action, entry.user, entry.ip || '-'])]
+    .map((row) => row.map((value) => `"${value}"`).join(','))
+    .join('\n');
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  link.download = 'nexus_audit.csv';
+  link.click();
+  showToast('Audit log exported!');
+}
+
+async function clearAudit() {
+  if (!confirm('Clear all audit log entries?')) return;
+  await NexusCMS.clearAuditLog();
+  logs = await NexusCMS.fetchAuditLog();
+  showToast('Audit log cleared');
+  renderAudit();
+}
+
+(async function () {
+  const user = await NexusCMS.initPage('audit', { requiredRoles: ['superadmin'] });
+  if (!user) return;
+
+  await NexusCMS.addAuditLog('Viewed Audit Log');
+  logs = await NexusCMS.fetchAuditLog();
+  renderAudit();
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[App] Service Worker registered:', reg);
+        setInterval(() => {
+          reg.update().catch(err => console.warn('[App] Update check failed:', err));
+        }, 60000);
+      })
+      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

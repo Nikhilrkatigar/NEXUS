@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Registrations - NEXUS CMS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><h1>Registrations</h1><p>All registered teams and participants</p></div>
+    <div style="display:flex;gap:10px">
+      <button class="cms-btn cms-btn-primary" onclick="exportCSV()">Export CSV</button>
+    </div>
+  </div>
+  <div class="cms-card" style="margin-bottom:20px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="searchInput" placeholder="Search by college, event, code..." style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;flex:1;min-width:200px" oninput="renderTable()">
+      <select id="eventFilter" style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;color:#f0f0f0;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;font-weight:500" onchange="renderTable()">
+        <option value="">All Events</option>
+      </select>
+      <div style="font-size:13px;color:var(--muted)" id="countLabel"></div>
+    </div>
+  </div>
+  <div class="cms-card">
+    <table class="cms-table" id="regsTable">
+      <thead><tr>
+        <th>#</th><th>Code</th><th>College</th><th>Event</th><th>Group Leader</th><th>Faculty</th><th>Participants</th><th>Date</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="regsTbody"></tbody>
+    </table>
+  </div>
+</main>
+
+<div id="detailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:800;align-items:center;justify-content:center;backdrop-filter:blur(10px)">
+  <div style="background:#111827;border:1px solid rgba(245,166,35,0.2);border-radius:20px;padding:40px;max-width:560px;width:90%;position:relative;max-height:80vh;overflow-y:auto">
+    <button onclick="document.getElementById('detailModal').style.display='none'" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">x</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<script>
+let regs = [];
+
+function renderTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const eventFilter = document.getElementById('eventFilter').value;
+  const filtered = regs.filter((registration) => {
+    const matchSearch =
+      !search ||
+      registration.college.toLowerCase().includes(search) ||
+      registration.event.toLowerCase().includes(search) ||
+      registration.code.toLowerCase().includes(search) ||
+      (registration.leader || '').toLowerCase().includes(search);
+    const matchEvent = !eventFilter || registration.event === eventFilter;
+    return matchSearch && matchEvent;
+  });
+
+  document.getElementById('countLabel').textContent = `${filtered.length} registration${filtered.length !== 1 ? 's' : ''}`;
+  document.getElementById('regsTbody').innerHTML = filtered.length
+    ? filtered.map((registration, index) => `
+      <tr>
+        <td style="color:var(--muted);font-size:12px">${index + 1}</td>
+        <td><span class="badge badge-gold">#${registration.code}</span></td>
+        <td style="font-weight:500">${registration.college}</td>
+        <td><span class="badge badge-blue" style="font-size:10px;white-space:nowrap">${registration.event}</span></td>
+        <td style="font-size:12px">${registration.leader || '-'}</td>
+        <td style="font-size:12px;color:var(--muted)">${registration.faculty || '-'}</td>
+        <td style="font-size:12px;color:var(--muted)">${(registration.participants || []).filter((participant) => participant.name).length} participant(s)</td>
+        <td style="font-size:11px;color:var(--muted)">${new Date(registration.timestamp).toLocaleDateString()}</td>
+        <td><button class="cms-btn cms-btn-sm" style="background:rgba(245,166,35,0.1);color:#f5a623;border:none;cursor:pointer" onclick="viewDetail('${registration.id}')">View</button></td>
+      </tr>
+    `).join('')
+    : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">No registrations found</td></tr>';
+}
+
+function viewDetail(id) {
+  const registration = regs.find((entry) => String(entry.id) === String(id));
+  if (!registration) return;
+
+  document.getElementById('detailContent').innerHTML = `
+    <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#f5a623;margin-bottom:8px">Registration Details</div>
+    <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:#f5a623;letter-spacing:0.15em;padding:16px;background:rgba(245,166,35,0.06);border-radius:12px;border:1px dashed rgba(245,166,35,0.2);text-align:center;margin-bottom:24px">#${registration.code}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      ${[
+        ['College', registration.college],
+        ['Event', registration.event],
+        ['Email', registration.email || '-'],
+        ['Faculty', registration.faculty || '-'],
+        ['Group Leader', registration.leader || '-'],
+        ['Registered', new Date(registration.timestamp).toLocaleString()]
+      ].map(([label, value]) => `
+        <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">${label}</div>
+          <div style="font-size:13px;font-weight:500">${value}</div>
+        </div>
+      `).join('')}
+    </div>
+    ${(registration.participants || []).filter((participant) => participant.name).length ? `
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted)">Participants</div>
+      ${(registration.participants || []).filter((participant) => participant.name).map((participant, index) => `
+        <div style="display:flex;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:6px;font-size:13px">
+          <span>${index + 1}. ${participant.name}</span><span style="color:var(--muted)">${participant.phone || '-'}</span>
+        </div>
+      `).join('')}
+    ` : ''}
+  `;
+
+  document.getElementById('detailModal').style.display = 'flex';
+}
+
+async function exportCSV() {
+  const headers = ['Code', 'College', 'Address', 'Email', 'Event', 'Faculty', 'Group Leader', 'Participants', 'Date'];
+  const rows = regs.map((registration) => [
+    registration.code,
+    registration.college,
+    registration.address || '',
+    registration.email || '',
+    registration.event,
+    registration.faculty || '',
+    registration.leader || '',
+    (registration.participants || []).filter((participant) => participant.name).map((participant) => participant.name).join('; '),
+    new Date(registration.timestamp).toLocaleString()
+  ]);
+  const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'nexus_registrations.csv';
+  link.click();
+  await NexusCMS.addAuditLog('Exported registrations CSV');
+  showToast('Registrations exported!');
+}
+
+(async function () {
+  const user = await NexusCMS.initPage('registrations');
+  if (!user) return;
+
+  await NexusCMS.addAuditLog('Viewed Registrations');
+  regs = await NexusCMS.fetchRegistrations();
+
+  const events = [...new Set(regs.map((registration) => registration.event))];
+  events.forEach((eventName) => {
+    const option = document.createElement('option');
+    option.value = eventName;
+    option.textContent = eventName;
+    document.getElementById('eventFilter').appendChild(option);
+  });
+
+  renderTable();
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[App] Service Worker registered:', reg);
+        setInterval(() => {
+          reg.update().catch(err => console.warn('[App] Update check failed:', err));
+        }, 60000);
+      })
+      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Timeline - NEXUS CMS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+<style>
+.tl-edit-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:12px;position:relative}
+.tl-edit-card .form-row{margin-bottom:0}
+</style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><h1>Timeline Editor</h1><p>Edit the animated event schedule shown on the landing page</p></div>
+    <div style="display:flex;gap:10px">
+      <button class="cms-btn cms-btn-primary" onclick="addTimelineItem()">Add Item</button>
+      <button class="cms-btn cms-btn-primary" onclick="saveTimeline()">Save Timeline</button>
+    </div>
+  </div>
+  <div id="timelineEditor"></div>
+</main>
+<script>
+let timelineData = [];
+
+function renderEditor() {
+  document.getElementById('timelineEditor').innerHTML = timelineData.map((item, index) => `
+    <div class="tl-edit-card" id="tlcard_${item.id}">
+      <div style="display:grid;grid-template-columns:120px 1fr 1fr 120px auto;gap:12px;align-items:end">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Time</label>
+          <input type="text" value="${item.time}" placeholder="9:00 AM" oninput="timelineData[${index}].time=this.value">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Title</label>
+          <input type="text" value="${item.title}" placeholder="Event title" oninput="timelineData[${index}].title=this.value">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Description</label>
+          <input type="text" value="${item.desc}" placeholder="Brief description" oninput="timelineData[${index}].desc=this.value">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Color</label>
+          <input type="color" value="${item.color}" style="height:44px;border-radius:8px;cursor:pointer" oninput="timelineData[${index}].color=this.value">
+        </div>
+        <button class="cms-btn cms-btn-danger cms-btn-sm" onclick="removeTimelineItem('${item.id}')" style="margin-bottom:0">x</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addTimelineItem() {
+  timelineData.push({ id: String(Date.now()), time: '', title: '', desc: '', color: '#f5a623' });
+  renderEditor();
+}
+
+function removeTimelineItem(id) {
+  timelineData = timelineData.filter((item) => String(item.id) !== String(id));
+  renderEditor();
+}
+
+async function saveTimeline() {
+  await NexusCMS.updateTimeline(timelineData);
+  showToast('Timeline saved! Changes visible on landing page.');
+}
+
+(async function () {
+  const user = await NexusCMS.initPage('timeline', { requiredRoles: ['superadmin'] });
+  if (!user) return;
+
+  timelineData = await NexusCMS.fetchTimeline();
+  renderEditor();
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[App] Service Worker registered:', reg);
+        setInterval(() => {
+          reg.update().catch(err => console.warn('[App] Update check failed:', err));
+        }, 60000);
+      })
+      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

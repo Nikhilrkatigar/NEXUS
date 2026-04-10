@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register Team - NEXUS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="Register your team for NEXUS 2026">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060810;
+  --bg2: #0b0f1a;
+  --surface: #111827;
+  --accent: #f5a623;
+  --accent2: #e63c5c;
+  --accent3: #00d4ff;
+  --text: #f0f0f0;
+  --muted: #7a8499;
+  --border: rgba(245,166,35,0.2);
+  --success: #10b981;
+  --error: #e63c5c;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: rgba(6, 8, 16, 0.8);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 40px;
+  text-align: center;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.logo-mark {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  color: #000;
+}
+
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+main {
+  flex: 1;
+  padding: 40px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.form-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+label .required {
+  color: var(--error);
+}
+
+input, select, textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+select {
+  background: rgba(17, 24, 39, 0.8);
+  color: #f0f0f0;
+}
+
+select option {
+  background: #111827;
+  color: #f0f0f0;
+}
+
+select option:checked {
+  background: linear-gradient(135deg, #f5a623, #d4890f);
+  color: #000;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(245, 166, 35, 0.4);
+  background: rgba(245, 166, 35, 0.04);
+}
+
+select:focus {
+  background: rgba(17, 24, 39, 0.9);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-row.full {
+  grid-template-columns: 1fr;
+}
+
+.event-info {
+  background: rgba(245, 166, 35, 0.08);
+  border: 1px solid rgba(245, 166, 35, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.event-info.error {
+  background: rgba(230, 60, 92, 0.08);
+  border-color: rgba(230, 60, 92, 0.2);
+  color: var(--error);
+}
+
+.event-info.success {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: var(--success);
+}
+
+.dept-requirement {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin: 6px 8px 6px 0;
+  font-size: 12px;
+}
+
+.participants-container {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.participant-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.participant-num {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.btn {
+  background: linear-gradient(135deg, var(--accent), #d4890f);
+  color: #000;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 12px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(245, 166, 35, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 10px 16px;
+  margin: 4px 0;
+  font-size: 12px;
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(230, 60, 92, 0.2);
+  color: var(--error);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-remove:hover {
+  background: rgba(230, 60, 92, 0.4);
+}
+
+.message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: none;
+  font-size: 13px;
+}
+
+.message.show {
+  display: block;
+}
+
+.message.success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--success);
+}
+
+.message.error {
+  background: rgba(230, 60, 92, 0.1);
+  border: 1px solid rgba(230, 60, 92, 0.3);
+  color: var(--error);
+}
+
+.validation-status {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+
+.status-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.status-icon.pending {
+  background: rgba(122, 132, 153, 0.3);
+  color: var(--muted);
+}
+
+.status-icon.done {
+  background: rgba(16, 185, 129, 0.3);
+  color: var(--success);
+}
+
+.status-icon.error {
+  background: rgba(230, 60, 92, 0.3);
+  color: var(--error);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+  justify-content: flex-end;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, var(--accent), #d4890f);
+  padding: 14px 32px;
+  font-size: 15px;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text);
+  padding: 14px 32px;
+  font-size: 15px;
+}
+
+.btn-cancel:hover {
+  border-color: var(--muted);
+}
+
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: 20px 40px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  main {
+    padding: 20px;
+  }
+
+  .form-container {
+    padding: 24px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  header {
+    padding: 16px 20px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="header-logo">
+      <div class="logo-mark">N</div>
+      <div>
+        <h1>NEXUS Registration</h1>
+        <div class="subtitle">The Leadership Shift — Team Registration Form</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="form-container">
+      <div class="message" id="message"></div>
+
+      <form id="registrationForm">
+        <!-- Basic Information -->
+        <div class="form-section">
+          <div class="section-title">📋 Team Information</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>College Name <span class="required">*</span></label>
+              <input type="text" id="college" name="college" placeholder="Your College" required>
+            </div>
+            <div class="form-group">
+              <label>Email <span class="required">*</span></label>
+              <input type="email" id="email" name="email" placeholder="team@college.edu" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Address</label>
+              <textarea id="address" name="address" placeholder="Team office/college address"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Selection -->
+        <div class="form-section">
+          <div class="section-title">🎯 Event Details</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Select Event <span class="required">*</span></label>
+              <select id="event" name="event" required onchange="updateEventInfo()">
+                <option value="">-- Choose an Event --</option>
+              </select>
+              <div class="event-info" id="eventInfo" style="display: none;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Leader -->
+        <div class="form-section">
+          <div class="section-title">👤 Team Leader</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Leader Name <span class="required">*</span></label>
+              <input type="text" id="leader" name="leader" placeholder="Team leader name" required>
+            </div>
+            <div class="form-group">
+              <label>Faculty Coordinator Name</label>
+              <input type="text" id="faculty" name="faculty" placeholder="Faculty coordinator">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Faculty Phone</label>
+              <input type="tel" id="facultyPhone" name="facultyPhone" placeholder="+91 XXXXXXXXXX">
+            </div>
+          </div>
+        </div>
+
+        <!-- Participants -->
+        <div class="form-section">
+          <div class="section-title">👥 Team Participants</div>
+          <div class="validation-status" id="validationStatus"></div>
+          <div class="participants-container" id="participantsContainer"></div>
+          <button type="button" class="btn btn-secondary" onclick="addParticipant()">+ Add Participant</button>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-cancel" onclick="resetForm()">Clear</button>
+          <button type="submit" class="btn btn-submit">Register Team</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2026 NEXUS - The Leadership Shift • All Rights Reserved</p>
+  </footer>
+</div>
+
+<script>
+let eventRequirements = {};
+let maxParticipants = 0;
+
+// Load events on page load
+document.addEventListener('DOMContentLoaded', loadEvents);
+
+async function loadEvents() {
+  try {
+    const response = await fetch('/api/public/events');
+    const data = await response.json();
+    
+    eventRequirements = data.events.reduce((acc, event) => {
+      acc[event.key] = event;
+      return acc;
+    }, {});
+
+    const eventSelect = document.getElementById('event');
+    data.events.forEach(event => {
+      const option = document.createElement('option');
+      option.value = event.key;
+      option.textContent = event.name;
+      eventSelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Failed to load events:', error);
+    showMessage('Failed to load event list', 'error');
+  }
+}
+
+function updateEventInfo() {
+  const eventKey = document.getElementById('event').value;
+  const eventInfo = document.getElementById('eventInfo');
+
+  if (!eventKey) {
+    eventInfo.style.display = 'none';
+    document.getElementById('participantsContainer').innerHTML = '';
+    return;
+  }
+
+  const event = eventRequirements[eventKey];
+  if (!event) return;
+
+  maxParticipants = event.totalMembers || 0;
+
+  let html = `<strong>${event.name}</strong><br>`;
+  html += `${event.description}<br>`;
+
+  if (event.departmentRequirements) {
+    html += '<div style="margin-top: 8px;">Team Requirements:<br>';
+    Object.entries(event.departmentRequirements).forEach(([dept, req]) => {
+      html += `<div class="dept-requirement">${dept}: ${req.min}-${req.max}</div>`;
+    });
+    html += '</div>';
+  }
+
+  eventInfo.innerHTML = html;
+  eventInfo.style.display = 'block';
+
+  // Regenerate participant fields
+  document.getElementById('participantsContainer').innerHTML = '';
+  for (let i = 0; i < Math.min(5, maxParticipants); i++) {
+    addParticipant();
+  }
+
+  updateValidationStatus();
+}
+
+function addParticipant() {
+  const container = document.getElementById('participantsContainer');
+  const index = container.children.length;
+
+  if (index >= maxParticipants && maxParticipants > 0) {
+    showMessage(`Maximum ${maxParticipants} participants allowed`, 'error');
+    return;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'participant-card';
+  card.innerHTML = `
+    <div class="participant-num">Participant ${index + 1}</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" placeholder="Full name" class="participant-name" oninput="updateValidationStatus()">
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="tel" placeholder="+91 XXXXXXXXXX" class="participant-phone">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Department</label>
+        <select class="participant-dept" oninput="updateValidationStatus()">
+          <option value="">-- Select --</option>
+          <option value="HR">HR</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Finance">Finance</option>
+        </select>
+      </div>
+    </div>
+    <button type="button" class="btn-remove" onclick="this.parentElement.remove(); updateValidationStatus()">Remove</button>
+  `;
+
+  container.appendChild(card);
+  updateValidationStatus();
+}
+
+function updateValidationStatus() {
+  const eventKey = document.getElementById('event').value;
+  if (!eventKey) return;
+
+  const event = eventRequirements[eventKey];
+  const container = document.getElementById('participantsContainer');
+  const participants = Array.from(container.querySelectorAll('.participant-card'));
+  const names = participants.filter(p => p.querySelector('.participant-name').value.trim()).length;
+  const depts = {};
+
+  participants.forEach(p => {
+    const dept = p.querySelector('.participant-dept').value;
+    if (dept) depts[dept] = (depts[dept] || 0) + 1;
+  });
+
+  const statusHtml = `
+    <div class="status-item">
+      <div class="status-icon ${names === event.totalMembers ? 'done' : 'pending'}">
+        ${names === event.totalMembers ? '✓' : names}
+      </div>
+      <span>${names}/${event.totalMembers} Members</span>
+    </div>
+  `;
+
+  if (event.departmentRequirements) {
+    let deptHtml = statusHtml;
+    Object.entries(event.departmentRequirements).forEach(([dept, req]) => {
+      const count = depts[dept] || 0;
+      const status = count === req.min ? 'done' : 'pending';
+      deptHtml += `
+        <div class="status-item">
+          <div class="status-icon ${status}">
+            ${count}
+          </div>
+          <span>${dept} (${req.min})</span>
+        </div>
+      `;
+    });
+    document.getElementById('validationStatus').innerHTML = deptHtml;
+  } else {
+    document.getElementById('validationStatus').innerHTML = statusHtml;
+  }
+}
+
+function showMessage(text, type = 'error') {
+  const msg = document.getElementById('message');
+  msg.textContent = text;
+  msg.className = `message show ${type}`;
+  setTimeout(() => msg.classList.remove('show'), 5000);
+}
+
+function resetForm() {
+  document.getElementById('registrationForm').reset();
+  document.getElementById('participantsContainer').innerHTML = '';
+  document.getElementById('eventInfo').style.display = 'none';
+  document.getElementById('validationStatus').innerHTML = '';
+}
+
+document.getElementById('registrationForm').onsubmit = async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+  const eventKey = document.getElementById('event').value;
+
+  if (!eventKey) {
+    showMessage('Please select an event', 'error');
+    return;
+  }
+
+  const participants = Array.from(document.querySelectorAll('.participant-card')).map(card => ({
+    name: card.querySelector('.participant-name').value.trim(),
+    phone: card.querySelector('.participant-phone').value.trim(),
+    department: card.querySelector('.participant-dept').value.trim()
+  }));
+
+  const formData = {
+    college: document.getElementById('college').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    leader: document.getElementById('leader').value.trim(),
+    event: eventKey,
+    faculty: document.getElementById('faculty').value.trim(),
+    facultyPhone: document.getElementById('facultyPhone').value.trim(),
+    address: document.getElementById('address').value.trim(),
+    participants
+  };
+
+  try {
+    form.classList.add('loading');
+    const response = await fetch('/api/public/registrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Registration failed');
+    }
+
+    showMessage(`✓ Registration successful! Code: ${data.registration.code}`, 'success');
+    resetForm();
+  } catch (error) {
+    showMessage(error.message, 'error');
+  } finally {
+    form.classList.remove('loading');
+  }
+};
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[App] Service Worker registered:', reg);
+        setInterval(() => {
+          reg.update().catch(err => console.warn('[App] Update check failed:', err));
+        }, 60000);
+      })
+      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

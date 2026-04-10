@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Scores - NEXUS CMS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+<style>
+.score-input{width:70px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;text-align:center;outline:none}
+.score-input:focus{border-color:rgba(245,166,35,0.4)}
+.total-cell{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header">
+    <h1>Scores</h1>
+    <p>Enter and manage scores for each event. Rankings update automatically.</p>
+  </div>
+  <div class="cms-card" style="margin-bottom:24px">
+    <div class="form-group" style="margin-bottom:0">
+      <label>Select Event to Score</label>
+      <select id="eventSelector" onchange="loadEventScoring()" style="max-width:400px">
+        <option value="">-- Choose an Event --</option>
+        <option value="FINVERSE_R1">FINVERSE - Round 1: Link and Think</option>
+        <option value="FINVERSE_R2">FINVERSE - Round 2: Cash Clash</option>
+        <option value="FINVERSE_R3">FINVERSE - Round 3: Bid to Win</option>
+        <option value="ASVENTIQ_R1">ASVENTIQ - Round 1: IdeaNest</option>
+        <option value="ASVENTIQ_R2">ASVENTIQ - Round 2: BrandShift</option>
+        <option value="ASVENTIQ_R3">ASVENTIQ - Round 3: AdvWar</option>
+        <option value="MINDWAR_R1">MIND WAR - Round 1: Battle Argument Arena</option>
+        <option value="MINDWAR_R2">MIND WAR - Round 2: The Final Phase</option>
+        <option value="DANCE">Dance Competition</option>
+        <option value="RAMPWALK">Ramp Walk</option>
+        <option value="RISING_PALADIN">Rising Paladin</option>
+        <option value="MATCHWIZ">Matchwiz</option>
+        <option value="STARTATHON">Startathon - The Hustle Hub</option>
+      </select>
+    </div>
+  </div>
+  <div id="scoringArea"></div>
+</main>
+
+<script>
+let currentUser = null;
+let registrations = [];
+let scoresStore = {};
+
+const EVENT_CRITERIA = {
+  FINVERSE_R1: { name: 'FINVERSE - Link and Think', cols: [{ k: 'brand_id', label: 'Brand Identification', max: 20 }, { k: 'accuracy', label: 'Accuracy', max: 15 }, { k: 'response', label: 'Response', max: 15 }], total: 50 },
+  FINVERSE_R2: { name: 'FINVERSE - Cash Clash', cols: [{ k: 'allocation', label: 'Allocation Strategy', max: 15 }, { k: 'impact', label: 'Impact on Citizens', max: 15 }, { k: 'feasibility', label: 'Feasibility', max: 10 }, { k: 'response', label: 'Response', max: 10 }], total: 50 },
+  FINVERSE_R3: { name: 'FINVERSE - Bid to Win', cols: [{ k: 'strategy', label: 'Bidding Strategy', max: 25 }, { k: 'valuation', label: 'Asset Valuation', max: 25 }], total: 50 },
+  ASVENTIQ_R1: { name: 'ASVENTIQ - IdeaNest', cols: [{ k: 'innovation', label: 'Innovation of Idea', max: 15 }, { k: 'clarity', label: 'Clarity of Concept', max: 15 }, { k: 'fit', label: 'Problem-Solution Fit', max: 15 }, { k: 'feasibility', label: 'Feasibility', max: 15 }, { k: 'revenue', label: 'Revenue Model', max: 15 }], total: 75 },
+  ASVENTIQ_R2: { name: 'ASVENTIQ - BrandShift', cols: [{ k: 'creativity', label: 'Creativity and Originality', max: 15 }, { k: 'relevance', label: 'Relevance to Brand', max: 15 }, { k: 'appeal', label: 'Visual Appeal', max: 15 }, { k: 'color', label: 'Color and Symbol Meaning', max: 15 }, { k: 'explanation', label: 'Explanation Clarity', max: 15 }], total: 75 },
+  ASVENTIQ_R3: { name: 'ASVENTIQ - AdvWar', cols: [{ k: 'creativity', label: 'Creativity and Uniqueness', max: 30 }, { k: 'clarity', label: 'Clarity of Message', max: 30 }, { k: 'targeting', label: 'Audience Targeting', max: 20 }, { k: 'communication', label: 'Communication', max: 20 }], total: 100 },
+  MINDWAR_R1: { name: 'MIND WAR - Battle Argument Arena', cols: [{ k: 'content', label: 'Content and Knowledge', max: 25 }, { k: 'communication', label: 'Communication Skills', max: 20 }, { k: 'confidence', label: 'Confidence', max: 20 }, { k: 'relevance', label: 'Relevance to Case', max: 20 }, { k: 'coordination', label: 'Team Coordination', max: 15 }], total: 100 },
+  MINDWAR_R2: { name: 'MIND WAR - The Final Phase', cols: [{ k: 'presence', label: 'Presence of Mind', max: 30 }, { k: 'confidence', label: 'Confidence Under Pressure', max: 25 }, { k: 'communication', label: 'Communication', max: 25 }, { k: 'accuracy', label: 'Accuracy and Decision', max: 20 }], total: 100 },
+  DANCE: { name: 'Dance Competition', cols: [{ k: 'choreo', label: 'Choreography and Creativity', max: 50 }, { k: 'sync', label: 'Synchronization', max: 50 }, { k: 'expression', label: 'Expression and Energy', max: 50 }, { k: 'costume', label: 'Costume and Presentation', max: 50 }, { k: 'impact', label: 'Overall Impact', max: 50 }], total: 250 },
+  RAMPWALK: { name: 'Ramp Walk', cols: [{ k: 'confidence', label: 'Confidence', max: 50 }, { k: 'walk', label: 'Walk and Posture', max: 100 }, { k: 'costume', label: 'Costume', max: 50 }, { k: 'theme', label: 'Theme', max: 50 }], total: 250 },
+  RISING_PALADIN: { name: 'Rising Paladin', cols: [{ k: 'performance', label: 'Overall Performance', max: 50 }, { k: 'skill', label: 'Skill Display', max: 50 }], total: 100 },
+  MATCHWIZ: { name: 'Matchwiz', cols: [{ k: 'teamwork', label: 'Teamwork', max: 30 }, { k: 'accuracy', label: 'Accuracy', max: 40 }, { k: 'speed', label: 'Speed', max: 30 }], total: 100 },
+  STARTATHON: { name: 'Startathon - The Hustle Hub', cols: [{ k: 'idea', label: 'Business Idea', max: 30 }, { k: 'presentation', label: 'Presentation', max: 35 }, { k: 'qna', label: 'Q and A', max: 35 }], total: 100 }
+};
+
+const EVENT_NAME_MAP = {
+  FINVERSE_FINANCE: 'FINVERSE_R1',
+  ASVENTIQ_MARKETING: 'ASVENTIQ_R1',
+  MIND_WAR_HR: 'MINDWAR_R1',
+  DANCE_COMPETITION: 'DANCE',
+  RAMP_WALK: 'RAMPWALK',
+  RISING_PALADIN: 'RISING_PALADIN',
+  MATCHWIZ: 'MATCHWIZ',
+  STARTATHON_THE_HUSTLE_HUB: 'STARTATHON'
+};
+
+function normalizeEventName(value) {
+  return String(value || '').toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+function mapEventKey(eventName) {
+  return EVENT_NAME_MAP[normalizeEventName(eventName)] || null;
+}
+
+function isReadOnly() {
+  return NexusCMS.isViewer(currentUser);
+}
+
+function getEventScores(eventKey) {
+  if (!scoresStore[eventKey]) {
+    scoresStore[eventKey] = { _manual: [] };
+  }
+  if (!scoresStore[eventKey]._manual) {
+    scoresStore[eventKey]._manual = [];
+  }
+  return scoresStore[eventKey];
+}
+
+function loadEventScoring() {
+  const eventKey = document.getElementById('eventSelector').value;
+  if (!eventKey) {
+    document.getElementById('scoringArea').innerHTML = '';
+    return;
+  }
+
+  const criteria = EVENT_CRITERIA[eventKey];
+  const eventRegistrations = registrations.filter((registration) => mapEventKey(registration.event) === eventKey);
+  const eventScores = getEventScores(eventKey);
+  const manualEntries = eventScores._manual || [];
+  const readOnly = isReadOnly();
+
+  const allEntries = [
+    ...eventRegistrations.map((registration) => ({
+      id: `reg_${registration.id}`,
+      label: registration.college + ((registration.participants && registration.participants[0] && registration.participants[0].name) ? ` - ${registration.participants[0].name}` : ''),
+      regId: registration.id
+    })),
+    ...manualEntries.map((entry) => ({
+      id: `manual_${entry.id}`,
+      label: entry.label,
+      manual: true
+    }))
+  ];
+
+  let html = `
+    <div class="cms-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="cms-card-title" style="margin-bottom:4px">${criteria.name}</div>
+          <div style="font-size:12px;color:var(--muted)">${eventRegistrations.length} registered teams · Max: ${criteria.total} marks</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          ${readOnly ? '<span style="font-size:12px;color:var(--muted)">Viewer mode: read only</span>' : `<button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addManualEntry('${eventKey}')">Add Team Manually</button><button class="cms-btn cms-btn-primary" onclick="saveScoresForEvent('${eventKey}')">Save Scores</button>`}
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="cms-table" id="scoreTable_${eventKey}">
+        <thead><tr>
+          <th>Rank</th><th>Team / College</th>
+          ${criteria.cols.map((column) => `<th>${column.label}<br><span style="color:var(--accent);font-size:10px">/${column.max}</span></th>`).join('')}
+          <th>Total /${criteria.total}</th>
+          <th>Action</th>
+        </tr></thead>
+        <tbody id="scoreTbody_${eventKey}">
+  `;
+
+  allEntries.forEach((entry) => {
+    const saved = eventScores[entry.id] || {};
+    const total = criteria.cols.reduce((sum, column) => sum + (parseFloat(saved[column.k]) || 0), 0);
+    html += `
+      <tr data-entry-id="${entry.id}">
+        <td class="rank-cell" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px">-</td>
+        <td style="font-weight:500;min-width:180px">${entry.label}</td>
+        ${criteria.cols.map((column) => `<td><input class="score-input" type="number" min="0" max="${column.max}" value="${saved[column.k] || ''}" placeholder="0" data-key="${column.k}" data-max="${column.max}" oninput="updateTotals('${eventKey}')" onblur="validateScore(this)" ${readOnly ? 'disabled' : ''}></td>`).join('')}
+        <td class="total-cell" id="total_${entry.id}">${total || 0}</td>
+        <td>${entry.manual && !readOnly ? `<button class="cms-btn cms-btn-danger cms-btn-sm" onclick="removeManual('${eventKey}','${entry.id}')">x</button>` : '<span style="font-size:11px;color:var(--muted)">-</span>'}</td>
+      </tr>
+    `;
+  });
+
+  if (allEntries.length === 0) {
+    html += `<tr><td colspan="${criteria.cols.length + 4}" style="text-align:center;color:var(--muted);padding:24px">No teams registered for this event yet.</td></tr>`;
+  }
+
+  html += `</tbody></table></div></div>
+    <div class="cms-card" style="margin-top:20px">
+      <div class="cms-card-title">Live Rankings - ${criteria.name}</div>
+      <div id="liveRankings_${eventKey}"></div>
+    </div>
+  `;
+
+  document.getElementById('scoringArea').innerHTML = html;
+  updateTotals(eventKey);
+}
+
+function updateTotals(eventKey) {
+  const tbody = document.getElementById(`scoreTbody_${eventKey}`);
+  if (!tbody) return;
+
+  const rows = [...tbody.querySelectorAll('tr[data-entry-id]')];
+  const rankedEntries = rows.map((row) => {
+    const inputs = row.querySelectorAll('.score-input');
+    let total = 0;
+    inputs.forEach((input) => {
+      total += parseFloat(input.value) || 0;
+    });
+
+    const entryId = row.dataset.entryId;
+    const totalCell = document.getElementById(`total_${entryId}`);
+    if (totalCell) {
+      totalCell.textContent = total;
+    }
+
+    return { row, total };
+  }).sort((a, b) => b.total - a.total);
+
+  rankedEntries.forEach((entry, index) => {
+    const rankCell = entry.row.querySelector('.rank-cell');
+    if (!rankCell) return;
+    rankCell.textContent = index + 1;
+  });
+
+  const rankings = document.getElementById(`liveRankings_${eventKey}`);
+  if (!rankings) return;
+
+  if (!rankedEntries.length) {
+    rankings.innerHTML = '<div style="font-size:13px;color:var(--muted)">No scores entered yet.</div>';
+    return;
+  }
+
+  const criteria = EVENT_CRITERIA[eventKey];
+  rankings.innerHTML = rankedEntries.slice(0, 10).map((entry, index) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:8px;${index < 3 ? 'border:1px solid rgba(245,166,35,0.1)' : ''}">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;width:36px;text-align:center">${index + 1}</div>
+      <div style="flex:1;font-size:13px;font-weight:500">${entry.row.querySelector('td:nth-child(2)').textContent}</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);font-size:18px">${entry.total}</div>
+      <div style="font-size:11px;color:var(--muted)">/${criteria.total}</div>
+    </div>
+  `).join('');
+}
+
+function validateScore(input) {
+  const max = parseInt(input.dataset.max, 10);
+  const value = parseFloat(input.value);
+  if (Number.isNaN(value) || value < 0) {
+    input.value = '';
+    return;
+  }
+  if (value > max) {
+    input.value = max;
+    showToast(`Max score is ${max}`, 'error');
+  }
+}
+
+async function saveScoresForEvent(eventKey) {
+  const tbody = document.getElementById(`scoreTbody_${eventKey}`);
+  if (!tbody) return;
+
+  const eventScores = getEventScores(eventKey);
+  const rows = tbody.querySelectorAll('tr[data-entry-id]');
+  rows.forEach((row) => {
+    const entryId = row.dataset.entryId;
+    const inputs = row.querySelectorAll('.score-input');
+    const data = {};
+    inputs.forEach((input) => {
+      data[input.dataset.key] = input.value || '0';
+    });
+    eventScores[entryId] = data;
+  });
+
+  await NexusCMS.saveEventScores(eventKey, eventScores);
+  showToast('Scores saved successfully!');
+  updateTotals(eventKey);
+}
+
+async function addManualEntry(eventKey) {
+  const label = prompt('Enter team name / college name:');
+  if (!label) return;
+
+  const eventScores = getEventScores(eventKey);
+  eventScores._manual.push({ id: String(Date.now()), label });
+  await NexusCMS.saveEventScores(eventKey, eventScores);
+  loadEventScoring();
+}
+
+async function removeManual(eventKey, entryId) {
+  const eventScores = getEventScores(eventKey);
+  const manualId = entryId.replace('manual_', '');
+  eventScores._manual = (eventScores._manual || []).filter((entry) => String(entry.id) !== String(manualId));
+  delete eventScores[entryId];
+  await NexusCMS.saveEventScores(eventKey, eventScores);
+  loadEventScoring();
+}
+
+(async function () {
+  currentUser = await NexusCMS.initPage('scores');
+  if (!currentUser) return;
+
+  registrations = await NexusCMS.fetchRegistrations();
+  scoresStore = await NexusCMS.fetchScores();
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[App] Service Worker registered:', reg);
+        setInterval(() => {
+          reg.update().catch(err => console.warn('[App] Update check failed:', err));
+        }, 60000);
+      })
+      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

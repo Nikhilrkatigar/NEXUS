@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Users - NEXUS CMS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header">
+    <h1>Users</h1>
+    <p>Manage CMS access - create users and set permissions</p>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:24px">
+    <div class="cms-card">
+      <div class="cms-card-title">All Users</div>
+      <table class="cms-table" id="usersTable">
+        <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+        <tbody id="usersTbody"></tbody>
+      </table>
+    </div>
+    <div class="cms-card">
+      <div class="cms-card-title" id="formTitle">Create New User</div>
+      <div class="form-group"><label>Full Name</label><input type="text" id="u_name" placeholder="John Doe"></div>
+      <div class="form-group"><label>Username</label><input type="text" id="u_username" placeholder="john_doe"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="u_password" placeholder="Minimum 6 characters"></div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="u_role">
+          <option value="organiser">Organiser - Can view and enter scores</option>
+          <option value="viewer">Viewer - Read only</option>
+          <option value="superadmin">Super Admin - Full access</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="cms-btn cms-btn-primary" onclick="saveUser()" id="saveBtn">Create User</button>
+        <button class="cms-btn" style="background:rgba(255,255,255,0.05);color:var(--muted)" onclick="resetForm()" id="cancelBtn">Cancel</button>
+      </div>
+      <div style="margin-top:20px;padding:16px;background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.1);border-radius:8px;font-size:12px;color:var(--muted)">
+        <strong style="color:var(--accent)">Role Permissions:</strong><br><br>
+        <strong style="color:var(--text)">Organiser</strong> - View registrations, enter scores, view championship<br><br>
+        <strong style="color:var(--text)">Viewer</strong> - View-only access to all sections<br><br>
+        <strong style="color:var(--text)">Super Admin</strong> - Full access including user management, settings, and audit log
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+let users = [];
+let editingId = null;
+
+function renderUsers() {
+  document.getElementById('usersTbody').innerHTML = users.map((user, index) => `
+    <tr>
+      <td style="color:var(--muted);font-size:12px">${index + 1}</td>
+      <td style="font-weight:500">${user.name}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--accent)">${user.username}</td>
+      <td><span class="badge ${user.role === 'superadmin' ? 'badge-gold' : user.role === 'organiser' ? 'badge-blue' : 'badge-green'}">${user.role}</span></td>
+      <td style="display:flex;gap:6px">
+        <button class="cms-btn cms-btn-sm" style="background:rgba(0,212,255,0.1);color:#00d4ff;border:none;cursor:pointer" onclick="editUser('${user.id}')">Edit</button>
+        ${user.username !== 'admin' ? `<button class="cms-btn cms-btn-danger cms-btn-sm" onclick="deleteUser('${user.id}')">Delete</button>` : '<span style="font-size:11px;color:var(--muted)">Protected</span>'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function refreshUsers() {
+  users = await NexusCMS.fetchUsers();
+  renderUsers();
+}
+
+async function saveUser() {
+  const name = document.getElementById('u_name').value.trim();
+  const username = document.getElementById('u_username').value.trim();
+  const password = document.getElementById('u_password').value.trim();
+  const role = document.getElementById('u_role').value;
+
+  if (!name || !username || (!editingId && !password)) {
+    showToast('Fill in all required fields', 'error');
+    return;
+  }
+
+  if (password && password.length < 6) {
+    showToast('Password must be 6+ characters', 'error');
+    return;
+  }
+
+  try {
+    if (editingId) {
+      await NexusCMS.updateUser(editingId, { name, username, password, role });
+      showToast('User updated!');
+    } else {
+      await NexusCMS.createUser({ name, username, password, role });
+      showToast('User created!');
+    }
+
+    resetForm();
+    await refreshUsers();
+  } catch (error) {
+    showToast(error.message || 'Unable to save user', 'error');
+  }
+}
+
+function editUser(id) {
+  const user = users.find((entry) => String(entry.id) === String(id));
+  if (!user) return;
+
+  editingId = user.id;
+  document.getElementById('u_name').value = user.name;
+  document.getElementById('u_username').value = user.username;
+  document.getElementById('u_password').value = '';
+  document.getElementById('u_role').value = user.role;
+  document.getElementById('formTitle').textContent = 'Edit User';
+  document.getElementById('saveBtn').textContent = 'Update User';
+  document.getElementById('cancelBtn').style.display = 'inline-flex';
+}
+
+async function deleteUser(id) {
+  const user = users.find((entry) => String(entry.id) === String(id));
+  if (!user) return;
+  if (user.username === 'admin') {
+    showToast('Cannot delete admin user', 'error');
+    return;
+  }
+
+  try {
+    await NexusCMS.deleteUser(id);
+    showToast('User deleted');
+    await refreshUsers();
+  } catch (error) {
+    showToast(error.message || 'Unable to delete user', 'error');
+  }
+}
+
+function resetForm() {
+  editingId = null;
+  ['u_name', 'u_username', 'u_password'].forEach((id) => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('u_role').value = 'organiser';
+  document.getElementById('formTitle').textContent = 'Create New User';
+  document.getElementById('saveBtn').textContent = 'Create User';
+  document.getElementById('cancelBtn').style.display = 'none';
+}
+
+(async function () {
+  const user = await NexusCMS.initPage('users', { requiredRoles: ['superadmin'] });
+  if (!user) return;
+
+  resetForm();
+  await refreshUsers();
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[App] Service Worker registered:', reg);
+        setInterval(() => {
+          reg.update().catch(err => console.warn('[App] Update check failed:', err));
+        }, 60000);
+      })
+      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
