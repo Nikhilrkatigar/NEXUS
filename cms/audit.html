@@ -32,7 +32,21 @@
     </table>
   </div>
 </main>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9000;align-items:center;justify-content:center;backdrop-filter:blur(10px)">
+  <div style="background:#111827;border:1px solid rgba(245,166,35,0.2);border-radius:16px;padding:32px;max-width:400px;width:90%;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px;color:#f0f0f0" id="confirmTitle"></div>
+    <div style="font-size:14px;color:#7a8499;margin-bottom:24px" id="confirmMessage"></div>
+    <div style="display:flex;gap:12px;justify-content:flex-end">
+      <button onclick="closeConfirmModal()" style="background:rgba(255,255,255,0.05);color:#f0f0f0;border:1px solid rgba(255,255,255,0.1);padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s">Cancel</button>
+      <button onclick="confirmAction()" style="background:linear-gradient(135deg,#f5a623,#d4890f);color:#000;border:none;padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script>
+let pendingConfirmCallback = null;
 let logs = [];
 
 function renderAudit() {
@@ -66,12 +80,36 @@ function exportAudit() {
   showToast('Audit log exported!');
 }
 
+function showConfirmModal(title, message, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').textContent = message;
+  pendingConfirmCallback = callback;
+  document.getElementById('confirmModal').style.display = 'flex';
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmModal').style.display = 'none';
+  pendingConfirmCallback = null;
+}
+
+function confirmAction() {
+  closeConfirmModal();
+  if (pendingConfirmCallback) {
+    pendingConfirmCallback();
+  }
+}
+
 async function clearAudit() {
-  if (!confirm('Clear all audit log entries?')) return;
-  await NexusCMS.clearAuditLog();
-  logs = await NexusCMS.fetchAuditLog();
-  showToast('Audit log cleared');
-  renderAudit();
+  showConfirmModal(
+    'Clear Audit Log?',
+    'This will permanently delete all audit log entries. This action cannot be undone.',
+    async function() {
+      await NexusCMS.clearAuditLog();
+      logs = await NexusCMS.fetchAuditLog();
+      showToast('Audit log cleared');
+      renderAudit();
+    }
+  );
 }
 
 (async function () {

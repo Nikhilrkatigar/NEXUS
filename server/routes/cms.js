@@ -231,6 +231,17 @@ router.get("/settings", async (req, res, next) => {
 router.put("/settings", requireRole("superadmin"), async (req, res, next) => {
   try {
     const values = req.body && typeof req.body === "object" ? req.body : {};
+
+    if (Array.isArray(values.events)) {
+      const activeEventKeys = values.events
+        .map((event) => String(event && event.id ? event.id : "").trim())
+        .filter(Boolean);
+
+      await ScoreSheet.deleteMany({
+        eventKey: { $nin: activeEventKeys }
+      });
+    }
+
     await Settings.findOneAndUpdate(
       { key: "default" },
       { key: "default", values },

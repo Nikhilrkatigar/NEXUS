@@ -1,6 +1,7 @@
 const User = require("./models/User");
 const Settings = require("./models/Settings");
 const Timeline = require("./models/Timeline");
+const ScoreSheet = require("./models/ScoreSheet");
 const { DEFAULT_SETTINGS, DEFAULT_TIMELINE, DEFAULT_USERS } = require("./defaults");
 
 async function seedDefaults() {
@@ -39,10 +40,22 @@ async function seedDefaults() {
       }
     });
 
-    if (changed) {
+  if (changed) {
       settings.values = mergedValues;
       await settings.save();
     }
+  }
+
+  const activeEventKeys = Array.isArray(settings?.values?.events)
+    ? settings.values.events
+        .map((event) => String(event && event.id ? event.id : "").trim())
+        .filter(Boolean)
+    : null;
+
+  if (activeEventKeys) {
+    await ScoreSheet.deleteMany({
+      eventKey: { $nin: activeEventKeys }
+    });
   }
 
   const timeline = await Timeline.findOne({ key: "default" });

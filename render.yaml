@@ -1,19 +1,16 @@
-# Render deployment configuration
-# This file configures the application for Render.com deployment
-
-# Build and start commands are configured in render.yaml or Render dashboard
-
-# Environment variables needed in Render dashboard:
-# PORT=4000
-# NODE_ENV=production
-# JWT_SECRET=(set a strong random string)
-# MONGODB_URI=(your MongoDB connection string)
-
-# Health check endpoint
-# GET /api/health
-# Returns: {"ok": true, "service": "nexus-backend"}
-
-# Application will start on port 4000 and serve:
-# - Frontend: /index.html, /register.html
-# - CMS: /cms/login.html and other CMS pages
-# - API: /api/* endpoints
+services:
+  - type: web
+    name: nexus-event-management
+    env: node
+    region: oregon
+    plan: free
+    startCommand: npm start
+    buildCommand: npm install
+    healthCheckPath: /api/health
+    healthCheckInterval: 300
+    maxShutdownDelay: 30
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000

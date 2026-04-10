@@ -165,7 +165,7 @@ curl -X POST http://localhost:4000/api/public/registrations \
 **A**: Not yet. Re-register with the correct team (new code issued).
 
 ### Q: What if someone isn't HR/Marketing/Finance department?
-**A**: This system is designed for the 2026 BA Department fest where all participants come from these departments. Contact organizers for exceptions.
+**A**: This system is designed for the 2026 BBA Department fest where all participants come from these departments. Contact organizers for exceptions.
 
 ### Q: Can Dance team have more than 4 members?
 **A**: No. Maximum 4 for Dance competition.
@@ -197,7 +197,7 @@ The registration form works offline (if previously loaded):
 - Verify department counts match requirements
 
 ### For Technical Support:
-- Contact: BA Department Organizers
+- Contact: BBA Department Organizers
 - Check: `REGISTRATION_REQUIREMENTS.md` for detailed docs
 - API: GET `/api/public/events` for programmatic access
 

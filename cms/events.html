@@ -364,7 +364,8 @@ async function saveEventsSettings() {
   document.getElementById('eventsSectionTag').value = settings.eventsSectionTag || DEFAULT_SECTION.eventsSectionTag;
   document.getElementById('eventsSectionTitle').value = settings.eventsSectionTitle || DEFAULT_SECTION.eventsSectionTitle;
   document.getElementById('eventsSectionDesc').value = settings.eventsSectionDesc || DEFAULT_SECTION.eventsSectionDesc;
-  events = Array.isArray(settings.events) && settings.events.length ? clone(settings.events) : clone(DEFAULT_EVENTS);
+  // Use saved events if settings has them, otherwise use defaults only on first initialization
+  events = 'events' in settings ? (Array.isArray(settings.events) ? clone(settings.events) : []) : clone(DEFAULT_EVENTS);
   renderEvents();
 })();
 </script>

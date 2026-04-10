@@ -55,7 +55,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:20px 48px;display:fl
 .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);padding:6px 16px;border-radius:100px;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:32px;opacity:0;animation:fadeUp 0.8s 0.2s forwards}
 .hero-eyebrow::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.5)}}
-.hero-title{font-family:'Syne',sans-serif;font-size:clamp(52px,8vw,110px);font-weight:800;line-height:0.95;letter-spacing:-0.03em;opacity:0;animation:fadeUp 0.8s 0.4s forwards}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(40px,8vw,110px);font-weight:800;line-height:1.2;letter-spacing:-0.03em;opacity:0;animation:fadeUp 0.8s 0.4s forwards;word-wrap:break-word;overflow-wrap:break-word}
 .hero-title span{display:block}
 .hero-title .line2{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .hero-sub{font-size:clamp(15px,2vw,20px);color:var(--muted);margin:24px auto;max-width:540px;line-height:1.6;opacity:0;animation:fadeUp 0.8s 0.6s forwards;font-weight:300}
@@ -78,7 +78,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:20px 48px;display:fl
 /* Section common */
 section{padding:100px 48px;position:relative}
 .section-tag{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;font-weight:600}
-.section-title{font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,56px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,56px);font-weight:800;line-height:1.2;letter-spacing:-0.02em;word-wrap:break-word;overflow-wrap:break-word}
 .section-sub{color:var(--muted);font-size:16px;max-width:500px;line-height:1.7;margin-top:16px;font-weight:300}
 
 /* About */
@@ -131,7 +131,7 @@ section{padding:100px 48px;position:relative}
 .event-card-media img{width:100%;height:100%;object-fit:cover;display:block}
 .event-card-header{padding:28px 28px 20px;position:relative}
 .event-dept{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;margin-bottom:12px}
-.event-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;line-height:1.1;margin-bottom:8px}
+.event-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;line-height:1.3;margin-bottom:8px;word-wrap:break-word;overflow-wrap:break-word}
 .event-tagline{font-size:13px;color:var(--muted);line-height:1.5}
 .event-badge{position:absolute;top:28px;right:28px;padding:4px 12px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
 .event-rounds{padding:0 28px 20px;display:flex;flex-direction:column;gap:8px}
@@ -263,6 +263,11 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
   .tl-dot{display:none}
   .register-header,.register-form{padding:32px 24px}
   .participant-entry{grid-template-columns:1fr}
+  .hero-title{font-size:clamp(36px, 12vw, 56px)}
+}
+
+@media(hover: none) and (pointer: coarse) {
+  .cursor, .cursor-trail { display: none !important; }
 }
 </style>
 </head>
@@ -294,7 +299,7 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
   <div class="hero-orb hero-orb-2"></div>
   <div class="hero-orb hero-orb-3"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">BA Department Presents</div>
+    <div class="hero-eyebrow">BBA Department Presents</div>
     <h1 class="hero-title">
       <span class="line1" id="heroTitle">NEXUS</span>
       <span class="line2" id="heroSubtitle">The Leadership Shift</span>
@@ -323,7 +328,7 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
     <div class="about-left reveal">
       <div class="section-tag">About the Fest</div>
       <h2 class="section-title" id="aboutTitle">Where Leaders Are Born</h2>
-      <p class="section-sub" id="aboutDesc">NEXUS – The Leadership Shift is the flagship fest of the BA Department, bringing together the sharpest minds from colleges across the region to battle it out in Finance, Marketing, HR, and Cultural events.</p>
+      <p class="section-sub" id="aboutDesc">NEXUS – The Leadership Shift is the flagship fest of the BBA Department, bringing together the sharpest minds from colleges across the region to battle it out in Finance, Marketing, HR, and Cultural events.</p>
       <div class="about-features">
         <div class="feature-item">
           <div class="feature-icon" style="background:rgba(245,166,35,0.1);">🏆</div>
@@ -350,7 +355,7 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
           <div class="logo-circle" id="collegeLogoLarge">BA</div>
           <div class="college-info">
             <h3 id="collegeFullName">Your College Name</h3>
-            <p id="collegeDept">Department of Business Administration</p>
+            <p id="collegeDept">BBA Department</p>
           </div>
         </div>
       </div>
@@ -451,11 +456,11 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
   <div class="footer-grid">
     <div class="footer-brand">
       <h3>NEXUS 2026</h3>
-      <p id="footerDesc">The Leadership Shift — BA Department's flagship inter-college fest. A platform for future leaders to rise.</p>
+      <p id="footerDesc">The Leadership Shift — BBA Department's flagship inter-college fest. A platform for future leaders to rise.</p>
     </div>
     <div class="footer-col">
       <h4>Events</h4>
-      <ul>
+      <ul id="footerEventsList">
         <li><a href="#events">FINVERSE</a></li>
         <li><a href="#events">Asventiq</a></li>
         <li><a href="#events">Mind War</a></li>
@@ -475,7 +480,7 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
   </div>
   <div class="footer-bottom">
     <span>© 2026 NEXUS – The Leadership Shift. All rights reserved.</span>
-    <span id="footerCollege">BA Department</span>
+    <span id="footerCollege">BBA Department</span>
   </div>
 </footer>
 
@@ -805,8 +810,38 @@ function escapeAttr(value) {
   return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderFooterEvents() {
+  const list = document.getElementById('footerEventsList');
+  if (!list) return;
+
+  if (!EVENTS.length) {
+    list.innerHTML = '<li><a href="#events">Events will be announced soon</a></li>';
+    return;
+  }
+
+  list.innerHTML = EVENTS.map((event) => `
+    <li><a href="#events">${escapeHtml(event.name)}</a></li>
+  `).join('');
+}
+
 renderEvents = function renderEvents() {
   const grid = document.getElementById('eventsGrid');
+  if (!EVENTS.length) {
+    grid.innerHTML = '<div class="event-card reveal" style="grid-column:1 / -1;cursor:default"><div class="event-card-header"><div class="event-name">Events will be announced soon</div><div class="event-tagline">The event list is currently empty. Check back after the organisers publish the next lineup.</div></div></div>';
+    renderFooterEvents();
+    initReveal();
+    return;
+  }
+
   grid.innerHTML = EVENTS.map(e => `
     <div class="event-card reveal">
       ${e.imageUrl ? `<div class="event-card-media"><img src="${e.imageUrl}" alt="${e.name}"></div>` : ''}
@@ -836,6 +871,7 @@ renderEvents = function renderEvents() {
   grid.querySelectorAll('.event-rules-btn').forEach((button) => {
     button.addEventListener('click', () => showRules(button.dataset.eventId));
   });
+  renderFooterEvents();
   initReveal();
 };
 
@@ -944,9 +980,17 @@ const cursorTrail = document.getElementById('cursorTrail');
 let mx=0,my=0,tx=0,ty=0;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px'});
 setInterval(()=>{tx+=(mx-tx)*0.12;ty+=(my-ty)*0.12;cursorTrail.style.left=tx+'px';cursorTrail.style.top=ty+'px'},16);
-document.querySelectorAll('a,button').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{cursor.style.transform='translate(-50%,-50%) scale(2)';cursorTrail.style.transform='translate(-50%,-50%) scale(1.5)'});
-  el.addEventListener('mouseleave',()=>{cursor.style.transform='translate(-50%,-50%) scale(1)';cursorTrail.style.transform='translate(-50%,-50%) scale(1)'});
+document.addEventListener('mouseover', e => {
+  if (e.target.closest('a, button')) {
+    cursor.style.transform='translate(-50%,-50%) scale(2)';
+    cursorTrail.style.transform='translate(-50%,-50%) scale(1.5)';
+  }
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('a, button')) {
+    cursor.style.transform='translate(-50%,-50%) scale(1)';
+    cursorTrail.style.transform='translate(-50%,-50%) scale(1)';
+  }
 });
 
 // ============ TOAST ============
@@ -1017,7 +1061,7 @@ initReveal();
     if(aboutDescEl && s.aboutDesc) aboutDescEl.textContent = s.aboutDesc;
     set('collegeFullName', s.collegeName);
     set('collegeDept', s.department);
-    set('collegeLogoLarge', (s.collegeName||'BA').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase());
+    set('collegeLogoLarge', (s.collegeName||'BBA').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase());
     set('prize1', s.prize1);
     set('prize2', s.prize2);
     set('prize3', s.prize3);
@@ -1029,7 +1073,7 @@ initReveal();
     const footerDescEl = document.getElementById('footerDesc');
     if(footerDescEl && s.footerDesc) footerDescEl.textContent = s.footerDesc;
 
-    if (Array.isArray(s.events) && s.events.length) {
+    if (Array.isArray(s.events)) {
       EVENTS.splice(0, EVENTS.length, ...s.events.map((event) => ({
         ...event,
         deptColor: event.deptColor || '#f5a623',
@@ -1063,7 +1107,7 @@ initReveal();
       const leaders = [];
       if(s.principalName) leaders.push({name:s.principalName,role:'Principal',initial:(s.principalName[0]||'P'),bg:'linear-gradient(135deg,#f5a623,#d4890f)',dept:'Leadership',deptColor:'#f5a623'});
       if(s.chairmanName) leaders.push({name:s.chairmanName,role:'Chairman',initial:(s.chairmanName[0]||'C'),bg:'linear-gradient(135deg,#e63c5c,#c43050)',dept:'Leadership',deptColor:'#e63c5c'});
-      if(s.hodName) leaders.push({name:s.hodName,role:'Head of Department',initial:(s.hodName[0]||'H'),bg:'linear-gradient(135deg,#00d4ff,#0099bb)',dept:'BA Dept',deptColor:'#00d4ff'});
+      if(s.hodName) leaders.push({name:s.hodName,role:'Head of Department',initial:(s.hodName[0]||'H'),bg:'linear-gradient(135deg,#00d4ff,#0099bb)',dept:'BBA Dept',deptColor:'#00d4ff'});
       const grid = document.getElementById('teamGrid');
       if(grid){
         const html = leaders.map(m=>`
@@ -1138,7 +1182,7 @@ initReveal();
     const leaders = [];
     if(s.principalName) leaders.push({name:s.principalName,role:'Principal',initial:(s.principalName[0]||'P'),bg:'linear-gradient(135deg,#f5a623,#d4890f)',dept:'Leadership',deptColor:'#f5a623'});
     if(s.chairmanName) leaders.push({name:s.chairmanName,role:'Chairman',initial:(s.chairmanName[0]||'C'),bg:'linear-gradient(135deg,#e63c5c,#c43050)',dept:'Leadership',deptColor:'#e63c5c'});
-    if(s.hodName) leaders.push({name:s.hodName,role:'Head of Department',initial:(s.hodName[0]||'H'),bg:'linear-gradient(135deg,#00d4ff,#0099bb)',dept:'BA Dept',deptColor:'#00d4ff'});
+    if(s.hodName) leaders.push({name:s.hodName,role:'Head of Department',initial:(s.hodName[0]||'H'),bg:'linear-gradient(135deg,#00d4ff,#0099bb)',dept:'BBA Dept',deptColor:'#00d4ff'});
     // Prepend to team grid
     const grid = document.getElementById('teamGrid');
     if(grid){

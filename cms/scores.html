@@ -26,29 +26,32 @@
       <label>Select Event to Score</label>
       <select id="eventSelector" onchange="loadEventScoring()" style="max-width:400px">
         <option value="">-- Choose an Event --</option>
-        <option value="FINVERSE_R1">FINVERSE - Round 1: Link and Think</option>
-        <option value="FINVERSE_R2">FINVERSE - Round 2: Cash Clash</option>
-        <option value="FINVERSE_R3">FINVERSE - Round 3: Bid to Win</option>
-        <option value="ASVENTIQ_R1">ASVENTIQ - Round 1: IdeaNest</option>
-        <option value="ASVENTIQ_R2">ASVENTIQ - Round 2: BrandShift</option>
-        <option value="ASVENTIQ_R3">ASVENTIQ - Round 3: AdvWar</option>
-        <option value="MINDWAR_R1">MIND WAR - Round 1: Battle Argument Arena</option>
-        <option value="MINDWAR_R2">MIND WAR - Round 2: The Final Phase</option>
-        <option value="DANCE">Dance Competition</option>
-        <option value="RAMPWALK">Ramp Walk</option>
-        <option value="RISING_PALADIN">Rising Paladin</option>
-        <option value="MATCHWIZ">Matchwiz</option>
-        <option value="STARTATHON">Startathon - The Hustle Hub</option>
+        <!-- Options injected by JS -->
       </select>
     </div>
   </div>
   <div id="scoringArea"></div>
 </main>
 
+<!-- Input Modal for Manual Entry -->
+<div id="inputModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9000;align-items:center;justify-content:center;backdrop-filter:blur(10px)">
+  <div style="background:#111827;border:1px solid rgba(245,166,35,0.2);border-radius:16px;padding:32px;max-width:450px;width:90%;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px;color:#f0f0f0">Add Team Manually</div>
+    <div style="font-size:13px;color:#7a8499;margin-bottom:20px">Enter the team or college name</div>
+    <input type="text" id="inputField" placeholder="Team name / College name" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px 14px;color:#f0f0f0;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:20px" onkeydown="if(event.key==='Enter')submitInput()">
+    <div style="display:flex;gap:12px;justify-content:flex-end">
+      <button onclick="closeInputModal()" style="background:rgba(255,255,255,0.05);color:#f0f0f0;border:1px solid rgba(255,255,255,0.1);padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s">Cancel</button>
+      <button onclick="submitInput()" style="background:linear-gradient(135deg,#f5a623,#d4890f);color:#000;border:none;padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s">Add Team</button>
+    </div>
+  </div>
+</div>
+
 <script>
+let pendingInputCallback = null;
 let currentUser = null;
 let registrations = [];
 let scoresStore = {};
+let settings = {};
 
 const EVENT_CRITERIA = {
   FINVERSE_R1: { name: 'FINVERSE - Link and Think', cols: [{ k: 'brand_id', label: 'Brand Identification', max: 20 }, { k: 'accuracy', label: 'Accuracy', max: 15 }, { k: 'response', label: 'Response', max: 15 }], total: 50 },
@@ -81,8 +84,66 @@ function normalizeEventName(value) {
   return String(value || '').toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
 
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function mapEventKey(eventName) {
-  return EVENT_NAME_MAP[normalizeEventName(eventName)] || null;
+  const normalized = normalizeEventName(eventName);
+  if (EVENT_NAME_MAP[normalized]) return EVENT_NAME_MAP[normalized];
+  
+  const settingsEvents = settings.events || [];
+  const eventObj = settingsEvents.find(e => 
+    String(e.id).trim().toLowerCase() === String(eventName).trim().toLowerCase() ||
+    String(e.name).trim().toLowerCase() === String(eventName).trim().toLowerCase()
+  );
+  if (eventObj) return eventObj.id;
+  
+  return null;
+}
+
+function buildConfigFromSettings() {
+  const select = document.getElementById('eventSelector');
+  const previousValue = select.value;
+  const settingsEvents = (settings.events || []).filter((event) => {
+    return String(event.id || '').trim() && String(event.name || '').trim();
+  });
+  
+  settingsEvents.forEach(e => {
+    const eventKey = String(e.id);
+    if (!EVENT_CRITERIA[eventKey]) {
+      // Create a default single column criteria for dynamic events
+      EVENT_CRITERIA[eventKey] = {
+        name: e.name || eventKey,
+        cols: [{ k: 'score', label: 'Overall Score', max: 100 }],
+        total: 100
+      };
+    }
+  });
+
+  // Rebuild the select options based exclusively on EVENT_CRITERIA but only include ones from settings
+  // Actually, we'll just populate from settingsEvents to ensure deleted events are removed!
+  const htmlObj = ['<option value="">-- Choose an Event --</option>'];
+  settingsEvents.forEach(e => {
+     htmlObj.push(`<option value="${e.id}">${escapeHtml(e.name)}</option>`);
+  });
+  select.innerHTML = htmlObj.join('');
+
+  if (settingsEvents.some((event) => String(event.id) === previousValue)) {
+    select.value = previousValue;
+  }
+
+  if (!select.value) {
+    document.getElementById('scoringArea').innerHTML = '';
+    return;
+  }
+
+  loadEventScoring();
 }
 
 function isReadOnly() {
@@ -256,14 +317,38 @@ async function saveScoresForEvent(eventKey) {
   updateTotals(eventKey);
 }
 
-async function addManualEntry(eventKey) {
-  const label = prompt('Enter team name / college name:');
-  if (!label) return;
+function showInputModal(callback) {
+  document.getElementById('inputField').value = '';
+  pendingInputCallback = callback;
+  document.getElementById('inputModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('inputField').focus(), 100);
+}
 
-  const eventScores = getEventScores(eventKey);
-  eventScores._manual.push({ id: String(Date.now()), label });
-  await NexusCMS.saveEventScores(eventKey, eventScores);
-  loadEventScoring();
+function closeInputModal() {
+  document.getElementById('inputModal').style.display = 'none';
+  pendingInputCallback = null;
+}
+
+function submitInput() {
+  const label = document.getElementById('inputField').value.trim();
+  if (!label) {
+    showToast('Please enter a team name', 'error');
+    return;
+  }
+  closeInputModal();
+  if (pendingInputCallback) {
+    pendingInputCallback(label);
+  }
+}
+
+async function addManualEntry(eventKey) {
+  showInputModal(async function(label) {
+    const eventScores = getEventScores(eventKey);
+    eventScores._manual.push({ id: String(Date.now()), label });
+    await NexusCMS.saveEventScores(eventKey, eventScores);
+    showToast(`Added team: ${label}`);
+    loadEventScoring();
+  });
 }
 
 async function removeManual(eventKey, entryId) {
@@ -281,6 +366,9 @@ async function removeManual(eventKey, entryId) {
 
   registrations = await NexusCMS.fetchRegistrations();
   scoresStore = await NexusCMS.fetchScores();
+  settings = await NexusCMS.fetchSettings();
+  
+  buildConfigFromSettings();
 })();
 </script>
 
