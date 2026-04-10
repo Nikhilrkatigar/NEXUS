@@ -36,10 +36,7 @@ npm start
 - Public site: `http://localhost:4000/`
 - CMS login: `http://localhost:4000/cms/login.html`
 
-## Default CMS Users
 
-- `admin` / `nexus2026`
-- `organiser` / `nexus123`
 
 These are seeded automatically the first time the backend starts with an empty database.
 
