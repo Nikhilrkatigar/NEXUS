@@ -50,6 +50,31 @@
     </div>
 
     <div class="cms-card">
+      <div class="cms-card-title">Media & Branding</div>
+      <div class="form-group">
+        <label>College/Fest Banner Image (Shown in About section)</label>
+        <div style="display:flex;gap:12px;margin-bottom:8px;">
+          <input type="url" id="s_festBannerUrl" placeholder="https://example.com/banner.jpg" style="flex:1;">
+        </div>
+        <div class="upload-row">
+          <input type="file" accept="image/*" id="banner_upload">
+          <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="uploadBrandingImage('banner_upload', 's_festBannerUrl')">Upload</button>
+        </div>
+      </div>
+      <div style="height:1px;background:rgba(255,255,255,0.05);margin:20px 0;"></div>
+      <div class="form-group">
+        <label>Custom College Logo Image (Replaces 'GC' circle)</label>
+        <div style="display:flex;gap:12px;margin-bottom:8px;">
+          <input type="url" id="s_collegeLogoUrl" placeholder="https://example.com/logo.png" style="flex:1;">
+        </div>
+        <div class="upload-row">
+          <input type="file" accept="image/*" id="logo_upload">
+          <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="uploadBrandingImage('logo_upload', 's_collegeLogoUrl')">Upload</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cms-card">
       <div class="cms-card-title">Hero Section</div>
       <div class="form-group"><label>Hero Description</label><textarea id="s_heroDesc" rows="3"></textarea></div>
       <div class="form-row">
@@ -79,6 +104,7 @@
     <div class="cms-card">
       <div class="cms-card-title">College Leadership</div>
       <div class="form-group"><label>Principal Name</label><input type="text" id="s_principalName" placeholder="Dr. ..."></div>
+      <div class="form-group"><label>Honorary Chairman Name</label><input type="text" id="s_honChairmanName" placeholder="Shri. ..."></div>
       <div class="form-group"><label>Chairman Name</label><input type="text" id="s_chairmanName" placeholder="..."></div>
       <div class="form-group"><label>HOD Name</label><input type="text" id="s_hodName" placeholder="Prof. ..."></div>
     </div>
@@ -105,7 +131,8 @@
 const FORM_KEYS = [
   'eventName','eventSubtitle','collegeName','department','heroDesc','aboutTitle','aboutDesc',
   'prize1','prize2','prize3','prizesTitle','statTeams','statEvents','statColleges','statPrize',
-  'festDate','principalName','chairmanName','hodName','footerDesc','footerCollege'
+  'festDate','principalName','honChairmanName','chairmanName','hodName','footerDesc','footerCollege',
+  'festBannerUrl', 'collegeLogoUrl'
 ];
 
 let settings = {};
@@ -214,6 +241,22 @@ async function uploadTeamMemberImage(id) {
     const imageUrl = await NexusCMS.uploadImage(file);
     updateTeamMember(id, 'imageUrl', imageUrl);
     showToast('Image uploaded successfully!');
+  } catch (error) {
+    showToast(error.message || 'Upload failed', 'error');
+  }
+}
+
+async function uploadBrandingImage(inputId, fieldId) {
+  const input = document.getElementById(inputId);
+  const file = input && input.files ? input.files[0] : null;
+  if (!file) {
+    showToast('Choose an image first.', 'error');
+    return;
+  }
+  try {
+    const imageUrl = await NexusCMS.uploadImage(file);
+    document.getElementById(fieldId).value = imageUrl;
+    showToast('Image uploaded successfully! Remember to save changes.');
   } catch (error) {
     showToast(error.message || 'Upload failed', 'error');
   }

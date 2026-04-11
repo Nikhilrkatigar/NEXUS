@@ -10,6 +10,7 @@
     { id: "scores", label: "Scores", href: "scores.html", roles: ["viewer", "organiser", "superadmin"] },
     { id: "championship", label: "Championship", href: "championship.html", roles: ["viewer", "organiser", "superadmin"] },
     { id: "events", label: "Events", href: "events.html", roles: ["superadmin"] },
+    { id: "about", label: "About Us", href: "about.html", roles: ["superadmin"] },
     { id: "timeline", label: "Timeline", href: "timeline.html", roles: ["superadmin"] },
     { id: "settings", label: "Page Settings", href: "settings.html", roles: ["superadmin"] },
     { id: "users", label: "Users", href: "users.html", roles: ["superadmin"] },

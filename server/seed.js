@@ -29,20 +29,24 @@ async function seedDefaults() {
     let changed = false;
     const mergedValues = { ...DEFAULT_SETTINGS, ...(settings.values || {}) };
 
-    if (!Array.isArray(settings.values?.teamMembers) || settings.values.teamMembers.length === 0) {
-      mergedValues.teamMembers = DEFAULT_SETTINGS.teamMembers;
-      changed = true;
-    }
-
     Object.keys(DEFAULT_SETTINGS).forEach((key) => {
       if (typeof settings.values?.[key] === "undefined") {
         changed = true;
       }
     });
 
-  if (changed) {
+    if (changed) {
       settings.values = mergedValues;
       await settings.save();
+    }
+
+    // One-time migration: clear old hardcoded teamMembers seeded from previous defaults
+    const savedTeam = settings.values && Array.isArray(settings.values.teamMembers) ? settings.values.teamMembers : null;
+    if (savedTeam && savedTeam.some((m) => m.id === "team-1")) {
+      settings.values = { ...settings.values, teamMembers: [] };
+      settings.markModified("values");
+      await settings.save();
+      console.log("[Seed] Cleared old hardcoded teamMembers from database");
     }
   }
 

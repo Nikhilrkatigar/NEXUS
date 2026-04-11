@@ -1,6 +1,6 @@
 // NEXUS CMS Service Worker
-const CACHE_NAME = "nexus-cms-v2";
-const API_CACHE_NAME = "nexus-api-v2";
+const CACHE_NAME = "nexus-cms-v3";
+const API_CACHE_NAME = "nexus-api-v3";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -51,11 +51,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:20px 48px;display:fl
 .hero-orb-3{width:300px;height:300px;background:radial-gradient(circle,rgba(0,212,255,0.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-5s}
 @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(20px,-20px) scale(1.05)}66%{transform:translate(-15px,15px) scale(0.95)}}
 
-.hero-content{text-align:center;position:relative;z-index:2;max-width:900px}
+.hero-content{text-align:center;position:relative;z-index:2;max-width:1000px}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);padding:6px 16px;border-radius:100px;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:32px;opacity:0;animation:fadeUp 0.8s 0.2s forwards}
 .hero-eyebrow::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.5)}}
-.hero-title{font-family:'Syne',sans-serif;font-size:clamp(40px,8vw,110px);font-weight:800;line-height:1.2;letter-spacing:-0.03em;opacity:0;animation:fadeUp 0.8s 0.4s forwards;word-wrap:break-word;overflow-wrap:break-word}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(40px,8vw,110px);font-weight:800;line-height:1.2;letter-spacing:-0.03em;opacity:0;animation:fadeUp 0.8s 0.4s forwards;hyphens:none;word-break:normal}
 .hero-title span{display:block}
 .hero-title .line2{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .hero-sub{font-size:clamp(15px,2vw,20px);color:var(--muted);margin:24px auto;max-width:540px;line-height:1.6;opacity:0;animation:fadeUp 0.8s 0.6s forwards;font-weight:300}
@@ -99,6 +99,86 @@ section{padding:100px 48px;position:relative}
 .logo-circle{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#000}
 .college-info h3{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
 .college-info p{font-size:12px;color:var(--muted)}
+
+/* Patron / Leadership */
+#patron{background:var(--bg2);overflow:hidden;position:relative}
+
+/* About Us Contributors */
+#aboutus{background:var(--bg);padding:100px 48px}
+.aboutus-header{text-align:center;max-width:700px;margin:0 auto 64px}
+.aboutus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:28px;max-width:1400px;margin:0 auto}
+.contributor-card{background:var(--surface);border:1px solid rgba(245,166,35,0.1);border-radius:16px;overflow:hidden;transition:all 0.3s;display:flex;flex-direction:column}
+.contributor-card:hover{transform:translateY(-6px);border-color:rgba(245,166,35,0.3);box-shadow:0 20px 40px rgba(0,0,0,0.3)}
+.contributor-avatar{width:100%;height:220px;background:linear-gradient(135deg,rgba(245,166,35,0.1),rgba(230,60,92,0.1));display:flex;align-items:center;justify-content:center;font-size:60px;overflow:hidden;border-bottom:1px solid rgba(245,166,35,0.1)}
+.contributor-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.contributor-info{padding:24px;flex:1;display:flex;flex-direction:column}
+.contributor-role{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
+.contributor-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.contributor-dept{font-size:13px;color:var(--muted);margin-bottom:12px}
+.contributor-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px;flex:1}
+.patron-bg-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,0.06) 0%,transparent 70%);pointer-events:none;animation:patronPulse 6s ease-in-out infinite}
+@keyframes patronPulse{0%,100%{opacity:0.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
+.patron-container{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;align-items:center;position:relative;z-index:2}
+.patron-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);padding:6px 20px;border-radius:100px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:40px;font-weight:600}
+.patron-tag::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+.patron-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px;width:100%}
+.patron-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:24px;background:linear-gradient(145deg,rgba(17,24,39,0.9),rgba(11,15,26,0.95));border:1px solid rgba(245,166,35,0.15);border-radius:24px;padding:40px 24px;position:relative;overflow:hidden}
+.patron-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent),#d4890f,var(--accent),transparent)}
+.patron-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 80% at 50% 20%,rgba(245,166,35,0.04),transparent);pointer-events:none}
+.patron-card.rose{border-color:rgba(230,60,92,0.15)}
+.patron-card.rose::before{background:linear-gradient(90deg,transparent,#e63c5c,#c43050,#e63c5c,transparent)}
+.patron-card.rose::after{background:radial-gradient(ellipse 50% 80% at 50% 20%,rgba(230,60,92,0.04),transparent)}
+.patron-card.blue{border-color:rgba(0,212,255,0.15)}
+.patron-card.blue::before{background:linear-gradient(90deg,transparent,#00d4ff,#0099bb,#00d4ff,transparent)}
+.patron-card.blue::after{background:radial-gradient(ellipse 50% 80% at 50% 20%,rgba(0,212,255,0.04),transparent)}
+.patron-portrait{position:relative;flex-shrink:0}
+.patron-portrait-ring{width:160px;height:160px;border-radius:50%;padding:4px;background:linear-gradient(135deg,var(--accent),#d4890f,var(--accent2),var(--accent));position:relative;animation:patronRingRotate 10s linear infinite}
+@keyframes patronRingRotate{0%{background:linear-gradient(0deg,var(--accent),#d4890f,var(--accent2),var(--accent))}25%{background:linear-gradient(90deg,var(--accent),#d4890f,var(--accent2),var(--accent))}50%{background:linear-gradient(180deg,var(--accent),#d4890f,var(--accent2),var(--accent))}75%{background:linear-gradient(270deg,var(--accent),#d4890f,var(--accent2),var(--accent))}100%{background:linear-gradient(360deg,var(--accent),#d4890f,var(--accent2),var(--accent))}}
+.patron-card.rose .patron-portrait-ring{animation:patronRingRotateRose 10s linear infinite}
+@keyframes patronRingRotateRose{0%{background:linear-gradient(0deg,#e63c5c,#c43050,#a855f7,#e63c5c)}25%{background:linear-gradient(90deg,#e63c5c,#c43050,#a855f7,#e63c5c)}50%{background:linear-gradient(180deg,#e63c5c,#c43050,#a855f7,#e63c5c)}75%{background:linear-gradient(270deg,#e63c5c,#c43050,#a855f7,#e63c5c)}100%{background:linear-gradient(360deg,#e63c5c,#c43050,#a855f7,#e63c5c)}}
+.patron-card.blue .patron-portrait-ring{animation:patronRingRotateBlue 10s linear infinite}
+@keyframes patronRingRotateBlue{0%{background:linear-gradient(0deg,#00d4ff,#0099bb,#00d4ff)}25%{background:linear-gradient(90deg,#00d4ff,#0099bb,#00d4ff)}50%{background:linear-gradient(180deg,#00d4ff,#0099bb,#00d4ff)}75%{background:linear-gradient(270deg,#00d4ff,#0099bb,#00d4ff)}100%{background:linear-gradient(360deg,#00d4ff,#0099bb,#00d4ff)}}
+.patron-portrait-img{width:100%;height:100%;border-radius:50%;overflow:hidden;border:3px solid var(--bg2)}
+.patron-portrait-img img{width:100%;height:100%;object-fit:cover;display:block}
+.patron-portrait-glow{position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,0.15),transparent 70%);z-index:-1;animation:portraitGlow 4s ease-in-out infinite}
+@keyframes portraitGlow{0%,100%{opacity:0.5;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+.patron-card.rose .patron-portrait-glow{background:radial-gradient(circle,rgba(230,60,92,0.15),transparent 70%)}
+.patron-card.blue .patron-portrait-glow{background:radial-gradient(circle,rgba(0,212,255,0.15),transparent 70%)}
+.patron-ornament{position:absolute;width:32px;height:32px;border:1px solid rgba(245,166,35,0.2);border-radius:6px;transform:rotate(45deg);animation:ornamentFloat 6s ease-in-out infinite}
+.patron-ornament-1{top:-8px;right:-8px;animation-delay:0s}
+.patron-ornament-2{bottom:-8px;left:-8px;animation-delay:-3s;width:24px;height:24px;border-color:rgba(230,60,92,0.2)}
+.patron-card.rose .patron-ornament-1{border-color:rgba(230,60,92,0.2)}
+.patron-card.rose .patron-ornament-2{border-color:rgba(168,85,247,0.2)}
+.patron-card.blue .patron-ornament-1{border-color:rgba(0,212,255,0.2)}
+.patron-card.blue .patron-ornament-2{border-color:rgba(245,166,35,0.2)}
+@keyframes ornamentFloat{0%,100%{transform:rotate(45deg) translate(0,0)}50%{transform:rotate(45deg) translate(4px,-4px)}}
+.patron-info{display:flex;flex-direction:column;align-items:center;width:100%}
+.patron-line{width:48px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin-bottom:16px;border-radius:2px}
+.patron-card.rose .patron-line{background:linear-gradient(90deg,transparent,#e63c5c,transparent)}
+.patron-card.blue .patron-line{background:linear-gradient(90deg,transparent,#00d4ff,transparent)}
+.patron-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.patron-card.rose .patron-title{color:#e63c5c}
+.patron-card.blue .patron-title{color:#00d4ff}
+.patron-name{font-family:'Syne',sans-serif;font-size:clamp(22px,2.5vw,26px);font-weight:800;line-height:1.2;letter-spacing:-0.02em;position:relative;display:inline-block;padding-bottom:6px}
+.patron-name::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:patronNameLine 1.5s 0.8s ease-out forwards}
+.patron-card.rose .patron-name::after{background:linear-gradient(90deg,transparent,#e63c5c,transparent)}
+.patron-card.blue .patron-name::after{background:linear-gradient(90deg,transparent,#00d4ff,transparent)}
+@keyframes patronNameLine{to{width:100%;left:0}}
+.patron-designation{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--accent);margin-top:12px;letter-spacing:0.03em}
+.patron-card.rose .patron-designation{color:#e63c5c}
+.patron-card.blue .patron-designation{color:#00d4ff}
+.patron-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-top:12px;font-weight:400}
+.patron-quote{margin-top:auto;padding:12px;background:rgba(245,166,35,0.04);border-left:none;border-top:1px solid rgba(245,166,35,0.1);font-size:12px;color:var(--muted);line-height:1.6;font-style:italic;width:100%;border-radius:0}
+.patron-card.rose .patron-quote{background:rgba(230,60,92,0.04);border-top-color:rgba(230,60,92,0.1)}
+.patron-card.blue .patron-quote{background:rgba(0,212,255,0.04);border-top-color:rgba(0,212,255,0.1)}
+.patron-sparkles{position:absolute;top:20px;right:20px;display:flex;gap:4px}
+.patron-sparkle{width:4px;height:4px;background:var(--accent);border-radius:50%;opacity:0;animation:sparkleIn 2s ease-in-out infinite}
+.patron-card.rose .patron-sparkle{background:#e63c5c}
+.patron-card.blue .patron-sparkle{background:#00d4ff}
+.patron-sparkle:nth-child(2){animation-delay:0.3s;width:3px;height:3px}
+.patron-sparkle:nth-child(3){animation-delay:0.6s;width:5px;height:5px}
+@keyframes sparkleIn{0%,100%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1)}}
+@media(max-width:900px){.patron-grid{grid-template-columns:1fr}}
 
 /* Timeline */
 #timeline{background:var(--bg2)}
@@ -256,7 +336,12 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
   .form-row{grid-template-columns:1fr}
   .prizes-grid{grid-template-columns:1fr}
   .footer-grid{grid-template-columns:1fr}
-  .hero-stats{gap:24px}
+  .hero-stats{gap:24px;flex-wrap:wrap;justify-content:center}
+  .stat{flex:0 1 calc(50% - 12px);min-width:100px}
+  .stat-num{font-size:28px}
+  .stat-label{font-size:11px}
+  .hero-content{max-width:100%}
+  .hero-title span{display:block;word-spacing:normal}
   .timeline-line{display:none}
   .tl-item,.tl-item:nth-child(odd){flex-direction:column;text-align:left}
   .tl-item:nth-child(odd) .tl-content{align-items:flex-start}
@@ -283,11 +368,12 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
     <span class="nav-brand" id="collegeName">NEXUS 2026</span>
   </div>
   <ul class="nav-links">
-    <li><a href="#about">About</a></li>
+    <li><a href="#about">About Event</a></li>
     <li><a href="#timeline">Schedule</a></li>
     <li><a href="#events">Events</a></li>
     <li><a href="#prizes">Prizes</a></li>
     <li><a href="#team">Team</a></li>
+    <li><a href="#aboutus">About Us</a></li>
   </ul>
   <a href="#register" class="nav-cta">Register Now</a>
 </nav>
@@ -357,6 +443,96 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
             <h3 id="collegeFullName">Your College Name</h3>
             <p id="collegeDept">BBA Department</p>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Patron / College Leadership -->
+<section id="patron">
+  <div class="patron-bg-glow"></div>
+  <div class="patron-container reveal">
+    <div class="patron-tag">Under the Esteemed Patronage of</div>
+    <div class="patron-grid">
+      <!-- Hon. President -->
+      <div class="patron-card blue reveal reveal-delay-1">
+        <div class="patron-sparkles">
+          <div class="patron-sparkle"></div>
+          <div class="patron-sparkle"></div>
+          <div class="patron-sparkle"></div>
+        </div>
+        <div class="patron-portrait">
+          <div class="patron-portrait-glow"></div>
+          <div class="patron-portrait-ring">
+            <div class="patron-portrait-img">
+              <img src="/uploads/site-assets/president-gn-hiremath.jpg" alt="Sri. G N Hiremath — Hon. President">
+            </div>
+          </div>
+          <div class="patron-ornament patron-ornament-1"></div>
+          <div class="patron-ornament patron-ornament-2"></div>
+        </div>
+        <div class="patron-info">
+          <div class="patron-line"></div>
+          <div class="patron-title">Hon. President</div>
+          <h2 class="patron-name">Sri. G N Hiremath</h2>
+          <div class="patron-designation">Honorary President</div>
+          <p class="patron-desc">Driving the institution's strategic vision, fostering innovation, and cementing NEXUS as a premier leadership platform.</p>
+          <div class="patron-quote">"Innovation and integrity are the twin engines of lasting progress."</div>
+        </div>
+      </div>
+
+      <!-- Hon. Chairman -->
+      <div class="patron-card gold reveal reveal-delay-2">
+        <div class="patron-sparkles">
+          <div class="patron-sparkle"></div>
+          <div class="patron-sparkle"></div>
+          <div class="patron-sparkle"></div>
+        </div>
+        <div class="patron-portrait">
+          <div class="patron-portrait-glow"></div>
+          <div class="patron-portrait-ring">
+            <div class="patron-portrait-img">
+              <img src="/uploads/site-assets/chairman-kumarswamy-hiremath.jpg" alt="Shri. Kumarswamy N Hiremath — Hon. Chairman">
+            </div>
+          </div>
+          <div class="patron-ornament patron-ornament-1"></div>
+          <div class="patron-ornament patron-ornament-2"></div>
+        </div>
+        <div class="patron-info">
+          <div class="patron-line"></div>
+          <div class="patron-title">Hon. Chairman</div>
+          <h2 class="patron-name">Shri. Kumarswamy N Hiremath</h2>
+          <div class="patron-designation">Honorary Chairman</div>
+          <p class="patron-desc">Providing visionary guidance and serving as the foundational pillar of inspiration for the institution's ongoing legacy.</p>
+          <div class="patron-quote">"True leadership is not about commanding — it is about empowering others to lead."</div>
+        </div>
+      </div>
+
+      <!-- Hon. Secretary -->
+      <div class="patron-card rose reveal reveal-delay-3">
+        <div class="patron-sparkles">
+          <div class="patron-sparkle"></div>
+          <div class="patron-sparkle"></div>
+          <div class="patron-sparkle"></div>
+        </div>
+        <div class="patron-portrait">
+          <div class="patron-portrait-glow"></div>
+          <div class="patron-portrait-ring">
+            <div class="patron-portrait-img">
+              <img src="/uploads/site-assets/secretary-pushpa-hiremath.jpg" alt="Dr. Pushpa K Hiremath — Hon. Secretary">
+            </div>
+          </div>
+          <div class="patron-ornament patron-ornament-1"></div>
+          <div class="patron-ornament patron-ornament-2"></div>
+        </div>
+        <div class="patron-info">
+          <div class="patron-line"></div>
+          <div class="patron-title">Hon. Secretary</div>
+          <h2 class="patron-name">Dr. Pushpa K Hiremath</h2>
+          <div class="patron-designation">Honorary Secretary</div>
+          <p class="patron-desc">With dedicated guidance and relentless commitment, she ensures academic excellence and empowers every student to reach their potential.</p>
+          <div class="patron-quote">"Education is the foundation upon which leaders of tomorrow are built."</div>
         </div>
       </div>
     </div>
@@ -447,6 +623,18 @@ footer{background:var(--bg2);border-top:1px solid rgba(255,255,255,0.05);padding
     <h2 class="section-title">Organisers & Faculty</h2>
   </div>
   <div class="team-grid" id="teamGrid">
+    <!-- Injected by JS -->
+  </div>
+</section>
+
+<!-- About Us / Contributors -->
+<section id="aboutus">
+  <div class="aboutus-header reveal">
+    <div class="section-tag">Know The Team</div>
+    <h2 class="section-title">Event Contributors & Leadership</h2>
+    <p class="section-sub" style="margin:16px auto 0">Meet the visionaries, coordinators, and student leaders who made NEXUS possible.</p>
+  </div>
+  <div class="aboutus-grid" id="contributorsGrid">
     <!-- Injected by JS -->
   </div>
 </section>
@@ -696,35 +884,17 @@ const TIMELINE = [
   { time: '5:30 PM', title: 'Valedictory & Awards', desc: 'Results announcement, prize distribution, certificates, closing ceremony', color: 'var(--accent)' }
 ];
 
-const TEAM_MEMBERS = [
-  // Faculty heads
-  { name: 'Prof. Mahesh Hiremath', role: 'Faculty Head — Finance', dept: 'FINVERSE', deptColor: '#00d4ff', initial: 'MH', bg: 'linear-gradient(135deg,#00d4ff,#0099bb)' },
-  { name: 'Prof. P. Monica', role: 'Faculty Head — Marketing', dept: 'ASVENTIQ', deptColor: '#f5a623', initial: 'PM', bg: 'linear-gradient(135deg,#f5a623,#d4890f)' },
-  { name: 'Prof. Mary Anthony', role: 'Faculty Head — HR', dept: 'MIND WAR', deptColor: '#e63c5c', initial: 'MA', bg: 'linear-gradient(135deg,#e63c5c,#c43050)' },
-  // Student organizers
-  { name: 'Vaishnavi', role: 'Organiser — Round 1', dept: 'HR', deptColor: '#e63c5c', initial: 'V', bg: 'linear-gradient(135deg,#e63c5c,#ff6b6b)' },
-  { name: 'Manali', role: 'Organiser — Round 1', dept: 'HR', deptColor: '#e63c5c', initial: 'M', bg: 'linear-gradient(135deg,#e63c5c,#ff6b6b)' },
-  { name: 'Maltesh', role: 'Organiser — Round 1', dept: 'HR', deptColor: '#e63c5c', initial: 'M', bg: 'linear-gradient(135deg,#e63c5c,#ff6b6b)' },
-  { name: 'Sayeda', role: 'Organiser — Round 2', dept: 'HR', deptColor: '#e63c5c', initial: 'S', bg: 'linear-gradient(135deg,#ff6b6b,#e63c5c)' },
-  { name: 'Ajay', role: 'Organiser — Round 2', dept: 'HR', deptColor: '#e63c5c', initial: 'A', bg: 'linear-gradient(135deg,#ff6b6b,#e63c5c)' },
-  { name: 'Sumaya', role: 'Organiser — IdeaNest & AdvWar', dept: 'Marketing', deptColor: '#f5a623', initial: 'S', bg: 'linear-gradient(135deg,#f5a623,#d4890f)' },
-  { name: 'Madhu', role: 'Organiser — IdeaNest', dept: 'Marketing', deptColor: '#f5a623', initial: 'M', bg: 'linear-gradient(135deg,#f5a623,#ffc107)' },
-  { name: 'Vishal', role: 'Organiser — BrandShift', dept: 'Marketing', deptColor: '#f5a623', initial: 'V', bg: 'linear-gradient(135deg,#ffc107,#f5a623)' },
-  { name: 'Madhura', role: 'Organiser — BrandShift', dept: 'Marketing', deptColor: '#f5a623', initial: 'M', bg: 'linear-gradient(135deg,#d4890f,#f5a623)' },
-  { name: 'Likith', role: 'Organiser — AdvWar', dept: 'Marketing', deptColor: '#f5a623', initial: 'L', bg: 'linear-gradient(135deg,#f5a623,#d4890f)' },
-  { name: 'Veerbhadra', role: 'Organiser — Link & Think', dept: 'Finance', deptColor: '#00d4ff', initial: 'V', bg: 'linear-gradient(135deg,#00d4ff,#0099bb)' },
-  { name: 'Samruddhi', role: 'Organiser — Link & Think', dept: 'Finance', deptColor: '#00d4ff', initial: 'S', bg: 'linear-gradient(135deg,#00d4ff,#00b3d9)' },
-  { name: 'Khushi', role: 'Organiser — Cash Clash', dept: 'Finance', deptColor: '#00d4ff', initial: 'K', bg: 'linear-gradient(135deg,#0099bb,#00d4ff)' },
-  { name: 'Prajwal', role: 'Organiser — Cash Clash', dept: 'Finance', deptColor: '#00d4ff', initial: 'P', bg: 'linear-gradient(135deg,#00b3d9,#00d4ff)' },
-  { name: 'Ritu', role: 'Organiser — Bid to Win', dept: 'Finance', deptColor: '#00d4ff', initial: 'R', bg: 'linear-gradient(135deg,#00d4ff,#0080aa)' },
-  { name: 'Abhishek', role: 'Organiser — Bid to Win', dept: 'Finance', deptColor: '#00d4ff', initial: 'A', bg: 'linear-gradient(135deg,#0099bb,#007799)' },
-];
+const TEAM_MEMBERS = [];
+
+const CONTRIBUTORS = [];
+
+let LEADERSHIP_MEMBERS = [];
 
 // ============ RENDER EVENTS ============
 function renderEvents() {
   const grid = document.getElementById('eventsGrid');
   grid.innerHTML = EVENTS.map(e => `
-    <div class="event-card reveal">
+    <div class="event-card reveal" onclick="showRules('${e.id}')">
       ${e.imageUrl ? `<div class="event-card-media"><img src="${e.imageUrl}" alt="${e.name}"></div>` : ''}
       <div class="event-card-header">
         <div class="event-dept" style="color:${e.deptColor}">${e.dept} Department</div>
@@ -779,8 +949,19 @@ function renderTimeline() {
 
 // ============ RENDER TEAM ============
 function renderTeam() {
+  const section = document.getElementById('team');
   const grid = document.getElementById('teamGrid');
-  grid.innerHTML = TEAM_MEMBERS.map(m=>`
+  const members = [...LEADERSHIP_MEMBERS, ...TEAM_MEMBERS].filter((member) => member && member.name);
+  if (!section || !grid) return;
+
+  if (!members.length) {
+    section.style.display = 'none';
+    grid.innerHTML = '';
+    return;
+  }
+
+  section.style.display = '';
+  grid.innerHTML = members.map(m=>`
     <div class="team-card reveal">
       <div class="team-avatar" style="background:${m.bg}">${m.imageUrl ? `<img src="${m.imageUrl}" alt="${m.name}">` : `${m.initial}`}</div>
       <div class="team-name">${m.name}</div>
@@ -791,23 +972,45 @@ function renderTeam() {
   initReveal();
 }
 
+function renderContributors() {
+  const section = document.getElementById('aboutus');
+  const grid = document.getElementById('contributorsGrid');
+  if (!section || !grid) return;
+  
+  if (!CONTRIBUTORS || !CONTRIBUTORS.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px"><p style="color:var(--muted)">Contributors will be added soon</p></div>';
+    return;
+  }
+  
+  grid.innerHTML = CONTRIBUTORS.map(c => `
+    <div class="contributor-card reveal">
+      <div class="contributor-avatar" style="background:${c.bgColor || 'linear-gradient(135deg,rgba(245,166,35,0.1),rgba(230,60,92,0.1))'}">${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.name}">` : c.emoji || '👤'}</div>
+      <div class="contributor-info">
+        <div class="contributor-role">${c.role || 'Contributor'}</div>
+        <div class="contributor-name">${c.name || 'Name'}</div>
+        <div class="contributor-dept">${c.dept || 'Department'}</div>
+        <div class="contributor-desc">${c.description || ''}</div>
+      </div>
+    </div>
+  `).join('');
+  initReveal();
+}
+
 // ============ RULES MODAL ============
 function showRules(id) {
   const event = EVENTS.find(e=>e.id===id);
   if(!event) return;
-  const r = event.rules;
-  document.getElementById('rulesContent').innerHTML = `
-    <h2>${r.title}</h2>
-    ${r.sections.map(s=>`
-      <h3>${s.heading}</h3>
-      <ul>${s.rules.map(rule=>`<li>${rule}</li>`).join('')}</ul>
-    `).join('')}
-  `;
+  document.getElementById('rulesContent').innerHTML = renderRulesContent(event);
   document.getElementById('rulesModal').classList.add('active');
 }
 
 function escapeAttr(value) {
-  return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function escapeHtml(value) {
@@ -817,6 +1020,35 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function renderRulesContent(event) {
+  const rules = event && event.rules ? event.rules : {};
+  const sections = Array.isArray(rules.sections) ? rules.sections : [];
+  const title = escapeHtml(rules.title || `${event.name} Rules & Regulations`);
+
+  if (!sections.length) {
+    return `
+      <h2>${title}</h2>
+      <p style="font-size:14px;color:var(--muted);line-height:1.7">No rules added yet.</p>
+    `;
+  }
+
+  return `
+    <h2>${title}</h2>
+    ${sections.map((section) => {
+      const heading = escapeHtml(section.heading || 'Rules');
+      const items = Array.isArray(section.rules) ? section.rules.filter(Boolean) : [];
+      const listMarkup = items.length
+        ? `<ul>${items.map((rule) => `<li>${escapeHtml(rule)}</li>`).join('')}</ul>`
+        : '<p style="font-size:14px;color:var(--muted);line-height:1.7">No rules added for this section yet.</p>';
+
+      return `
+        <h3>${heading}</h3>
+        ${listMarkup}
+      `;
+    }).join('')}
+  `;
 }
 
 function renderFooterEvents() {
@@ -842,53 +1074,66 @@ renderEvents = function renderEvents() {
     return;
   }
 
-  grid.innerHTML = EVENTS.map(e => `
-    <div class="event-card reveal">
-      ${e.imageUrl ? `<div class="event-card-media"><img src="${e.imageUrl}" alt="${e.name}"></div>` : ''}
+  grid.innerHTML = EVENTS.map((event) => `
+    <div class="event-card reveal" data-event-id="${escapeAttr(event.id)}" style="cursor:pointer">
+      ${event.imageUrl ? `<div class="event-card-media"><img src="${escapeAttr(event.imageUrl)}" alt="${escapeAttr(event.name)}"></div>` : ''}
       <div class="event-card-header">
-        <div class="event-dept" style="color:${e.deptColor}">${e.dept} Department</div>
-        <div class="event-name">${e.name}</div>
-        <div class="event-tagline">${e.tagline}</div>
-        <div class="event-badge" style="background:${e.badgeBg};color:${e.badgeColor}">${e.badge}</div>
+        <div class="event-dept" style="color:${event.deptColor}">${escapeHtml(event.dept || '')} Department</div>
+        <div class="event-name">${escapeHtml(event.name)}</div>
+        <div class="event-tagline">${escapeHtml(event.tagline || '')}</div>
+        <div class="event-badge" style="background:${event.badgeBg};color:${event.badgeColor}">${escapeHtml(event.badge || '')}</div>
       </div>
       <div class="event-rounds">
-        ${(Array.isArray(e.rounds) ? e.rounds : []).map(r=>`
+        ${(Array.isArray(event.rounds) ? event.rounds : []).map((round) => `
           <div class="round-item">
-            <div class="round-num" style="background:${r.color}22;color:${r.color}">${r.num}</div>
+            <div class="round-num" style="background:${round.color}22;color:${round.color}">${escapeHtml(round.num || '')}</div>
             <div class="round-info">
-              <h5>${r.title}</h5>
-              <p>${r.desc} â€” ${r.time}</p>
+              <h5>${escapeHtml(round.title || '')}</h5>
+              <p>${escapeHtml(round.desc || '')}${round.time ? ` - ${escapeHtml(round.time)}` : ''}</p>
             </div>
           </div>
         `).join('')}
       </div>
       <div class="event-footer">
-        <div class="event-organizers">Faculty: <strong>${e.facultyHead || 'â€”'}</strong></div>
-        <button class="event-rules-btn" data-event-id="${escapeAttr(e.id)}">Rules â†’</button>
+        <div class="event-organizers">Faculty: <strong>${escapeHtml(event.facultyHead || '-')}</strong></div>
+        <button type="button" class="event-rules-btn" data-event-id="${escapeAttr(event.id)}">Rules -></button>
       </div>
     </div>
   `).join('');
+  grid.querySelectorAll('.event-card').forEach((card) => {
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showRules(card.dataset.eventId);
+    });
+  });
   grid.querySelectorAll('.event-rules-btn').forEach((button) => {
-    button.addEventListener('click', () => showRules(button.dataset.eventId));
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showRules(button.dataset.eventId);
+    });
   });
   renderFooterEvents();
   initReveal();
 };
 
 showRules = function showRules(id) {
-  const event = EVENTS.find(e => String(e.id) === String(id));
-  if (!event) return;
-  const rules = event.rules || {};
-  const sections = Array.isArray(rules.sections) ? rules.sections : [];
-  document.getElementById('rulesContent').innerHTML = `
-    <h2>${rules.title || `${event.name} Rules & Regulations`}</h2>
-    ${sections.length ? sections.map(s => `
-      <h3>${s.heading || 'Rules'}</h3>
-      <ul>${(Array.isArray(s.rules) ? s.rules : []).map(rule => `<li>${rule}</li>`).join('')}</ul>
-    `).join('') : '<p>No rules added yet.</p>'}
-  `;
-  document.getElementById('rulesModal').classList.add('active');
+  const event = EVENTS.find((entry) => String(entry.id) === String(id));
+  const contentEl = document.getElementById('rulesContent');
+  const modalEl = document.getElementById('rulesModal');
+  if (!event || !contentEl || !modalEl) return;
+
+  contentEl.innerHTML = renderRulesContent(event);
+  modalEl.classList.add('active');
 };
+
+function buildLeadershipMembers(settings) {
+  const members = [];
+  if (settings.principalName) members.push({name:settings.principalName,role:'Principal',initial:(settings.principalName[0]||'P'),bg:'linear-gradient(135deg,#f5a623,#d4890f)',dept:'Leadership',deptColor:'#f5a623'});
+  if (settings.honChairmanName) members.push({name:settings.honChairmanName,role:'Hon. Chairman',initial:(settings.honChairmanName[0]||'C'),bg:'linear-gradient(135deg,#e63c5c,#c43050)',dept:'Leadership',deptColor:'#e63c5c'});
+  if (settings.chairmanName) members.push({name:settings.chairmanName,role:'Chairman',initial:(settings.chairmanName[0]||'C'),bg:'linear-gradient(135deg,#a855f7,#7c3aed)',dept:'Leadership',deptColor:'#a855f7'});
+  if (settings.hodName) members.push({name:settings.hodName,role:'Head of Department',initial:(settings.hodName[0]||'H'),bg:'linear-gradient(135deg,#00d4ff,#0099bb)',dept:'BBA Dept',deptColor:'#00d4ff'});
+  return members;
+}
 
 // ============ REGISTRATION ============
 const EVENT_PARTICIPANTS = {
@@ -1033,6 +1278,7 @@ heroObs.observe(document.getElementById('hero'));
 renderEvents();
 renderTimeline();
 renderTeam();
+renderContributors();
 initReveal();
 </script>
 <script>
@@ -1062,6 +1308,22 @@ initReveal();
     set('collegeFullName', s.collegeName);
     set('collegeDept', s.department);
     set('collegeLogoLarge', (s.collegeName||'BBA').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase());
+    
+    // Apply Media & Branding
+    const bannerEl = document.getElementById('festBannerArea');
+    if(bannerEl && s.festBannerUrl) {
+      bannerEl.innerHTML = `<img src="${s.festBannerUrl}" alt="Fest Banner" style="width:100%;height:100%;object-fit:cover;border-radius:16px;display:block;">`;
+      bannerEl.style.padding = '0';
+      bannerEl.style.background = 'transparent';
+      bannerEl.style.border = 'none';
+    }
+    const logoEl = document.getElementById('collegeLogoLarge');
+    if(logoEl && s.collegeLogoUrl) {
+      logoEl.innerHTML = `<img src="${s.collegeLogoUrl}" alt="College Logo" style="width:100%;height:100%;object-fit:contain;border-radius:50%;">`;
+      logoEl.style.background = '#fff';
+      logoEl.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+    }
+
     set('prize1', s.prize1);
     set('prize2', s.prize2);
     set('prize3', s.prize3);
@@ -1092,7 +1354,7 @@ initReveal();
       renderEvents();
     }
 
-    if (Array.isArray(s.teamMembers) && s.teamMembers.length) {
+    if (Array.isArray(s.teamMembers)) {
       TEAM_MEMBERS.splice(0, TEAM_MEMBERS.length, ...s.teamMembers.map((member) => ({
         ...member,
         initial: member.initial || (member.name || '').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || '?',
@@ -1100,27 +1362,19 @@ initReveal();
         deptColor: member.deptColor || '#f5a623',
         imageUrl: member.imageUrl || ''
       })));
-      renderTeam();
     }
 
-    if(s.principalName||s.chairmanName||s.hodName){
-      const leaders = [];
-      if(s.principalName) leaders.push({name:s.principalName,role:'Principal',initial:(s.principalName[0]||'P'),bg:'linear-gradient(135deg,#f5a623,#d4890f)',dept:'Leadership',deptColor:'#f5a623'});
-      if(s.chairmanName) leaders.push({name:s.chairmanName,role:'Chairman',initial:(s.chairmanName[0]||'C'),bg:'linear-gradient(135deg,#e63c5c,#c43050)',dept:'Leadership',deptColor:'#e63c5c'});
-      if(s.hodName) leaders.push({name:s.hodName,role:'Head of Department',initial:(s.hodName[0]||'H'),bg:'linear-gradient(135deg,#00d4ff,#0099bb)',dept:'BBA Dept',deptColor:'#00d4ff'});
-      const grid = document.getElementById('teamGrid');
-      if(grid){
-        const html = leaders.map(m=>`
-          <div class="team-card" style="border-color:rgba(245,166,35,0.2)">
-            <div class="team-avatar" style="background:${m.bg}">${m.initial}</div>
-            <div class="team-name">${m.name}</div>
-            <div class="team-role" style="color:var(--muted);font-size:12px">${m.role}</div>
-            <div class="team-dept" style="background:${m.deptColor}15;color:${m.deptColor}">${m.dept}</div>
-          </div>
-        `).join('');
-        grid.insertAdjacentHTML('afterbegin', html);
-      }
+    if (Array.isArray(s.contributors)) {
+      CONTRIBUTORS.splice(0, CONTRIBUTORS.length, ...s.contributors.map((contributor) => ({
+        ...contributor,
+        bgColor: contributor.bgColor || 'linear-gradient(135deg,rgba(245,166,35,0.1),rgba(230,60,92,0.1))',
+        emoji: contributor.emoji || '👤'
+      })));
+      renderContributors();
     }
+
+    LEADERSHIP_MEMBERS = buildLeadershipMembers(s);
+    renderTeam();
 
     if(tl && tl.length) {
       TIMELINE.splice(0, TIMELINE.length, ...tl.map(item => ({
@@ -1138,82 +1392,4 @@ initReveal();
 </script>
 </body>
 </html>
-<!-- CMS SYNC SCRIPT: Reads settings saved in CMS -->
-<script>
-(function syncCMSSettings(){
-  return;
-  const s = JSON.parse(localStorage.getItem('nexus_settings')||'null');
-  const tl = JSON.parse(localStorage.getItem('nexus_timeline')||'null');
-  if(!s) return;
-  const set = (id,val) => { const el=document.getElementById(id); if(el&&val) el.textContent=val; };
-  const setVal = (id,val) => { const el=document.getElementById(id); if(el&&val) el.value=val; };
-  const setHTML = (id,val) => { const el=document.getElementById(id); if(el&&val) el.innerHTML=val; };
-  // Hero
-  set('heroTitle', s.eventName);
-  set('heroSubtitle', s.eventSubtitle);
-  set('heroDesc', s.heroDesc);
-  set('statTeams', s.statTeams);
-  set('statEvents', s.statEvents);
-  set('statColleges', s.statColleges);
-  set('statPrize', s.statPrize);
-  // Nav
-  set('collegeName', (s.eventName||'NEXUS')+' 2026');
-  document.getElementById('collegeLogo').textContent = (s.eventName||'N')[0];
-  // About
-  set('aboutTitle', s.aboutTitle);
-  document.getElementById('aboutTitle') && (document.getElementById('aboutTitle').textContent = s.aboutTitle||'');
-  const aboutDescEl = document.querySelector('#about .section-sub');
-  if(aboutDescEl && s.aboutDesc) aboutDescEl.textContent = s.aboutDesc;
-  // College
-  set('collegeFullName', s.collegeName);
-  set('collegeDept', s.department);
-  set('collegeLogoLarge', (s.collegeName||'BA').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase());
-  // Prizes
-  set('prize1', s.prize1);
-  set('prize2', s.prize2);
-  set('prize3', s.prize3);
-  set('prizesTitle', s.prizesTitle);
-  // Footer
-  set('footerCollege', s.footerCollege);
-  const footerDescEl = document.getElementById('footerDesc');
-  if(footerDescEl && s.footerDesc) footerDescEl.textContent = s.footerDesc;
-  // Leadership — inject into team section if set
-  if(s.principalName||s.chairmanName||s.hodName){
-    const leaders = [];
-    if(s.principalName) leaders.push({name:s.principalName,role:'Principal',initial:(s.principalName[0]||'P'),bg:'linear-gradient(135deg,#f5a623,#d4890f)',dept:'Leadership',deptColor:'#f5a623'});
-    if(s.chairmanName) leaders.push({name:s.chairmanName,role:'Chairman',initial:(s.chairmanName[0]||'C'),bg:'linear-gradient(135deg,#e63c5c,#c43050)',dept:'Leadership',deptColor:'#e63c5c'});
-    if(s.hodName) leaders.push({name:s.hodName,role:'Head of Department',initial:(s.hodName[0]||'H'),bg:'linear-gradient(135deg,#00d4ff,#0099bb)',dept:'BBA Dept',deptColor:'#00d4ff'});
-    // Prepend to team grid
-    const grid = document.getElementById('teamGrid');
-    if(grid){
-      const html = leaders.map(m=>`
-        <div class="team-card" style="border-color:rgba(245,166,35,0.2)">
-          <div class="team-avatar" style="background:${m.bg}">${m.initial}</div>
-          <div class="team-name">${m.name}</div>
-          <div class="team-role" style="color:var(--muted);font-size:12px">${m.role}</div>
-          <div class="team-dept" style="background:${m.deptColor}15;color:${m.deptColor}">${m.dept}</div>
-        </div>
-      `).join('');
-      grid.insertAdjacentHTML('afterbegin', html);
-    }
-  }
-  // Timeline from CMS
-  if(tl && tl.length) {
-    // Override TIMELINE variable and re-render
-    window._cmsTimeline = tl;
-  }
-})();
-// Override timeline render to use CMS data if available
-const _origRenderTimeline = renderTimeline;
-function renderTimeline() {
-  if(window._cmsTimeline) {
-    // Temporarily swap
-    const orig = window.TIMELINE;
-    window.TIMELINE = window._cmsTimeline;
-    _origRenderTimeline();
-    window.TIMELINE = orig;
-  } else {
-    _origRenderTimeline();
-  }
-}
-</script>
+

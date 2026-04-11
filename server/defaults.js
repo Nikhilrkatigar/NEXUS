@@ -38,27 +38,7 @@ const DEFAULT_SETTINGS = {
   hodName: "",
   footerDesc: "The Leadership Shift - BBA Department's flagship inter-college fest. A platform for future leaders to rise.",
   footerCollege: "BBA Department",
-  teamMembers: [
-    { id: "team-1", name: "Prof. Mahesh Hiremath", role: "Faculty Head - Finance", dept: "FINVERSE", deptColor: "#00d4ff", initial: "MH", bg: "linear-gradient(135deg,#00d4ff,#0099bb)", imageUrl: "" },
-    { id: "team-2", name: "Prof. P. Monica", role: "Faculty Head - Marketing", dept: "ASVENTIQ", deptColor: "#f5a623", initial: "PM", bg: "linear-gradient(135deg,#f5a623,#d4890f)", imageUrl: "" },
-    { id: "team-3", name: "Prof. Mary Anthony", role: "Faculty Head - HR", dept: "MIND WAR", deptColor: "#e63c5c", initial: "MA", bg: "linear-gradient(135deg,#e63c5c,#c43050)", imageUrl: "" },
-    { id: "team-4", name: "Vaishnavi", role: "Organiser - Round 1", dept: "HR", deptColor: "#e63c5c", initial: "V", bg: "linear-gradient(135deg,#e63c5c,#ff6b6b)", imageUrl: "" },
-    { id: "team-5", name: "Manali", role: "Organiser - Round 1", dept: "HR", deptColor: "#e63c5c", initial: "M", bg: "linear-gradient(135deg,#e63c5c,#ff6b6b)", imageUrl: "" },
-    { id: "team-6", name: "Maltesh", role: "Organiser - Round 1", dept: "HR", deptColor: "#e63c5c", initial: "M", bg: "linear-gradient(135deg,#e63c5c,#ff6b6b)", imageUrl: "" },
-    { id: "team-7", name: "Sayeda", role: "Organiser - Round 2", dept: "HR", deptColor: "#e63c5c", initial: "S", bg: "linear-gradient(135deg,#ff6b6b,#e63c5c)", imageUrl: "" },
-    { id: "team-8", name: "Ajay", role: "Organiser - Round 2", dept: "HR", deptColor: "#e63c5c", initial: "A", bg: "linear-gradient(135deg,#ff6b6b,#e63c5c)", imageUrl: "" },
-    { id: "team-9", name: "Sumaya", role: "Organiser - IdeaNest & AdvWar", dept: "Marketing", deptColor: "#f5a623", initial: "S", bg: "linear-gradient(135deg,#f5a623,#d4890f)", imageUrl: "" },
-    { id: "team-10", name: "Madhu", role: "Organiser - IdeaNest", dept: "Marketing", deptColor: "#f5a623", initial: "M", bg: "linear-gradient(135deg,#f5a623,#ffc107)", imageUrl: "" },
-    { id: "team-11", name: "Vishal", role: "Organiser - BrandShift", dept: "Marketing", deptColor: "#f5a623", initial: "V", bg: "linear-gradient(135deg,#ffc107,#f5a623)", imageUrl: "" },
-    { id: "team-12", name: "Madhura", role: "Organiser - BrandShift", dept: "Marketing", deptColor: "#f5a623", initial: "M", bg: "linear-gradient(135deg,#d4890f,#f5a623)", imageUrl: "" },
-    { id: "team-13", name: "Likith", role: "Organiser - AdvWar", dept: "Marketing", deptColor: "#f5a623", initial: "L", bg: "linear-gradient(135deg,#f5a623,#d4890f)", imageUrl: "" },
-    { id: "team-14", name: "Veerbhadra", role: "Organiser - Link & Think", dept: "Finance", deptColor: "#00d4ff", initial: "V", bg: "linear-gradient(135deg,#00d4ff,#0099bb)", imageUrl: "" },
-    { id: "team-15", name: "Samruddhi", role: "Organiser - Link & Think", dept: "Finance", deptColor: "#00d4ff", initial: "S", bg: "linear-gradient(135deg,#00d4ff,#00b3d9)", imageUrl: "" },
-    { id: "team-16", name: "Khushi", role: "Organiser - Cash Clash", dept: "Finance", deptColor: "#00d4ff", initial: "K", bg: "linear-gradient(135deg,#0099bb,#00d4ff)", imageUrl: "" },
-    { id: "team-17", name: "Prajwal", role: "Organiser - Cash Clash", dept: "Finance", deptColor: "#00d4ff", initial: "P", bg: "linear-gradient(135deg,#00b3d9,#00d4ff)", imageUrl: "" },
-    { id: "team-18", name: "Ritu", role: "Organiser - Bid to Win", dept: "Finance", deptColor: "#00d4ff", initial: "R", bg: "linear-gradient(135deg,#00d4ff,#0080aa)", imageUrl: "" },
-    { id: "team-19", name: "Abhishek", role: "Organiser - Bid to Win", dept: "Finance", deptColor: "#00d4ff", initial: "A", bg: "linear-gradient(135deg,#0099bb,#007799)", imageUrl: "" }
-  ]
+  teamMembers: []
 };
 
 const DEFAULT_TIMELINE = [
