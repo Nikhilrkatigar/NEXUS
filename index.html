@@ -814,6 +814,12 @@ const EVENTS = [
     rounds: [
       {num:'—',title:'Individual Walk',desc:'3–4 min on stage: entry, mid-pose, final pose',time:'3–4 min',color:'#a855f7'}
     ],
+    coordinators: [
+      { type: 'faculty', name: 'Prof. Arundhati M', phone: '+916362637172' },
+      { type: 'faculty', name: 'Prof. Supriya K', phone: '9916941821' },
+      { type: 'student', name: 'Vinita ponaji', phone: '7483108015' },
+      { type: 'student', name: 'Vishal Udoji', phone: '6363927484' }
+    ],
     facultyHead: '—',
     organizers: '—',
     rules: {
@@ -1098,7 +1104,32 @@ renderEvents = function renderEvents() {
         `).join('')}
       </div>
       <div class="event-footer">
-        <div class="event-organizers">Faculty: <strong>${escapeHtml(event.facultyHead || '-')}</strong></div>
+        ${(() => {
+          const coordinators = Array.isArray(event.coordinators) ? event.coordinators : [];
+          const faculty = coordinators.filter(c => c.type === 'faculty');
+          const students = coordinators.filter(c => c.type === 'student');
+          
+          let coordinatorHtml = '';
+          if (faculty.length || students.length) {
+            coordinatorHtml += '<div style="margin-bottom:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">';
+            if (faculty.length) {
+              coordinatorHtml += `<div style="font-size:12px;color:var(--muted);margin-bottom:4px"><strong>Faculty:</strong></div>`;
+              faculty.forEach(f => {
+                coordinatorHtml += `<div style="font-size:13px;color:var(--text);margin-bottom:4px">${escapeHtml(f.name)} <span style="color:var(--muted);font-size:11px">${escapeHtml(f.phone)}</span></div>`;
+              });
+            }
+            if (students.length) {
+              coordinatorHtml += `<div style="font-size:12px;color:var(--muted);margin-top:8px;margin-bottom:4px"><strong>Students:</strong></div>`;
+              students.forEach(s => {
+                coordinatorHtml += `<div style="font-size:13px;color:var(--text);margin-bottom:4px">${escapeHtml(s.name)} <span style="color:var(--muted);font-size:11px">${escapeHtml(s.phone)}</span></div>`;
+              });
+            }
+            coordinatorHtml += '</div>';
+          } else {
+            coordinatorHtml = `<div style="font-size:13px;color:var(--text)">Faculty: <strong>${escapeHtml(event.facultyHead || '-')}</strong></div>`;
+          }
+          return coordinatorHtml;
+        })()}
         <button type="button" class="event-rules-btn" data-event-id="${escapeAttr(event.id)}">Rules -></button>
       </div>
     </div>

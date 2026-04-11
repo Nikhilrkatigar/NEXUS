@@ -319,7 +319,24 @@ function renderEventEditor(eventId) {
     </div>
 
     <div class="editor-section">
-      <div class="editor-section-title">Faculty & Organizers</div>
+      <div class="editor-section-title">Event Coordinators (New System)</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Replace the old Faculty/Organizers system with structured coordinator data including phone numbers</p>
+      
+      <div style="margin-bottom:20px">
+        <h4 style="font-weight:600;margin-bottom:12px">Faculty Coordinators</h4>
+        <div id="facultyCoordinatorsList"></div>
+        <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addCoordinator('${event.id}','faculty')" style="margin-top:8px">+ Add Faculty</button>
+      </div>
+      
+      <div style="margin-bottom:20px">
+        <h4 style="font-weight:600;margin-bottom:12px">Student Coordinators</h4>
+        <div id="studentCoordinatorsList"></div>
+        <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addCoordinator('${event.id}','student')" style="margin-top:8px">+ Add Student</button>
+      </div>
+    </div>
+
+    <div class="editor-section">
+      <div class="editor-section-title">Faculty & Organizers (Legacy - Deprecated)</div>
       <div class="form-group">
         <label>Faculty Head</label>
         <input type="text" id="editor_facultyHead" value="${event.facultyHead || ''}" placeholder="e.g., Prof. Mahesh Hiremath">
@@ -398,6 +415,39 @@ function renderEventEditor(eventId) {
       </div>
     </div>
   `;
+  
+  // Populate coordinator lists
+  const facultyList = document.getElementById('facultyCoordinatorsList');
+  const studentList = document.getElementById('studentCoordinatorsList');
+  const coordinators = event.coordinators || [];
+  
+  if (facultyList) {
+    const faculty = coordinators.filter(c => c.type === 'faculty');
+    facultyList.innerHTML = faculty.map((coord, idx) => {
+      const coordIndex = coordinators.indexOf(coord);
+      return `
+        <div style="display:grid;grid-template-columns:1fr 1fr 60px;gap:8px;margin-bottom:8px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;align-items:end">
+          <input type="text" value="${coord.name || ''}" placeholder="e.g., Prof. Name" style="padding:8px;background:var(--surface);border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text)" oninput="updateCoordinator('${event.id}',${coordIndex},'name',this.value)">
+          <input type="text" value="${coord.phone || ''}" placeholder="Phone number" style="padding:8px;background:var(--surface);border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text)" oninput="updateCoordinator('${event.id}',${coordIndex},'phone',this.value)">
+          <button class="cms-btn cms-btn-danger cms-btn-sm" onclick="removeCoordinator('${event.id}',${coordIndex})">Remove</button>
+        </div>
+      `;
+    }).join('') || '<p style="color:var(--muted);font-size:12px">No faculty coordinators added yet</p>';
+  }
+  
+  if (studentList) {
+    const students = coordinators.filter(c => c.type === 'student');
+    studentList.innerHTML = students.map((coord, idx) => {
+      const coordIndex = coordinators.indexOf(coord);
+      return `
+        <div style="display:grid;grid-template-columns:1fr 1fr 60px;gap:8px;margin-bottom:8px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;align-items:end">
+          <input type="text" value="${coord.name || ''}" placeholder="e.g., Student Name" style="padding:8px;background:var(--surface);border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text)" oninput="updateCoordinator('${event.id}',${coordIndex},'name',this.value)">
+          <input type="text" value="${coord.phone || ''}" placeholder="Phone number" style="padding:8px;background:var(--surface);border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text)" oninput="updateCoordinator('${event.id}',${coordIndex},'phone',this.value)">
+          <button class="cms-btn cms-btn-danger cms-btn-sm" onclick="removeCoordinator('${event.id}',${coordIndex})">Remove</button>
+        </div>
+      `;
+    }).join('') || '<p style="color:var(--muted);font-size:12px">No student coordinators added yet</p>';
+  }
 }
 
 function openEventEditor(eventId) {
@@ -443,6 +493,7 @@ function saveEventEditor() {
       badgeBg: document.getElementById('editor_badgeBg').value || 'rgba(245,166,35,0.1)',
       facultyHead: document.getElementById('editor_facultyHead').value || '',
       organizers: document.getElementById('editor_organizers').value || '',
+      coordinators: event.coordinators || [],
       rules: {
         title: document.getElementById('editor_rules_title').value || 'Rules & Regulations',
         sections: event.rules?.sections || []
@@ -507,6 +558,40 @@ function removeRound(eventId, roundId) {
   renderEventEditor(eventId);
 }
 
+function addCoordinator(eventId, type) {
+  events = events.map((event) => {
+    if (event.id === eventId) {
+      const coordinators = event.coordinators || [];
+      coordinators.push({ type, name: '', phone: '' });
+      return { ...event, coordinators };
+    }
+    return event;
+  });
+  renderEventEditor(eventId);
+}
+
+function removeCoordinator(eventId, index) {
+  events = events.map((event) => {
+    if (event.id === eventId) {
+      const coordinators = (event.coordinators || []).filter((_, i) => i !== index);
+      return { ...event, coordinators };
+    }
+    return event;
+  });
+  renderEventEditor(eventId);
+}
+
+function updateCoordinator(eventId, index, field, value) {
+  events = events.map((event) => {
+    if (event.id === eventId) {
+      const coordinators = event.coordinators || [];
+      if (coordinators[index]) coordinators[index][field] = value;
+      return { ...event, coordinators };
+    }
+    return event;
+  });
+}
+
 function updateEventRuleTitle(eventId, value) {
   events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), title: value, sections: event.rules?.sections || [] } } : event);
 }
@@ -546,6 +631,11 @@ async function saveEventsSettings() {
     badgeColor: String(event.badgeColor || '#f5a623').trim(),
     facultyHead: String(event.facultyHead || '').trim(),
     organizers: String(event.organizers || '').trim(),
+    coordinators: (event.coordinators || []).map((coord) => ({
+      type: String(coord.type || 'faculty').trim(),
+      name: String(coord.name || '').trim(),
+      phone: String(coord.phone || '').trim()
+    })).filter((coord) => coord.name && coord.phone),
     imageUrl: String(event.imageUrl || '').trim(),
     rounds: (event.rounds || []).map((round, index) => ({
       id: round.id || uid('round'),
