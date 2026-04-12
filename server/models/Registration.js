@@ -81,6 +81,25 @@ const registrationSchema = new mongoose.Schema(
       HR: { type: Number, default: 0 },
       Marketing: { type: Number, default: 0 },
       Finance: { type: Number, default: 0 }
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "verified"],
+      default: "pending"
+    },
+    paymentScreenshot: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    paymentScreenshotPath: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    paymentVerifiedAt: {
+      type: Date,
+      default: null
     }
   },
   {

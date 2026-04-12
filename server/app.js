@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const dotenv = require("dotenv");
 
@@ -12,6 +13,12 @@ dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT || 4000);
+
+// Ensure uploads directories exist
+const uploadsDir = path.join(__dirname, "..", "uploads");
+const paymentScreenshotsDir = path.join(uploadsDir, "payment-screenshots");
+fs.mkdirSync(uploadsDir, { recursive: true });
+fs.mkdirSync(paymentScreenshotsDir, { recursive: true });
 
 app.set("trust proxy", true);
 

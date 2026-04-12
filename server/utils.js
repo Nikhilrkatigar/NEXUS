@@ -36,7 +36,11 @@ function serializeRegistration(doc) {
     leader: doc.leader,
     participants: doc.participants || [],
     ip: normalizeIp(doc.sourceIp) || "-",
-    timestamp: doc.createdAt
+    timestamp: doc.createdAt,
+    paymentStatus: doc.paymentStatus || "pending",
+    paymentScreenshot: doc.paymentScreenshot || "",
+    paymentScreenshotPath: doc.paymentScreenshotPath || "",
+    paymentVerifiedAt: doc.paymentVerifiedAt
   };
 }
 

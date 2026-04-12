@@ -414,4 +414,195 @@ router.delete("/users/:id", requireRole("superadmin"), async (req, res, next) =>
   }
 });
 
+// Debug endpoint - list all uploaded screenshots
+router.get("/debug/screenshots", requireRole("superadmin"), async (req, res, next) => {
+  try {
+    const uploadsDir = path.join(__dirname, "../../uploads/payment-screenshots");
+    const files = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [];
+    
+    const registrations = await Registration.find({}, { code: 1, paymentScreenshot: 1, paymentScreenshotPath: 1 }).lean();
+    
+    res.json({
+      uploadsDir,
+      dirExists: fs.existsSync(uploadsDir),
+      filesInDir: files,
+      registrationsWithScreenshots: registrations.filter(r => r.paymentScreenshot)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get payment screenshot - NO AUTH required (registration code is identifier, not secret)
+router.get("/payment-screenshot/:code", async (req, res, next) => {
+  try {
+    const registration = await Registration.findOne({ code: req.params.code }).lean();
+
+    if (!registration) {
+      console.log("Screenshot request: Registration not found for code:", req.params.code);
+      throw makeError("Registration not found", 404);
+    }
+
+    if (!registration.paymentScreenshot) {
+      console.log("Screenshot request: No screenshot for code:", req.params.code);
+      throw makeError("No payment screenshot uploaded", 404);
+    }
+
+    // Always construct path from filename - avoid stored absolute path issues
+    const screenshotPath = path.join(__dirname, "../../uploads/payment-screenshots", registration.paymentScreenshot);
+
+    console.log("Serving screenshot:", {
+      code: req.params.code,
+      filename: registration.paymentScreenshot,
+      resolvedPath: screenshotPath,
+      fileExists: fs.existsSync(screenshotPath)
+    });
+
+    if (!fs.existsSync(screenshotPath)) {
+      console.error("Screenshot file not found at:", screenshotPath);
+      throw makeError("Screenshot file not found", 404);
+    }
+
+    res.sendFile(screenshotPath);
+  } catch (error) {
+    console.error("Error serving screenshot:", error.message);
+    next(error);
+  }
+});
+
+// Verify payment
+router.post("/registrations/:code/verify-payment", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const registration = await Registration.findOne({ code: req.params.code });
+
+    if (!registration) {
+      throw makeError("Registration not found", 404);
+    }
+
+    if (!registration.paymentScreenshot) {
+      throw makeError("No payment screenshot to verify", 400);
+    }
+
+    registration.paymentStatus = "verified";
+    registration.paymentVerifiedAt = new Date();
+    await registration.save();
+
+    await writeAuditLog({
+      action: `Verified payment for registration: ${registration.code} (${registration.college})`,
+      req,
+      user: req.user
+    });
+
+    res.json({
+      ok: true,
+      message: "Payment verified successfully",
+      registration: serializeRegistration(registration)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Reject payment
+router.post("/registrations/:code/reject-payment", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const registration = await Registration.findOne({ code: req.params.code });
+
+    if (!registration) {
+      throw makeError("Registration not found", 404);
+    }
+
+    // Delete screenshot file
+    if (registration.paymentScreenshotPath && fs.existsSync(registration.paymentScreenshotPath)) {
+      fs.unlinkSync(registration.paymentScreenshotPath);
+    }
+
+    registration.paymentStatus = "pending";
+    registration.paymentScreenshot = "";
+    registration.paymentScreenshotPath = "";
+    registration.paymentVerifiedAt = null;
+    await registration.save();
+
+    await writeAuditLog({
+      action: `Rejected payment for registration: ${registration.code} (${registration.college})`,
+      req,
+      user: req.user
+    });
+
+    res.json({
+      ok: true,
+      message: "Payment rejected - user can resubmit",
+      registration: serializeRegistration(registration)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update registration
+router.put("/registrations/:code", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const registration = await Registration.findOne({ code: req.params.code });
+
+    if (!registration) {
+      throw makeError("Registration not found", 404);
+    }
+
+    // Update allowed fields
+    if (req.body.college) registration.college = String(req.body.college).trim();
+    if (req.body.email) registration.email = String(req.body.email).trim();
+    if (req.body.leader) registration.leader = String(req.body.leader).trim();
+    if (req.body.address) registration.address = String(req.body.address).trim();
+    if (req.body.faculty) registration.faculty = String(req.body.faculty).trim();
+    if (req.body.facultyPhone) registration.facultyPhone = String(req.body.facultyPhone).trim();
+
+    await registration.save();
+
+    await writeAuditLog({
+      action: `Updated registration: ${registration.code} (${registration.college})`,
+      req,
+      user: req.user
+    });
+
+    res.json({
+      ok: true,
+      message: "Registration updated successfully",
+      registration: serializeRegistration(registration)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete registration
+router.delete("/registrations/:code", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const registration = await Registration.findOne({ code: req.params.code });
+
+    if (!registration) {
+      throw makeError("Registration not found", 404);
+    }
+
+    // Delete screenshot file if exists
+    if (registration.paymentScreenshotPath && fs.existsSync(registration.paymentScreenshotPath)) {
+      fs.unlinkSync(registration.paymentScreenshotPath);
+    }
+
+    await registration.deleteOne();
+
+    await writeAuditLog({
+      action: `Deleted registration: ${registration.code} (${registration.college})`,
+      req,
+      user: req.user
+    });
+
+    res.json({
+      ok: true,
+      message: "Registration deleted successfully"
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

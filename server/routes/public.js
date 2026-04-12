@@ -1,4 +1,7 @@
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
 
 const Registration = require("../models/Registration");
 const Settings = require("../models/Settings");
@@ -13,6 +16,36 @@ const {
 } = require("../registrationValidator");
 
 const router = express.Router();
+
+// Multer configuration for payment screenshot uploads
+const uploadsDir = path.join(__dirname, "../../uploads/payment-screenshots");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    cb(null, `${req.registrationCode}-${timestamp}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = ["image/jpeg", "image/png", "image/webp"];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(makeError("Only JPEG, PNG, and WebP images are allowed", 400));
+    }
+  }
+});
 
 async function generateRegistrationCode() {
   for (let attempt = 0; attempt < 10; attempt += 1) {
@@ -124,5 +157,93 @@ router.post("/registrations", async (req, res, next) => {
     next(error);
   }
 });
+
+// Get payment status for a registration
+router.get("/registrations/:code/payment-status", async (req, res, next) => {
+  try {
+    const registration = await Registration.findOne({ code: req.params.code }).lean();
+    
+    if (!registration) {
+      throw makeError("Registration not found", 404);
+    }
+
+    res.json({
+      code: registration.code,
+      paymentStatus: registration.paymentStatus,
+      paymentScreenshot: registration.paymentScreenshot,
+      paymentVerifiedAt: registration.paymentVerifiedAt
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Upload payment screenshot
+router.post(
+  "/registrations/:code/payment-screenshot",
+  (req, res, next) => {
+    req.registrationCode = req.params.code;
+    next();
+  },
+  upload.single("screenshot"),
+  async (req, res, next) => {
+    try {
+      if (!req.file) {
+        throw makeError("No image file provided", 400);
+      }
+
+      console.log("Screenshot upload request for code:", req.params.code);
+      console.log("File info:", {
+        filename: req.file.filename,
+        path: req.file.path,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      });
+
+      const registration = await Registration.findOne({ code: req.params.code });
+      
+      if (!registration) {
+        // Clean up uploaded file if registration not found
+        fs.unlinkSync(req.file.path);
+        throw makeError("Registration not found", 404);
+      }
+
+      // Delete old screenshot if exists
+      if (registration.paymentScreenshotPath && fs.existsSync(registration.paymentScreenshotPath)) {
+        fs.unlinkSync(registration.paymentScreenshotPath);
+      }
+
+      // Update registration with screenshot info
+      registration.paymentScreenshot = req.file.filename;
+      registration.paymentScreenshotPath = req.file.path;
+      registration.paymentStatus = "pending"; // Awaiting admin verification
+      await registration.save();
+
+      console.log("Screenshot saved successfully for code:", req.params.code);
+      console.log("Saved to database:", {
+        paymentScreenshot: registration.paymentScreenshot,
+        paymentScreenshotPath: registration.paymentScreenshotPath
+      });
+
+      await writeAuditLog({
+        action: `Payment screenshot uploaded for registration: ${registration.code}`,
+        req
+      });
+
+      res.json({
+        success: true,
+        message: "Payment screenshot uploaded successfully. Awaiting admin verification.",
+        registration: serializeRegistration(registration)
+      });
+    } catch (error) {
+      // Clean up uploaded file on error
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      console.error("Upload error:", error);
+      next(error);
+    }
+  }
+);
 
 module.exports = router;

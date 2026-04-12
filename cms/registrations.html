@@ -30,7 +30,7 @@
   <div class="cms-card">
     <table class="cms-table" id="regsTable">
       <thead><tr>
-        <th>#</th><th>Code</th><th>College</th><th>Event</th><th>Group Leader</th><th>Faculty</th><th>Participants</th><th>Date</th><th>Actions</th>
+        <th>#</th><th>Code</th><th>College</th><th>Event</th><th>Group Leader</th><th>Faculty</th><th>Participants</th><th>Payment</th><th>Date</th><th>Actions</th>
       </tr></thead>
       <tbody id="regsTbody"></tbody>
     </table>
@@ -40,12 +40,17 @@
 <div id="detailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:800;align-items:center;justify-content:center;backdrop-filter:blur(10px)">
   <div style="background:#111827;border:1px solid rgba(245,166,35,0.2);border-radius:20px;padding:40px;max-width:560px;width:90%;position:relative;max-height:80vh;overflow-y:auto">
     <button onclick="document.getElementById('detailModal').style.display='none'" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">x</button>
+    <div style="position:absolute;top:16px;right:50px;display:flex;gap:8px">
+      <button onclick="editRegistration(currentEditingId)" style="background:rgba(245,166,35,0.1);color:#f5a623;border:1px solid rgba(245,166,35,0.3);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">✎ Edit</button>
+      <button onclick="deleteRegistration(currentEditingId)" style="background:rgba(230,60,92,0.1);color:#e63c5c;border:1px solid rgba(230,60,92,0.3);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">🗑 Delete</button>
+    </div>
     <div id="detailContent"></div>
   </div>
 </div>
 
 <script>
 let regs = [];
+let currentEditingId = null;
 
 function renderTable() {
   const search = document.getElementById('searchInput').value.toLowerCase();
@@ -63,7 +68,12 @@ function renderTable() {
 
   document.getElementById('countLabel').textContent = `${filtered.length} registration${filtered.length !== 1 ? 's' : ''}`;
   document.getElementById('regsTbody').innerHTML = filtered.length
-    ? filtered.map((registration, index) => `
+    ? filtered.map((registration, index) => {
+        const paymentStatus = registration.paymentStatus || 'pending';
+        const paymentBadge = paymentStatus === 'verified' 
+          ? '<span class="badge badge-green" style="font-size:10px">✓ Verified</span>'
+          : '<span class="badge badge-yellow" style="font-size:10px">⏳ Pending</span>';
+        return `
       <tr>
         <td style="color:var(--muted);font-size:12px">${index + 1}</td>
         <td><span class="badge badge-gold">#${registration.code}</span></td>
@@ -72,16 +82,63 @@ function renderTable() {
         <td style="font-size:12px">${registration.leader || '-'}</td>
         <td style="font-size:12px;color:var(--muted)">${registration.faculty || '-'}</td>
         <td style="font-size:12px;color:var(--muted)">${(registration.participants || []).filter((participant) => participant.name).length} participant(s)</td>
+        <td>${paymentBadge}</td>
         <td style="font-size:11px;color:var(--muted)">${new Date(registration.timestamp).toLocaleDateString()}</td>
         <td><button class="cms-btn cms-btn-sm" style="background:rgba(245,166,35,0.1);color:#f5a623;border:none;cursor:pointer" onclick="viewDetail('${registration.id}')">View</button></td>
       </tr>
-    `).join('')
-    : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">No registrations found</td></tr>';
+    `;
+      }).join('')
+    : '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px">No registrations found</td></tr>';
 }
 
 function viewDetail(id) {
   const registration = regs.find((entry) => String(entry.id) === String(id));
-  if (!registration) return;
+  if (!registration) {
+    console.warn("Registration not found with id:", id);
+    return;
+  }
+
+  currentEditingId = id;
+
+  console.log("=== VIEWING REGISTRATION DETAIL ===");
+  console.log("Registration ID:", id);
+  console.log("Registration Code:", registration.code);
+  console.log("Payment Status:", registration.paymentStatus);
+  console.log("Payment Screenshot Filename:", registration.paymentScreenshot);
+  console.log("Payment Screenshot Path:", registration.paymentScreenshotPath);
+  console.log("Full registration object:", registration);
+  console.log("=====================================");
+
+  const paymentStatus = registration.paymentStatus || 'pending';
+  const paymentStatusDisplay = paymentStatus === 'verified' 
+    ? '<span style="color:#10b981;font-weight:600">✓ Verified</span>'
+    : '<span style="color:#f5a623;font-weight:600">⏳ Pending Verification</span>';
+
+  let paymentSection = `
+    <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:16px;margin-top:16px">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Payment Status</div>
+      <div style="font-size:14px;margin-bottom:12px">${paymentStatusDisplay}</div>
+  `;
+
+  if (registration.paymentScreenshot) {
+    paymentSection += `
+      <div style="margin-top:12px">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Screenshot</div>
+        <img src="/api/cms/payment-screenshot/${registration.code}" alt="Payment Screenshot" style="max-width:100%;height:auto;border-radius:8px;border:1px solid rgba(245,166,35,0.2);cursor:pointer" onclick="viewScreenshot('${registration.code}')" onerror="this.style.borderColor='#e63c5c'; this.alt='Failed to load screenshot';" />
+        <p style="font-size:11px;color:var(--muted);margin-top:8px">Click to view full size</p>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="cms-btn cms-btn-sm" style="background:rgba(16,185,129,0.1);color:#10b981;border:none;cursor:pointer;flex:1" onclick="verifyPayment('${registration.code}')">✓ Verify Payment</button>
+        <button class="cms-btn cms-btn-sm" style="background:rgba(230,60,92,0.1);color:#e63c5c;border:none;cursor:pointer;flex:1" onclick="rejectPayment('${registration.code}')">✕ Reject</button>
+      </div>
+    `;
+  } else {
+    paymentSection += `
+      <div style="color:var(--muted);font-size:12px;margin-top:8px">No payment screenshot uploaded yet</div>
+    `;
+  }
+
+  paymentSection += '</div>';
 
   document.getElementById('detailContent').innerHTML = `
     <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#f5a623;margin-bottom:8px">Registration Details</div>
@@ -101,8 +158,9 @@ function viewDetail(id) {
         </div>
       `).join('')}
     </div>
+    ${paymentSection}
     ${(registration.participants || []).filter((participant) => participant.name).length ? `
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted)">Participants</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted);margin-top:20px">Participants</div>
       ${(registration.participants || []).filter((participant) => participant.name).map((participant, index) => `
         <div style="display:flex;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:6px;font-size:13px">
           <span>${index + 1}. ${participant.name}</span><span style="color:var(--muted)">${participant.phone || '-'}</span>
@@ -115,7 +173,7 @@ function viewDetail(id) {
 }
 
 async function exportCSV() {
-  const headers = ['Code', 'College', 'Address', 'Email', 'Event', 'Faculty', 'Group Leader', 'Participants', 'Date'];
+  const headers = ['Code', 'College', 'Address', 'Email', 'Event', 'Faculty', 'Group Leader', 'Participants', 'Payment Status', 'Date'];
   const rows = regs.map((registration) => [
     registration.code,
     registration.college,
@@ -125,6 +183,7 @@ async function exportCSV() {
     registration.faculty || '',
     registration.leader || '',
     (registration.participants || []).filter((participant) => participant.name).map((participant) => participant.name).join('; '),
+    registration.paymentStatus || 'pending',
     new Date(registration.timestamp).toLocaleString()
   ]);
   const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -135,6 +194,196 @@ async function exportCSV() {
   link.click();
   await NexusCMS.addAuditLog('Exported registrations CSV');
   showToast('Registrations exported!');
+}
+
+function viewScreenshot(code) {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  `;
+  
+  modal.innerHTML = `
+    <div style="position: relative; max-width: 90vw; max-height: 90vh;">
+      <button onclick="this.parentElement.parentElement.remove()" style="
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+      ">✕</button>
+      <img src="/api/cms/payment-screenshot/${code}" alt="Payment Screenshot" style="
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 8px;
+      " />
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+async function verifyPayment(code) {
+  if (!confirm('Mark this payment as verified?')) return;
+  
+  try {
+    const token = sessionStorage.getItem("nexus_token") || "";
+    const response = await fetch(`/api/cms/registrations/${code}/verify-payment`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Verification failed');
+    }
+
+    // Update registration in local list
+    const reg = regs.find(r => r.code === code);
+    if (reg) {
+      reg.paymentStatus = 'verified';
+    }
+
+    showToast('✓ Payment verified successfully');
+    document.getElementById('detailModal').style.display = 'none';
+    renderTable();
+    await NexusCMS.addAuditLog(`Verified payment for registration: ${code}`);
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function rejectPayment(code) {
+  if (!confirm('Reject this payment? The user will need to resubmit.')) return;
+  
+  try {
+    const token = sessionStorage.getItem("nexus_token") || "";
+    const response = await fetch(`/api/cms/registrations/${code}/reject-payment`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Rejection failed');
+    }
+
+    // Update registration in local list
+    const reg = regs.find(r => r.code === code);
+    if (reg) {
+      reg.paymentStatus = 'pending';
+      reg.paymentScreenshot = '';
+    }
+
+    showToast('Payment rejected - user can resubmit');
+    document.getElementById('detailModal').style.display = 'none';
+    renderTable();
+    await NexusCMS.addAuditLog(`Rejected payment for registration: ${code}`);
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function deleteRegistration(id) {
+  const registration = regs.find((entry) => String(entry.id) === String(id));
+  if (!registration) return;
+
+  if (!confirm(`Are you sure you want to delete registration #${registration.code} from ${registration.college}?\n\nThis action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const token = sessionStorage.getItem("nexus_token") || ""; 
+    const response = await fetch(`/api/cms/registrations/${registration.code}`, {
+      method: 'DELETE',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || 'Delete failed');
+    }
+
+    // Remove from local array
+    regs = regs.filter(r => String(r.id) !== String(id));
+
+    showToast(`✓ Registration #${registration.code} deleted successfully`);
+    document.getElementById('detailModal').style.display = 'none';
+    renderTable();
+    await NexusCMS.addAuditLog(`Deleted registration: ${registration.code} (${registration.college})`);
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function editRegistration(id) {
+  const registration = regs.find((entry) => String(entry.id) === String(id));
+  if (!registration) return;
+
+  const newCollege = prompt('College Name:', registration.college);
+  if (newCollege === null) return;
+
+  const newEmail = prompt('Email:', registration.email);
+  if (newEmail === null) return;
+
+  const newLeader = prompt('Team Leader:', registration.leader);
+  if (newLeader === null) return;
+
+  try {
+    const token = sessionStorage.getItem("nexus_token") || "";
+    const response = await fetch(`/api/cms/registrations/${registration.code}`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        college: newCollege,
+        email: newEmail,
+        leader: newLeader
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Update failed');
+    }
+
+    // Update local registration
+    const regIndex = regs.findIndex(r => String(r.id) === String(id));
+    if (regIndex !== -1) {
+      regs[regIndex] = data.registration;
+    }
+
+    showToast('✓ Registration updated successfully');
+    currentEditingId = id;
+    viewDetail(id); // Refresh the view
+    renderTable();
+    await NexusCMS.addAuditLog(`Updated registration: ${registration.code}`);
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
 }
 
 (async function () {

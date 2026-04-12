@@ -314,6 +314,159 @@ textarea {
   color: var(--error);
 }
 
+.payment-section {
+  display: none;
+  text-align: center;
+}
+
+.payment-section.show {
+  display: block;
+}
+
+.qr-container {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 32px;
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.qr-code {
+  width: 280px;
+  height: 280px;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.qr-code img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qr-info {
+  margin-bottom: 20px;
+}
+
+.registration-code-display {
+  background: rgba(245, 166, 35, 0.1);
+  border: 1px solid rgba(245, 166, 35, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.registration-code-display .label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.screenshot-section {
+  display: none;
+  border: 2px dashed var(--accent);
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.screenshot-section.show {
+  display: block;
+}
+
+.screenshot-upload-area {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.screenshot-upload-area:hover {
+  background: rgba(245, 166, 35, 0.1);
+}
+
+.screenshot-upload-area.dragover {
+  background: rgba(245, 166, 35, 0.2);
+  border-color: var(--accent2);
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.screenshot-input {
+  display: none;
+}
+
+.screenshot-preview {
+  max-width: 100%;
+  max-height: 300px;
+  margin: 16px 0;
+  border-radius: 8px;
+  display: none;
+}
+
+.screenshot-preview.show {
+  display: block;
+}
+
+.progress-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 32px 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background: rgba(122, 132, 153, 0.3);
+  color: var(--muted);
+  border: 2px solid rgba(122, 132, 153, 0.3);
+}
+
+.progress-step.active .progress-step-number {
+  background: rgba(245, 166, 35, 0.2);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.progress-step.completed .progress-step-number {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--success);
+  border-color: var(--success);
+}
+
+.progress-step-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .validation-status {
   display: flex;
   gap: 12px;
@@ -362,6 +515,14 @@ textarea {
   gap: 12px;
   margin-top: 32px;
   justify-content: flex-end;
+}
+
+.form-actions .hidden {
+  display: none;
+}
+
+.registration-form.hidden {
+  display: none;
 }
 
 .btn-submit {
@@ -434,7 +595,24 @@ footer {
     <div class="form-container">
       <div class="message" id="message"></div>
 
-      <form id="registrationForm">
+      <!-- Progress Indicator -->
+      <div class="progress-indicator" id="progressIndicator">
+        <div class="progress-step active" id="step1">
+          <div class="progress-step-number">1</div>
+          <div class="progress-step-label">Registration</div>
+        </div>
+        <div class="progress-step" id="step2">
+          <div class="progress-step-number">2</div>
+          <div class="progress-step-label">Payment</div>
+        </div>
+        <div class="progress-step" id="step3">
+          <div class="progress-step-number">3</div>
+          <div class="progress-step-label">Verify</div>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <form id="registrationForm" class="registration-form">
         <!-- Basic Information -->
         <div class="form-section">
           <div class="section-title">📋 Team Information</div>
@@ -501,10 +679,71 @@ footer {
 
         <!-- Form Actions -->
         <div class="form-actions">
-          <button type="button" class="btn btn-cancel" onclick="resetForm()">Clear</button>
+          <button type="button" class="btn btn-cancel" onclick="resetAllSteps()">Clear</button>
           <button type="submit" class="btn btn-submit">Register Team</button>
         </div>
       </form>
+
+      <!-- Payment Section -->
+      <div class="payment-section" id="paymentSection">
+        <div class="qr-info">
+          <h2 style="color: var(--accent); margin-bottom: 8px;">📱 Payment Required</h2>
+          <p style="color: var(--muted); margin-bottom: 16px;">Please pay the registration fee by scanning the QR code below:</p>
+        </div>
+
+        <div class="qr-container">
+          <div class="qr-code">
+            <img id="qrCodeImage" src="https://res.cloudinary.com/dwqffkzp0/image/upload/v1776000172/CA53_page-0001_ok7sc2.jpg" alt="College Payment QR Code">
+          </div>
+          <p style="color: var(--muted); font-size: 12px; margin-top: 12px;">Points to Remember:</p>
+          <ul style="text-align: left; display: inline-block; color: var(--muted); font-size: 12px;">
+            <li>Scan the QR code with your phone</li>
+            <li>Complete the payment</li>
+            <li>Take a screenshot of the payment confirmation</li>
+            <li>Upload the screenshot below</li>
+          </ul>
+        </div>
+
+        <div class="registration-code-display">
+          <div class="label">Your Registration Code:</div>
+          <div id="registrationCodeDisplay">---</div>
+        </div>
+
+        <div style="margin-top: 16px; padding: 12px; background: rgba(245, 166, 35, 0.1); border-radius: 8px; border: 1px solid rgba(245, 166, 35, 0.2);">
+          <p style="color: var(--muted); font-size: 13px;">After completing the payment, proceed to upload the payment screenshot</p>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
+          <button type="button" class="btn" onclick="showScreenshotStep()" style="flex: 1;">📸 Upload Payment Screenshot</button>
+        </div>
+      </div>
+
+      <!-- Screenshot Upload Section -->
+      <div class="screenshot-section" id="screenshotSection">
+        <div style="margin-bottom: 20px;">
+          <h2 style="color: var(--accent); margin-bottom: 8px;">📸 Upload Payment Screenshot</h2>
+          <p style="color: var(--muted); font-size: 13px;">Please upload a clear screenshot of your payment confirmation</p>
+        </div>
+
+        <div class="screenshot-upload-area" id="uploadArea">
+          <div class="upload-icon">📤</div>
+          <p style="color: var(--text); margin-bottom: 8px;">Click to upload or drag & drop</p>
+          <p style="color: var(--muted); font-size: 12px;">PNG, JPG, WebP (Max 5MB)</p>
+        </div>
+
+        <input type="file" id="screenshotInput" class="screenshot-input" accept="image/*" style="display: none;">
+        <img id="screenshotPreview" class="screenshot-preview" alt="Screenshot Preview">
+
+        <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: center;">
+          <button type="button" class="btn" onclick="uploadScreenshot()">Upload Screenshot</button>
+          <button type="button" class="btn btn-cancel" onclick="goBackToDashboard()">Back to Dashboard</button>
+        </div>
+
+        <div class="registration-code-display" style="margin-top: 20px;">
+          <div class="label">Registration Reference:</div>
+          <div id="registrationCodeDisplay2">---</div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -516,9 +755,45 @@ footer {
 <script>
 let eventRequirements = {};
 let maxParticipants = 0;
+let currentRegistrationCode = null;
 
 // Load events on page load
-document.addEventListener('DOMContentLoaded', loadEvents);
+document.addEventListener('DOMContentLoaded', () => {
+  loadEvents();
+  restoreSessionState();
+  setupDragDrop();
+  setupScreenshotInput();
+});
+
+// Restore session state from localStorage
+function restoreSessionState() {
+  const savedCode = localStorage.getItem('currentRegistrationCode');
+  const savedStep = localStorage.getItem('currentStep');
+
+  if (savedCode && (savedStep === '2' || savedStep === '3')) {
+    currentRegistrationCode = savedCode;
+    if (savedStep === '2') {
+      showPaymentStep();
+    } else if (savedStep === '3') {
+      showScreenshotStep();
+    }
+  }
+}
+
+// Save current step to localStorage
+function saveSessionState() {
+  const step1 = !document.getElementById('registrationForm').classList.contains('hidden') ? '1' : localStorage.getItem('currentStep');
+  const step2 = document.getElementById('paymentSection').classList.contains('show') ? '2' : step1;
+  const step3 = document.getElementById('screenshotSection').classList.contains('show') ? '3' : step2;
+  
+  const currentStep = document.getElementById('screenshotSection').classList.contains('show') ? '3' :
+                     document.getElementById('paymentSection').classList.contains('show') ? '2' : '1';
+  
+  localStorage.setItem('currentStep', currentStep);
+  if (currentRegistrationCode) {
+    localStorage.setItem('currentRegistrationCode', currentRegistrationCode);
+  }
+}
 
 async function loadEvents() {
   try {
@@ -572,7 +847,6 @@ function updateEventInfo() {
   eventInfo.innerHTML = html;
   eventInfo.style.display = 'block';
 
-  // Regenerate participant fields
   document.getElementById('participantsContainer').innerHTML = '';
   for (let i = 0; i < Math.min(5, maxParticipants); i++) {
     addParticipant();
@@ -680,6 +954,150 @@ function resetForm() {
   document.getElementById('validationStatus').innerHTML = '';
 }
 
+function resetAllSteps() {
+  resetForm();
+  currentRegistrationCode = null;
+  localStorage.removeItem('currentRegistrationCode');
+  localStorage.removeItem('currentStep');
+  document.getElementById('paymentSection').classList.remove('show');
+  document.getElementById('screenshotSection').classList.remove('show');
+  document.getElementById('registrationForm').classList.remove('hidden');
+  document.getElementById('step1').classList.add('active');
+  document.getElementById('step1').classList.remove('completed');
+  document.getElementById('step2').classList.remove('active', 'completed');
+  document.getElementById('step3').classList.remove('active', 'completed');
+}
+
+function showPaymentStep() {
+  document.getElementById('step1').classList.add('completed');
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+  document.getElementById('registrationForm').classList.add('hidden');
+  document.getElementById('paymentSection').classList.add('show');
+  saveSessionState();
+}
+
+function showScreenshotStep() {
+  document.getElementById('step2').classList.add('completed');
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step3').classList.add('active');
+  document.getElementById('paymentSection').classList.remove('show');
+  document.getElementById('screenshotSection').classList.add('show');
+  document.getElementById('registrationCodeDisplay2').textContent = currentRegistrationCode;
+  saveSessionState();
+}
+
+function setupDragDrop() {
+  const uploadArea = document.getElementById('uploadArea');
+  
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    handleScreenshotSelect(e.dataTransfer.files[0]);
+  });
+}
+
+function setupScreenshotInput() {
+  const uploadArea = document.getElementById('uploadArea');
+  const screenshotInput = document.getElementById('screenshotInput');
+  
+  // Click upload area to open file picker
+  uploadArea.addEventListener('click', (e) => {
+    e.preventDefault();
+    screenshotInput.click();
+  });
+  
+  // Handle file selection via input
+  screenshotInput.addEventListener('change', (e) => {
+    handleScreenshotSelect(e.target.files[0]);
+  });
+}
+
+function handleScreenshotSelect(file) {
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showMessage('Please select an image file', 'error');
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    showMessage('File size must be less than 5MB', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = document.getElementById('screenshotPreview');
+    preview.src = e.target.result;
+    preview.classList.add('show');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadScreenshot() {
+  const file = document.getElementById('screenshotInput').files[0];
+  const uploadBtn = document.querySelector('.screenshot-section .btn:not(.btn-cancel)');
+  
+  if (!file) {
+    showMessage('Please select a screenshot to upload', 'error');
+    return;
+  }
+
+  if (!currentRegistrationCode) {
+    showMessage('Registration code not found', 'error');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('screenshot', file);
+
+  try {
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Uploading...';
+
+    const response = await fetch(`/api/public/registrations/${currentRegistrationCode}/payment-screenshot`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Upload failed');
+    }
+
+    showMessage('✓ Screenshot uploaded successfully! Awaiting admin verification.', 'success');
+    document.getElementById('step3').classList.add('completed');
+    document.getElementById('step3').classList.remove('active');
+    
+    setTimeout(() => {
+      goBackToDashboard();
+    }, 2000);
+  } catch (error) {
+    showMessage(error.message, 'error');
+  } finally {
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = 'Upload Screenshot';
+  }
+}
+
+function goBackToDashboard() {
+  currentRegistrationCode = null;
+  localStorage.removeItem('currentRegistrationCode');
+  localStorage.removeItem('currentStep');
+  window.location.href = '/';
+}
+
 document.getElementById('registrationForm').onsubmit = async (e) => {
   e.preventDefault();
 
@@ -722,8 +1140,12 @@ document.getElementById('registrationForm').onsubmit = async (e) => {
       throw new Error(data.message || 'Registration failed');
     }
 
-    showMessage(`✓ Registration successful! Code: ${data.registration.code}`, 'success');
-    resetForm();
+    currentRegistrationCode = data.registration.code;
+    document.getElementById('registrationCodeDisplay').textContent = currentRegistrationCode;
+    localStorage.setItem('currentRegistrationCode', currentRegistrationCode);
+    
+    showMessage(`✓ Registration successful! Code: ${currentRegistrationCode}`, 'success');
+    showPaymentStep();
   } catch (error) {
     showMessage(error.message, 'error');
   } finally {
