@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Register Team - NEXUS</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#060810">
 <meta name="description" content="Register your team for NEXUS 2026">
@@ -60,7 +61,7 @@ header {
 .logo-mark {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -69,6 +70,14 @@ header {
   font-weight: 800;
   font-size: 16px;
   color: #000;
+  overflow: hidden;
+}
+
+.logo-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 h1 {
@@ -143,6 +152,11 @@ input, select, textarea {
   font-size: 14px;
   outline: none;
   transition: all 0.2s;
+}
+
+input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--accent);
 }
 
 select {
@@ -229,6 +243,25 @@ textarea {
   padding: 16px;
   margin-bottom: 12px;
   position: relative;
+}
+
+.participant-options {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+}
+
+.participant-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .participant-num {
@@ -583,7 +616,9 @@ footer {
 <div class="page">
   <header>
     <div class="header-logo">
-      <div class="logo-mark">N</div>
+      <div class="logo-mark">
+        <img src="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png" alt="NEXUS" style="width:100%;height:100%;object-fit:contain;">
+      </div>
       <div>
         <h1>NEXUS Registration</h1>
         <div class="subtitle">The Leadership Shift — Team Registration Form</div>
@@ -648,13 +683,12 @@ footer {
           </div>
         </div>
 
-        <!-- Team Leader -->
+        <!-- Team Name & Faculty -->
         <div class="form-section">
-          <div class="section-title">👤 Team Leader</div>
           <div class="form-row">
             <div class="form-group">
-              <label>Leader Name <span class="required">*</span></label>
-              <input type="text" id="leader" name="leader" placeholder="Team leader name" required>
+              <label>Team Name <span class="required">*</span></label>
+              <input type="text" id="teamName" name="teamName" placeholder="Enter team name" required>
             </div>
             <div class="form-group">
               <label>Faculty Coordinator Name</label>
@@ -889,6 +923,12 @@ function addParticipant() {
         </select>
       </div>
     </div>
+    <div class="participant-options">
+      <label>
+        <input type="radio" name="teamLeader" class="team-leader-radio" onchange="updateTeamLeader()">
+        Team Leader
+      </label>
+    </div>
     <button type="button" class="btn-remove" onclick="this.parentElement.remove(); updateValidationStatus()">Remove</button>
   `;
 
@@ -938,6 +978,11 @@ function updateValidationStatus() {
   } else {
     document.getElementById('validationStatus').innerHTML = statusHtml;
   }
+}
+
+function updateTeamLeader() {
+  // This function ensures only one team leader can be selected
+  // The radio button naturally handles this with the name="teamLeader" attribute
 }
 
 function showMessage(text, type = 'error') {
@@ -1109,16 +1154,18 @@ document.getElementById('registrationForm').onsubmit = async (e) => {
     return;
   }
 
-  const participants = Array.from(document.querySelectorAll('.participant-card')).map(card => ({
+  const participantCards = document.querySelectorAll('.participant-card');
+  const participants = Array.from(participantCards).map((card, index) => ({
     name: card.querySelector('.participant-name').value.trim(),
     phone: card.querySelector('.participant-phone').value.trim(),
-    department: card.querySelector('.participant-dept').value.trim()
+    department: card.querySelector('.participant-dept').value.trim(),
+    isTeamLeader: card.querySelector('.team-leader-radio').checked
   }));
 
   const formData = {
     college: document.getElementById('college').value.trim(),
     email: document.getElementById('email').value.trim(),
-    leader: document.getElementById('leader').value.trim(),
+    teamName: document.getElementById('teamName').value.trim(),
     event: eventKey,
     faculty: document.getElementById('faculty').value.trim(),
     facultyPhone: document.getElementById('facultyPhone').value.trim(),
@@ -1145,6 +1192,297 @@ document.getElementById('registrationForm').onsubmit = async (e) => {
     localStorage.setItem('currentRegistrationCode', currentRegistrationCode);
     
     showMessage(`✓ Registration successful! Code: ${currentRegistrationCode}`, 'success');
+    showPaymentStep();
+  } catch (error) {
+    showMessage(error.message, 'error');
+  } finally {
+    form.classList.remove('loading');
+  }
+};
+</script>
+
+<script>
+const FIXED_EVENT_KEY = 'NEXUS_TEAM';
+const TEAM_SLOTS = [
+  { department: 'HR', label: 'Participant 1' },
+  { department: 'HR', label: 'Participant 2' },
+  { department: 'Marketing', label: 'Participant 3' },
+  { department: 'Marketing', label: 'Participant 4' },
+  { department: 'Finance', label: 'Participant 5' }
+];
+const CULTURAL_LIMITS = {
+  dance: 4,
+  rampWalk: 1
+};
+
+function loadEvents() {
+  const eventSelect = document.getElementById('event');
+  const eventSection = eventSelect ? eventSelect.closest('.form-section') : null;
+  const eventGroup = eventSelect ? eventSelect.closest('.form-group') : null;
+  const eventInfo = document.getElementById('eventInfo');
+  const addParticipantButton = document.querySelector('.participants-container + .btn-secondary');
+  const validationStatus = document.getElementById('validationStatus');
+
+  if (eventSection) {
+    const title = eventSection.querySelector('.section-title');
+    if (title) {
+      title.textContent = 'Team Format';
+    }
+  }
+
+  if (eventSelect) {
+    eventSelect.innerHTML = '<option value="NEXUS_TEAM">NEXUS Team Registration</option>';
+    eventSelect.value = FIXED_EVENT_KEY;
+    eventSelect.required = false;
+  }
+
+  if (eventGroup) {
+    eventGroup.style.display = 'none';
+  }
+
+  if (eventInfo) {
+    eventInfo.style.display = 'block';
+    eventInfo.innerHTML = `
+      <strong>NEXUS Team Registration</strong><br>
+      One fixed team registration for the full group.<br>
+      <div style="margin-top: 8px;">Team Requirements:<br>
+        <div class="dept-requirement">HR: 2</div>
+        <div class="dept-requirement">Marketing: 2</div>
+        <div class="dept-requirement">Finance: 1</div>
+      </div>
+      <div style="margin-top: 8px;">Cultural Requirements:<br>
+        <div class="dept-requirement">Dance: Up to 4 members</div>
+        <div class="dept-requirement">Ramp Walk: 1 member</div>
+      </div>
+      <div style="margin-top: 10px;">The same five members below will be used for cultural participation too. There is no separate event selection.</div>
+    `;
+  }
+
+  if (addParticipantButton) {
+    addParticipantButton.remove();
+  }
+
+  if (validationStatus && !document.getElementById('participantsHelper')) {
+    const helper = document.createElement('div');
+    helper.id = 'participantsHelper';
+    helper.style.color = 'var(--muted)';
+    helper.style.fontSize = '13px';
+    helper.style.marginBottom = '12px';
+    helper.textContent =
+      'Enter the same 5 members here and mark cultural participation from these members only.';
+    validationStatus.parentElement.insertBefore(helper, validationStatus);
+  }
+
+  renderParticipantCards();
+  updateValidationStatus();
+}
+
+function updateEventInfo() {}
+
+function renderParticipantCards() {
+  const container = document.getElementById('participantsContainer');
+  if (!container) return;
+
+  container.innerHTML = TEAM_SLOTS.map((slot, index) => `
+    <div class="participant-card" data-index="${index}">
+      <div class="participant-num">${slot.label} - ${slot.department}</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name <span class="required">*</span></label>
+          <input type="text" placeholder="Full name" class="participant-name" required oninput="updateValidationStatus()">
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" placeholder="+91 XXXXXXXXXX" class="participant-phone">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" value="${slot.department}" readonly>
+          <input type="hidden" class="participant-dept" value="${slot.department}">
+        </div>
+        <div class="form-group">
+          <label>Cultural Participation</label>
+          <div class="participant-options">
+            <label>
+              <input type="checkbox" class="participant-dance" onchange="handleCulturalSelection(this, 'dance')">
+              <span>Dance</span>
+            </label>
+            <label>
+              <input type="checkbox" class="participant-rampwalk" onchange="handleCulturalSelection(this, 'rampWalk')">
+              <span>Ramp Walk</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="participant-options">
+        <label>
+          <input type="radio" name="teamLeader" class="team-leader-radio">
+          <span>Team Leader</span>
+        </label>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addParticipant() {}
+
+function getParticipantCards() {
+  return Array.from(document.querySelectorAll('.participant-card'));
+}
+
+function collectParticipants() {
+  return getParticipantCards().map((card) => ({
+    name: card.querySelector('.participant-name').value.trim(),
+    phone: card.querySelector('.participant-phone').value.trim(),
+    department: card.querySelector('.participant-dept').value.trim(),
+    isTeamLeader: card.querySelector('.team-leader-radio').checked,
+    danceParticipant: card.querySelector('.participant-dance').checked,
+    rampWalkParticipant: card.querySelector('.participant-rampwalk').checked
+  }));
+}
+
+function countChecked(selector) {
+  return document.querySelectorAll(`${selector}:checked`).length;
+}
+
+function handleCulturalSelection(input, type) {
+  const limit = type === 'dance' ? CULTURAL_LIMITS.dance : CULTURAL_LIMITS.rampWalk;
+  const selector = type === 'dance' ? '.participant-dance' : '.participant-rampwalk';
+  const label = type === 'dance' ? 'dance' : 'ramp walk';
+
+  if (countChecked(selector) > limit) {
+    input.checked = false;
+    showMessage(`Only ${limit} member(s) can be marked for ${label}`, 'error');
+  }
+
+  updateValidationStatus();
+}
+
+function updateValidationStatus() {
+  const participants = collectParticipants();
+  const namedCount = participants.filter((participant) => participant.name).length;
+  const danceCount = participants.filter((participant) => participant.danceParticipant).length;
+  const rampWalkCount = participants.filter((participant) => participant.rampWalkParticipant).length;
+  const danceStatus = danceCount === 0 ? 'pending' : 'done';
+  const rampWalkStatus = rampWalkCount === 0 ? 'pending' : 'done';
+
+  document.getElementById('validationStatus').innerHTML = `
+    <div class="status-item">
+      <div class="status-icon ${namedCount === TEAM_SLOTS.length ? 'done' : 'pending'}">
+        ${namedCount === TEAM_SLOTS.length ? 'OK' : namedCount}
+      </div>
+      <span>${namedCount}/${TEAM_SLOTS.length} Members</span>
+    </div>
+    <div class="status-item">
+      <div class="status-icon done">2</div>
+      <span>HR (2)</span>
+    </div>
+    <div class="status-item">
+      <div class="status-icon done">2</div>
+      <span>Marketing (2)</span>
+    </div>
+    <div class="status-item">
+      <div class="status-icon done">1</div>
+      <span>Finance (1)</span>
+    </div>
+    <div class="status-item">
+      <div class="status-icon ${danceStatus}">${danceCount}</div>
+      <span>Dance (max ${CULTURAL_LIMITS.dance})</span>
+    </div>
+    <div class="status-item">
+      <div class="status-icon ${rampWalkStatus}">${rampWalkCount}</div>
+      <span>Ramp Walk (max ${CULTURAL_LIMITS.rampWalk})</span>
+    </div>
+  `;
+}
+
+function validateParticipants(participants) {
+  if (participants.length !== TEAM_SLOTS.length) {
+    return `Team must have exactly ${TEAM_SLOTS.length} participants`;
+  }
+
+  for (let index = 0; index < participants.length; index += 1) {
+    if (!participants[index].name) {
+      return `Enter the name for participant ${index + 1}`;
+    }
+  }
+
+  const danceCount = participants.filter((participant) => participant.danceParticipant).length;
+  const rampWalkCount = participants.filter((participant) => participant.rampWalkParticipant).length;
+
+  if (danceCount > CULTURAL_LIMITS.dance) {
+    return `Only ${CULTURAL_LIMITS.dance} members can be marked for dance`;
+  }
+
+  if (rampWalkCount > CULTURAL_LIMITS.rampWalk) {
+    return `Only ${CULTURAL_LIMITS.rampWalk} member can be marked for ramp walk`;
+  }
+
+  return null;
+}
+
+function resetForm() {
+  document.getElementById('registrationForm').reset();
+  renderParticipantCards();
+  const preview = document.getElementById('screenshotPreview');
+  const screenshotInput = document.getElementById('screenshotInput');
+
+  if (preview) {
+    preview.src = '';
+    preview.classList.remove('show');
+  }
+
+  if (screenshotInput) {
+    screenshotInput.value = '';
+  }
+
+  updateValidationStatus();
+}
+
+document.getElementById('registrationForm').onsubmit = async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+  const participants = collectParticipants();
+  const validationError = validateParticipants(participants);
+
+  if (validationError) {
+    showMessage(validationError, 'error');
+    return;
+  }
+
+  const formData = {
+    college: document.getElementById('college').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    teamName: document.getElementById('teamName').value.trim(),
+    event: FIXED_EVENT_KEY,
+    faculty: document.getElementById('faculty').value.trim(),
+    facultyPhone: document.getElementById('facultyPhone').value.trim(),
+    address: document.getElementById('address').value.trim(),
+    participants
+  };
+
+  try {
+    form.classList.add('loading');
+    const response = await fetch('/api/public/registrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Registration failed');
+    }
+
+    currentRegistrationCode = data.registration.code;
+    document.getElementById('registrationCodeDisplay').textContent = currentRegistrationCode;
+    localStorage.setItem('currentRegistrationCode', currentRegistrationCode);
+
+    showMessage(`Registration successful! Code: ${currentRegistrationCode}`, 'success');
     showPaymentStep();
   } catch (error) {
     showMessage(error.message, 'error');

@@ -99,12 +99,12 @@ router.post("/registrations", async (req, res, next) => {
   try {
     const college = String(req.body.college || "").trim();
     const email = String(req.body.email || "").trim();
-    const leader = String(req.body.leader || "").trim();
-    const event = String(req.body.event || "").trim();
+    const teamName = String(req.body.teamName || "").trim();
+    const event = String(req.body.event || "NEXUS_TEAM").trim();
     const category = String(req.body.category || "").trim();
 
-    if (!college || !email || !leader || !event) {
-      throw makeError("College, email, leader, and event are required", 400);
+    if (!college || !email || !teamName) {
+      throw makeError("College, email, and team name are required", 400);
     }
 
     // Parse participants with department information
@@ -112,7 +112,10 @@ router.post("/registrations", async (req, res, next) => {
       ? req.body.participants.map((participant) => ({
           name: String(participant.name || "").trim(),
           phone: String(participant.phone || "").trim(),
-          department: String(participant.department || "").trim()
+          department: String(participant.department || "").trim(),
+          isTeamLeader: Boolean(participant.isTeamLeader),
+          danceParticipant: Boolean(participant.danceParticipant),
+          rampWalkParticipant: Boolean(participant.rampWalkParticipant)
         }))
       : [];
 
@@ -123,10 +126,12 @@ router.post("/registrations", async (req, res, next) => {
       address: String(req.body.address || "").trim(),
       email,
       event,
+      teamName,
       faculty: String(req.body.faculty || "").trim(),
       facultyPhone: String(req.body.facultyPhone || "").trim(),
-      leader,
+      leader: teamName,
       participants,
+      registeredEvents: [],
       category,
       sourceIp: clientIp(req)
     };
@@ -140,6 +145,11 @@ router.post("/registrations", async (req, res, next) => {
         400
       );
     }
+
+    registrationData.event = validation.requirements?.name || event;
+    registrationData.registeredEvents = Array.isArray(validation.requirements?.registeredEvents)
+      ? validation.requirements.registeredEvents
+      : [];
 
     // Save registration with validated data
     registrationData.code = await generateRegistrationCode();

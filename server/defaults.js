@@ -95,6 +95,24 @@ const DEFAULT_TIMELINE = [
 
 // Event Registration Requirements Configuration
 const EVENT_REQUIREMENTS = {
+  NEXUS_TEAM: {
+    name: "NEXUS Team Registration",
+    type: "team",
+    totalMembers: 5,
+    category: null,
+    departmentRequirements: {
+      HR: { min: 2, max: 2 },
+      Marketing: { min: 2, max: 2 },
+      Finance: { min: 1, max: 1 }
+    },
+    cultureRequirements: {
+      danceMax: 4,
+      rampWalkMax: 1
+    },
+    registeredEvents: ["finverse", "asventiq", "mindwar", "dance", "rampwalk"],
+    description:
+      "5-member team: 2 HR, 2 Marketing, 1 Finance. The same five participants can be marked for Dance (max 4) and Ramp Walk (1)."
+  },
   // Team-based events (5 members total with department breakdown)
   FINVERSE: {
     name: "FINVERSE",

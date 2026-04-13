@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Events - NEXUS CMS</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#060810">
 <meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
@@ -124,8 +125,6 @@ const DEFAULT_EVENTS = [
     badge: 'Finance',
     badgeBg: 'rgba(0,212,255,0.1)',
     badgeColor: '#00d4ff',
-    facultyHead: 'Prof. Mahesh Hiremath',
-    organizers: 'Veerbhadra, Samruddhi, Khushi, Prajwal, Ritu, Abhishek',
     imageUrl: '',
     rounds: [
       { id: 'r1', num: 'R1', title: 'Link & Think', desc: 'Logo identification and brand slogans', time: '30 min', color: '#00d4ff' },
@@ -149,8 +148,6 @@ const DEFAULT_EVENTS = [
     badge: 'Marketing',
     badgeBg: 'rgba(245,166,35,0.1)',
     badgeColor: '#f5a623',
-    facultyHead: 'Prof. P. Monica',
-    organizers: 'Sumaya, Madhu, Vishal, Madhura, Likith',
     imageUrl: '',
     rounds: [
       { id: 'r1', num: 'R1', title: 'IdeaNest', desc: 'Business plan - startup to solve real problems', time: '60 min', color: '#f5a623' }
@@ -220,8 +217,6 @@ function makeEvent() {
     badge: '',
     badgeBg: 'rgba(245,166,35,0.1)',
     badgeColor: '#f5a623',
-    facultyHead: '',
-    organizers: '',
     imageUrl: '',
     rounds: [
       { id: uid('round'), num: 'R1', title: '', desc: '', time: '', color: '#f5a623' }
@@ -332,18 +327,6 @@ function renderEventEditor(eventId) {
         <h4 style="font-weight:600;margin-bottom:12px">Student Coordinators</h4>
         <div id="studentCoordinatorsList"></div>
         <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addCoordinator('${event.id}','student')" style="margin-top:8px">+ Add Student</button>
-      </div>
-    </div>
-
-    <div class="editor-section">
-      <div class="editor-section-title">Faculty & Organizers (Legacy - Deprecated)</div>
-      <div class="form-group">
-        <label>Faculty Head</label>
-        <input type="text" id="editor_facultyHead" value="${event.facultyHead || ''}" placeholder="e.g., Prof. Mahesh Hiremath">
-      </div>
-      <div class="form-group">
-        <label>Organizers</label>
-        <input type="text" id="editor_organizers" value="${event.organizers || ''}" placeholder="Names separated by commas">
       </div>
     </div>
 
@@ -491,8 +474,6 @@ function saveEventEditor() {
       deptColor: document.getElementById('editor_deptColor').value || '#f5a623',
       badgeColor: document.getElementById('editor_badgeColor').value || '#f5a623',
       badgeBg: document.getElementById('editor_badgeBg').value || 'rgba(245,166,35,0.1)',
-      facultyHead: document.getElementById('editor_facultyHead').value || '',
-      organizers: document.getElementById('editor_organizers').value || '',
       coordinators: event.coordinators || [],
       rules: {
         title: document.getElementById('editor_rules_title').value || 'Rules & Regulations',
@@ -506,8 +487,14 @@ function saveEventEditor() {
     currentEditingEventId = newId;
   }
   
-  renderEvents();
-  closeEventEditor();
+  // Save to database immediately
+  saveEventsSettings().then(() => {
+    renderEvents();
+    closeEventEditor();
+  }).catch(err => {
+    console.error('Failed to save event:', err);
+    alert('Error saving event. Please try again.');
+  });
 }
 
 function updateEvent(id, key, value) {
@@ -629,8 +616,6 @@ async function saveEventsSettings() {
     badge: String(event.badge || '').trim(),
     badgeBg: String(event.badgeBg || 'rgba(245,166,35,0.1)').trim(),
     badgeColor: String(event.badgeColor || '#f5a623').trim(),
-    facultyHead: String(event.facultyHead || '').trim(),
-    organizers: String(event.organizers || '').trim(),
     coordinators: (event.coordinators || []).map((coord) => ({
       type: String(coord.type || 'faculty').trim(),
       name: String(coord.name || '').trim(),

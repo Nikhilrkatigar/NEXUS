@@ -59,6 +59,23 @@ function validateTeamComposition(registration, eventName) {
     registration.departmentBreakdown = departmentCounts;
   }
 
+  if (requirements.cultureRequirements) {
+    const danceCount = registration.participants.filter((p) => p.danceParticipant).length;
+    const rampWalkCount = registration.participants.filter((p) => p.rampWalkParticipant).length;
+
+    if (danceCount > requirements.cultureRequirements.danceMax) {
+      errors.push(
+        `Dance: Maximum ${requirements.cultureRequirements.danceMax} member(s) allowed. You have ${danceCount}.`
+      );
+    }
+
+    if (rampWalkCount > requirements.cultureRequirements.rampWalkMax) {
+      errors.push(
+        `Ramp Walk: Maximum ${requirements.cultureRequirements.rampWalkMax} member(s) allowed. You have ${rampWalkCount}.`
+      );
+    }
+  }
+
   // For cultural events, check category limit
   if (requirements.type === "cultural") {
     if (totalParticipants > requirements.maxCapacity) {

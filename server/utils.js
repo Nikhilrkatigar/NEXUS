@@ -35,6 +35,7 @@ function serializeRegistration(doc) {
     facultyPhone: doc.facultyPhone,
     leader: doc.leader,
     participants: doc.participants || [],
+    registeredEvents: doc.registeredEvents || [],
     ip: normalizeIp(doc.sourceIp) || "-",
     timestamp: doc.createdAt,
     paymentStatus: doc.paymentStatus || "pending",

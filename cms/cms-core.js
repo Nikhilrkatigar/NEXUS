@@ -111,7 +111,7 @@
     return `
       <aside class="cms-sidebar">
         <div class="cms-logo">
-          <div class="cms-logo-mark">N</div>
+          <div class="cms-logo-mark"><img src="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png" alt="NEXUS" style="width:100%;height:100%;object-fit:contain;"></div>
           <div>
             <div class="cms-logo-text">NEXUS CMS</div>
             <div class="cms-logo-sub">Admin Panel</div>
@@ -350,7 +350,8 @@ const CMS_CSS = `
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
   .cms-sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;flex-shrink:0;position:fixed;top:0;bottom:0;left:0;z-index:100}
   .cms-logo{display:flex;align-items:center;gap:12px;padding:0 20px 24px;border-bottom:1px solid var(--border)}
-  .cms-logo-mark{width:36px;height:36px;background:linear-gradient(135deg,#f5a623,#e63c5c);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#000;flex-shrink:0}
+  .cms-logo-mark{width:36px;height:36px;background:rgba(0,0,0,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#000;flex-shrink:0;overflow:hidden}
+  .cms-logo-mark img{width:100%;height:100%;object-fit:contain;display:block}
   .cms-logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:14px}
   .cms-logo-sub{font-size:10px;color:var(--muted)}
   .cms-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:2px}

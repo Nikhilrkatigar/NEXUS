@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Scores - NEXUS CMS</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#060810">
 <meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
@@ -107,6 +108,18 @@ function mapEventKey(eventName) {
   return null;
 }
 
+function isRegistrationEligibleForEvent(registration, eventKey) {
+  const registeredEvents = Array.isArray(registration.registeredEvents)
+    ? registration.registeredEvents.map((value) => String(value).trim().toLowerCase())
+    : [];
+
+  if (registeredEvents.includes(String(eventKey).trim().toLowerCase())) {
+    return true;
+  }
+
+  return mapEventKey(registration.event) === eventKey;
+}
+
 function buildConfigFromSettings() {
   const select = document.getElementById('eventSelector');
   const previousValue = select.value;
@@ -168,7 +181,7 @@ function loadEventScoring() {
   }
 
   const criteria = EVENT_CRITERIA[eventKey];
-  const eventRegistrations = registrations.filter((registration) => mapEventKey(registration.event) === eventKey);
+  const eventRegistrations = registrations.filter((registration) => isRegistrationEligibleForEvent(registration, eventKey));
   const eventScores = getEventScores(eventKey);
   const manualEntries = eventScores._manual || [];
   const readOnly = isReadOnly();

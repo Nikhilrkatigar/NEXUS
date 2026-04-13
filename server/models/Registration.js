@@ -12,6 +12,18 @@ const participantSchema = new mongoose.Schema(
       trim: true,
       default: ""
     },
+    isTeamLeader: {
+      type: Boolean,
+      default: false
+    },
+    danceParticipant: {
+      type: Boolean,
+      default: false
+    },
+    rampWalkParticipant: {
+      type: Boolean,
+      default: false
+    },
     department: {
       type: String,
       enum: ["HR", "Marketing", "Finance", ""],
@@ -48,6 +60,11 @@ const registrationSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    teamName: {
+      type: String,
+      trim: true,
+      default: ""
+    },
     faculty: {
       type: String,
       trim: true,
@@ -76,6 +93,10 @@ const registrationSchema = new mongoose.Schema(
       type: String,
       enum: ["", "Dance", "Ramp Walk", "Cultural"],
       default: ""
+    },
+    registeredEvents: {
+      type: [String],
+      default: []
     },
     departmentBreakdown: {
       HR: { type: Number, default: 0 },

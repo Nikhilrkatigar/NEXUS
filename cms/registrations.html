@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Registrations - NEXUS CMS</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#060810">
 <meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
@@ -147,6 +148,7 @@ function viewDetail(id) {
       ${[
         ['College', registration.college],
         ['Event', registration.event],
+        ['Tracks', (registration.registeredEvents || []).join(', ') || '-'],
         ['Email', registration.email || '-'],
         ['Faculty', registration.faculty || '-'],
         ['Group Leader', registration.leader || '-'],
@@ -162,8 +164,16 @@ function viewDetail(id) {
     ${(registration.participants || []).filter((participant) => participant.name).length ? `
       <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted);margin-top:20px">Participants</div>
       ${(registration.participants || []).filter((participant) => participant.name).map((participant, index) => `
-        <div style="display:flex;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:6px;font-size:13px">
-          <span>${index + 1}. ${participant.name}</span><span style="color:var(--muted)">${participant.phone || '-'}</span>
+        <div style="display:flex;justify-content:space-between;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:6px;font-size:13px">
+          <div>
+            <div>${index + 1}. ${participant.name}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">
+              ${participant.department || '-'}
+              ${participant.danceParticipant ? ' | Dance' : ''}
+              ${participant.rampWalkParticipant ? ' | Ramp Walk' : ''}
+            </div>
+          </div>
+          <span style="color:var(--muted)">${participant.phone || '-'}</span>
         </div>
       `).join('')}
     ` : ''}
@@ -173,13 +183,14 @@ function viewDetail(id) {
 }
 
 async function exportCSV() {
-  const headers = ['Code', 'College', 'Address', 'Email', 'Event', 'Faculty', 'Group Leader', 'Participants', 'Payment Status', 'Date'];
+  const headers = ['Code', 'College', 'Address', 'Email', 'Event', 'Tracks', 'Faculty', 'Group Leader', 'Participants', 'Payment Status', 'Date'];
   const rows = regs.map((registration) => [
     registration.code,
     registration.college,
     registration.address || '',
     registration.email || '',
     registration.event,
+    (registration.registeredEvents || []).join('; '),
     registration.faculty || '',
     registration.leader || '',
     (registration.participants || []).filter((participant) => participant.name).map((participant) => participant.name).join('; '),
