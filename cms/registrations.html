@@ -125,8 +125,15 @@ function viewDetail(id) {
     paymentSection += `
       <div style="margin-top:12px">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Screenshot</div>
-        <img src="/api/cms/payment-screenshot/${registration.code}" alt="Payment Screenshot" style="max-width:100%;height:auto;border-radius:8px;border:1px solid rgba(245,166,35,0.2);cursor:pointer" onclick="viewScreenshot('${registration.code}')" onerror="this.style.borderColor='#e63c5c'; this.alt='Failed to load screenshot';" />
-        <p style="font-size:11px;color:var(--muted);margin-top:8px">Click to view full size</p>
+        <img
+          id="paymentScreenshotImg_${registration.code}"
+          src="/api/cms/payment-screenshot/${registration.code}?t=${Date.now()}"
+          alt="Payment Screenshot"
+          style="max-width:100%;height:auto;border-radius:8px;border:1px solid rgba(245,166,35,0.2);cursor:pointer;display:block"
+          onclick="viewScreenshot('${registration.code}')"
+          onerror="this.onerror=null;this.src='/uploads/payment-screenshots/${registration.paymentScreenshot}?t=${Date.now()}';this.style.borderColor='rgba(245,166,35,0.2)';"
+        />
+        <p style="font-size:11px;color:var(--muted);margin-top:8px">Click to view full size · File: ${registration.paymentScreenshot}</p>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="cms-btn cms-btn-sm" style="background:rgba(16,185,129,0.1);color:#10b981;border:none;cursor:pointer;flex:1" onclick="verifyPayment('${registration.code}')">✓ Verify Payment</button>

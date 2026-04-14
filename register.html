@@ -89,7 +89,12 @@ h1 {
 
 .subtitle {
   color: var(--muted);
-  font-size: 13px;
+  font-size: clamp(9px, 2.5vw, 13px);
+  line-height: 1.3;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 main {
@@ -105,6 +110,8 @@ main {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 40px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-section {
@@ -591,11 +598,12 @@ footer {
 
 @media (max-width: 768px) {
   main {
-    padding: 20px;
+    padding: 16px;
   }
 
   .form-container {
-    padding: 24px;
+    padding: 16px;
+    border-radius: 12px;
   }
 
   .form-row {
@@ -603,11 +611,267 @@ footer {
   }
 
   header {
-    padding: 16px 20px;
+    padding: 12px 16px;
+  }
+
+  .header-logo {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .logo-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    font-size: 14px;
   }
 
   h1 {
-    font-size: 24px;
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+
+  .subtitle {
+    font-size: 10px;
+    line-height: 1.4;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  .section-title {
+    font-size: 13px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  label {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  input, select, textarea {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .participant-card {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .participant-num {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
+
+  .btn {
+    padding: 10px 16px;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  .btn-submit {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+
+  .progress-indicator {
+    gap: 12px;
+    margin: 20px 0;
+    padding: 12px;
+  }
+
+  .progress-step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .progress-step-label {
+    font-size: 10px;
+  }
+
+  .dept-requirement {
+    display: block;
+    margin: 4px 0 4px 0;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .validation-status {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .status-item {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .status-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+
+  .qr-container {
+    padding: 20px;
+  }
+
+  .qr-code {
+    width: 200px;
+    height: 200px;
+    padding: 8px;
+  }
+
+  .registration-code-display {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .screenshot-section {
+    padding: 20px;
+    margin: 16px 0;
+  }
+
+  .upload-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  footer {
+    padding: 16px 20px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  main {
+    padding: 10px;
+  }
+
+  .form-container {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  header {
+    padding: 8px 10px;
+  }
+
+  .header-logo {
+    gap: 6px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .logo-mark {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  h1 {
+    font-size: 16px;
+    margin-bottom: 1px;
+  }
+
+  .subtitle {
+    font-size: 9px;
+    line-height: 1.4;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  .section-title {
+    font-size: 12px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+
+  label {
+    font-size: 10px;
+  }
+
+  input, select, textarea {
+    padding: 8px 10px;
+    font-size: 16px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .progress-indicator {
+    gap: 6px;
+    padding: 8px;
+    margin: 16px 0;
+  }
+
+  .progress-step-number {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
+  }
+
+  .progress-step-label {
+    font-size: 9px;
+  }
+
+  .qr-code {
+    width: 150px;
+    height: 150px;
+    padding: 6px;
+  }
+
+  .qr-container {
+    padding: 16px;
+  }
+
+  .registration-code-display {
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  .participants-container {
+    max-height: 350px;
+  }
+
+  .participant-card {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+
+  .screenshot-section {
+    padding: 16px;
+    margin: 12px 0;
+  }
+
+  .upload-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+
+  footer {
+    padding: 12px 16px;
+    font-size: 10px;
   }
 }
 </style>
@@ -683,19 +947,13 @@ footer {
           </div>
         </div>
 
-        <!-- Team Name & Faculty -->
+        <!-- Faculty Information -->
         <div class="form-section">
           <div class="form-row">
-            <div class="form-group">
-              <label>Team Name <span class="required">*</span></label>
-              <input type="text" id="teamName" name="teamName" placeholder="Enter team name" required>
-            </div>
             <div class="form-group">
               <label>Faculty Coordinator Name</label>
               <input type="text" id="faculty" name="faculty" placeholder="Faculty coordinator">
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
               <label>Faculty Phone</label>
               <input type="tel" id="facultyPhone" name="facultyPhone" placeholder="+91 XXXXXXXXXX">
@@ -1204,15 +1462,15 @@ document.getElementById('registrationForm').onsubmit = async (e) => {
 <script>
 const FIXED_EVENT_KEY = 'NEXUS_TEAM';
 const TEAM_SLOTS = [
-  { department: 'HR', label: 'Participant 1' },
-  { department: 'HR', label: 'Participant 2' },
-  { department: 'Marketing', label: 'Participant 3' },
-  { department: 'Marketing', label: 'Participant 4' },
-  { department: 'Finance', label: 'Participant 5' }
+  { department: 'PEOPLE PULSE', label: 'Participant 1' },
+  { department: 'PEOPLE PULSE', label: 'Participant 2' },
+  { department: 'BRAND BLITZ', label: 'Participant 3' },
+  { department: 'BRAND BLITZ', label: 'Participant 4' },
+  { department: 'FINANCE FRONTIER', label: 'Participant 5' }
 ];
 const CULTURAL_LIMITS = {
-  dance: 4,
-  rampWalk: 1
+  rhythmRumble: 4,
+  styleSaga: 1
 };
 
 function loadEvents() {
@@ -1246,13 +1504,13 @@ function loadEvents() {
       <strong>NEXUS Team Registration</strong><br>
       One fixed team registration for the full group.<br>
       <div style="margin-top: 8px;">Team Requirements:<br>
-        <div class="dept-requirement">HR: 2</div>
-        <div class="dept-requirement">Marketing: 2</div>
-        <div class="dept-requirement">Finance: 1</div>
+        <div class="dept-requirement">PEOPLE PULSE: 2</div>
+        <div class="dept-requirement">BRAND BLITZ: 2</div>
+        <div class="dept-requirement">FINANCE FRONTIER: 1</div>
       </div>
       <div style="margin-top: 8px;">Cultural Requirements:<br>
-        <div class="dept-requirement">Dance: Up to 4 members</div>
-        <div class="dept-requirement">Ramp Walk: 1 member</div>
+        <div class="dept-requirement">RHYTHM RUMBLE: Up to 4 members</div>
+        <div class="dept-requirement">STYLE SAGA: 1 member</div>
       </div>
       <div style="margin-top: 10px;">The same five members below will be used for cultural participation too. There is no separate event selection.</div>
     `;
@@ -1306,12 +1564,12 @@ function renderParticipantCards() {
           <label>Cultural Participation</label>
           <div class="participant-options">
             <label>
-              <input type="checkbox" class="participant-dance" onchange="handleCulturalSelection(this, 'dance')">
-              <span>Dance</span>
+              <input type="checkbox" class="participant-rhythmrumble" onchange="handleCulturalSelection(this, 'rhythmRumble')">
+              <span>RHYTHM RUMBLE</span>
             </label>
             <label>
-              <input type="checkbox" class="participant-rampwalk" onchange="handleCulturalSelection(this, 'rampWalk')">
-              <span>Ramp Walk</span>
+              <input type="checkbox" class="participant-stylesaga" onchange="handleCulturalSelection(this, 'styleSaga')">
+              <span>STYLE SAGA</span>
             </label>
           </div>
         </div>
@@ -1338,8 +1596,10 @@ function collectParticipants() {
     phone: card.querySelector('.participant-phone').value.trim(),
     department: card.querySelector('.participant-dept').value.trim(),
     isTeamLeader: card.querySelector('.team-leader-radio').checked,
-    danceParticipant: card.querySelector('.participant-dance').checked,
-    rampWalkParticipant: card.querySelector('.participant-rampwalk').checked
+    danceParticipant: card.querySelector('.participant-rhythmrumble').checked,
+    rampWalkParticipant: card.querySelector('.participant-stylesaga').checked,
+    rhythmRumbleParticipant: card.querySelector('.participant-rhythmrumble').checked,
+    styleSagaParticipant: card.querySelector('.participant-stylesaga').checked
   }));
 }
 
@@ -1348,9 +1608,9 @@ function countChecked(selector) {
 }
 
 function handleCulturalSelection(input, type) {
-  const limit = type === 'dance' ? CULTURAL_LIMITS.dance : CULTURAL_LIMITS.rampWalk;
-  const selector = type === 'dance' ? '.participant-dance' : '.participant-rampwalk';
-  const label = type === 'dance' ? 'dance' : 'ramp walk';
+  const limit = type === 'rhythmRumble' ? CULTURAL_LIMITS.rhythmRumble : CULTURAL_LIMITS.styleSaga;
+  const selector = type === 'rhythmRumble' ? '.participant-rhythmrumble' : '.participant-stylesaga';
+  const label = type === 'rhythmRumble' ? 'RHYTHM RUMBLE' : 'STYLE SAGA';
 
   if (countChecked(selector) > limit) {
     input.checked = false;
@@ -1363,10 +1623,10 @@ function handleCulturalSelection(input, type) {
 function updateValidationStatus() {
   const participants = collectParticipants();
   const namedCount = participants.filter((participant) => participant.name).length;
-  const danceCount = participants.filter((participant) => participant.danceParticipant).length;
-  const rampWalkCount = participants.filter((participant) => participant.rampWalkParticipant).length;
-  const danceStatus = danceCount === 0 ? 'pending' : 'done';
-  const rampWalkStatus = rampWalkCount === 0 ? 'pending' : 'done';
+  const rhythmRumbleCount = participants.filter((participant) => participant.rhythmRumbleParticipant).length;
+  const styleSagaCount = participants.filter((participant) => participant.styleSagaParticipant).length;
+  const rhythmRumbleStatus = rhythmRumbleCount === 0 ? 'pending' : 'done';
+  const styleSagaStatus = styleSagaCount === 0 ? 'pending' : 'done';
 
   document.getElementById('validationStatus').innerHTML = `
     <div class="status-item">
@@ -1377,23 +1637,23 @@ function updateValidationStatus() {
     </div>
     <div class="status-item">
       <div class="status-icon done">2</div>
-      <span>HR (2)</span>
+      <span>PEOPLE PULSE (2)</span>
     </div>
     <div class="status-item">
       <div class="status-icon done">2</div>
-      <span>Marketing (2)</span>
+      <span>BRAND BLITZ (2)</span>
     </div>
     <div class="status-item">
       <div class="status-icon done">1</div>
-      <span>Finance (1)</span>
+      <span>FINANCE FRONTIER (1)</span>
     </div>
     <div class="status-item">
-      <div class="status-icon ${danceStatus}">${danceCount}</div>
-      <span>Dance (max ${CULTURAL_LIMITS.dance})</span>
+      <div class="status-icon ${rhythmRumbleStatus}">${rhythmRumbleCount}</div>
+      <span>RHYTHM RUMBLE (max ${CULTURAL_LIMITS.rhythmRumble})</span>
     </div>
     <div class="status-item">
-      <div class="status-icon ${rampWalkStatus}">${rampWalkCount}</div>
-      <span>Ramp Walk (max ${CULTURAL_LIMITS.rampWalk})</span>
+      <div class="status-icon ${styleSagaStatus}">${styleSagaCount}</div>
+      <span>STYLE SAGA (max ${CULTURAL_LIMITS.styleSaga})</span>
     </div>
   `;
 }
@@ -1409,15 +1669,15 @@ function validateParticipants(participants) {
     }
   }
 
-  const danceCount = participants.filter((participant) => participant.danceParticipant).length;
-  const rampWalkCount = participants.filter((participant) => participant.rampWalkParticipant).length;
+  const rhythmRumbleCount = participants.filter((participant) => participant.rhythmRumbleParticipant).length;
+  const styleSagaCount = participants.filter((participant) => participant.styleSagaParticipant).length;
 
-  if (danceCount > CULTURAL_LIMITS.dance) {
-    return `Only ${CULTURAL_LIMITS.dance} members can be marked for dance`;
+  if (rhythmRumbleCount > CULTURAL_LIMITS.rhythmRumble) {
+    return `Only ${CULTURAL_LIMITS.rhythmRumble} members can be marked for RHYTHM RUMBLE`;
   }
 
-  if (rampWalkCount > CULTURAL_LIMITS.rampWalk) {
-    return `Only ${CULTURAL_LIMITS.rampWalk} member can be marked for ramp walk`;
+  if (styleSagaCount > CULTURAL_LIMITS.styleSaga) {
+    return `Only ${CULTURAL_LIMITS.styleSaga} member can be marked for STYLE SAGA`;
   }
 
   return null;
@@ -1456,7 +1716,6 @@ document.getElementById('registrationForm').onsubmit = async (e) => {
   const formData = {
     college: document.getElementById('college').value.trim(),
     email: document.getElementById('email').value.trim(),
-    teamName: document.getElementById('teamName').value.trim(),
     event: FIXED_EVENT_KEY,
     faculty: document.getElementById('faculty').value.trim(),
     facultyPhone: document.getElementById('facultyPhone').value.trim(),

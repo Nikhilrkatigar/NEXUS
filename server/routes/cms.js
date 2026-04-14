@@ -192,7 +192,7 @@ router.get("/scores", async (req, res, next) => {
   }
 });
 
-router.put("/scores/:eventKey", requireRole("superadmin", "organiser"), async (req, res, next) => {
+router.put("/scores/:eventKey", requireRole("superadmin", "organiser", "judge"), async (req, res, next) => {
   try {
     const eventKey = String(req.params.eventKey || "").trim();
     if (!eventKey) {

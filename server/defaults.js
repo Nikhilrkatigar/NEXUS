@@ -60,7 +60,7 @@ const DEFAULT_TIMELINE = [
     id: "3",
     time: "11:00 AM",
     title: "Round 1 - All Tracks",
-    desc: "FINVERSE: Link & Think | Asventiq: IdeaNest | Mind War: Round 1",
+    desc: "Finance Frontier: Round 1 | Brand Blitz: Round 1 | People Pulse: Round 1",
     color: "#00d4ff"
   },
   {
@@ -74,14 +74,14 @@ const DEFAULT_TIMELINE = [
     id: "5",
     time: "2:00 PM",
     title: "Round 2 - All Tracks",
-    desc: "FINVERSE: Cash Clash | Asventiq: BrandShift",
+    desc: "Finance Frontier: Round 2 | Brand Blitz: Round 2",
     color: "#e63c5c"
   },
   {
     id: "6",
     time: "3:30 PM",
     title: "Round 3 - Finals",
-    desc: "FINVERSE: Bid to Win | AdvWar | Mind War: Stress Round",
+    desc: "Finance Frontier: Finals | People Pulse: Stress Round",
     color: "#00d4ff"
   },
   {
@@ -94,6 +94,8 @@ const DEFAULT_TIMELINE = [
 ];
 
 // Event Registration Requirements Configuration
+// HR = PEOPLE PULSE, Marketing = BRAND BLITZ, Finance = FINANCE FRONTIER
+// Dance (max 4) = RHYTHM RUMBLE, Ramp Walk (max 1) = STYLE SAGA
 const EVENT_REQUIREMENTS = {
   NEXUS_TEAM: {
     name: "NEXUS Team Registration",
@@ -109,65 +111,109 @@ const EVENT_REQUIREMENTS = {
       danceMax: 4,
       rampWalkMax: 1
     },
-    registeredEvents: ["finverse", "asventiq", "mindwar", "dance", "rampwalk"],
+    registeredEvents: ["finance-frontier", "brand-blitz", "people-pulse", "rhythm-rumble", "style-saga",
+      "finverse", "asventiq", "mindwar", "dance", "rampwalk"],
     description:
-      "5-member team: 2 HR, 2 Marketing, 1 Finance. The same five participants can be marked for Dance (max 4) and Ramp Walk (1)."
+      "5-member team: 2 HR (People Pulse), 2 Marketing (Brand Blitz), 1 Finance (Finance Frontier). Dance (max 4) = Rhythm Rumble, Ramp Walk (1) = Style Saga."
   },
-  // Team-based events (5 members total with department breakdown)
-  FINVERSE: {
-    name: "FINVERSE",
+  // Department-based events
+  "PEOPLE PULSE": {
+    name: "PEOPLE PULSE",
     type: "team",
     totalMembers: 5,
     category: null,
+    department: "HR",
     departmentRequirements: {
       HR: { min: 2, max: 2 },
       Marketing: { min: 2, max: 2 },
       Finance: { min: 1, max: 1 }
     },
-    description: "5-member team: 2 HR, 2 Marketing, 1 Finance"
+    description: "HR Event - People Pulse: 5-member team"
+  },
+  "BRAND BLITZ": {
+    name: "BRAND BLITZ",
+    type: "team",
+    totalMembers: 5,
+    category: null,
+    department: "Marketing",
+    departmentRequirements: {
+      HR: { min: 2, max: 2 },
+      Marketing: { min: 2, max: 2 },
+      Finance: { min: 1, max: 1 }
+    },
+    description: "Marketing Event - Brand Blitz: 5-member team"
+  },
+  "FINANCE FRONTIER": {
+    name: "FINANCE FRONTIER",
+    type: "team",
+    totalMembers: 5,
+    category: null,
+    department: "Finance",
+    departmentRequirements: {
+      HR: { min: 2, max: 2 },
+      Marketing: { min: 2, max: 2 },
+      Finance: { min: 1, max: 1 }
+    },
+    description: "Finance Event - Finance Frontier: 5-member team"
+  },
+  // Keep backward compatibility with old event names
+  FINVERSE: {
+    name: "FINANCE FRONTIER",
+    type: "team",
+    totalMembers: 5,
+    category: null,
+    department: "Finance",
+    departmentRequirements: {
+      HR: { min: 2, max: 2 },
+      Marketing: { min: 2, max: 2 },
+      Finance: { min: 1, max: 1 }
+    },
+    description: "Finance Event (legacy alias)"
   },
   ASVENTIQ: {
-    name: "ASVENTIQ",
+    name: "BRAND BLITZ",
     type: "team",
     totalMembers: 5,
     category: null,
+    department: "Marketing",
     departmentRequirements: {
       HR: { min: 2, max: 2 },
       Marketing: { min: 2, max: 2 },
       Finance: { min: 1, max: 1 }
     },
-    description: "5-member team: 2 HR, 2 Marketing, 1 Finance"
+    description: "Marketing Event (legacy alias)"
   },
   "MIND WAR": {
-    name: "MIND WAR",
+    name: "PEOPLE PULSE",
     type: "team",
     totalMembers: 5,
     category: null,
+    department: "HR",
     departmentRequirements: {
       HR: { min: 2, max: 2 },
       Marketing: { min: 2, max: 2 },
       Finance: { min: 1, max: 1 }
     },
-    description: "5-member team: 2 HR, 2 Marketing, 1 Finance"
+    description: "HR Event (legacy alias)"
   },
-  // Cultural events with category-specific limits
+  // Cultural events
   CULTURAL_DANCE: {
-    name: "Dance",
+    name: "RHYTHM RUMBLE",
     type: "cultural",
     category: "Dance",
     totalMembers: 4,
     maxCapacity: 4,
     departmentRequirements: null,
-    description: "Cultural event - Dance: Maximum 4 members"
+    description: "Cultural event - Rhythm Rumble (Dance): Maximum 4 members"
   },
   CULTURAL_RAMP_WALK: {
-    name: "Ramp Walk",
+    name: "STYLE SAGA",
     type: "cultural",
     category: "Ramp Walk",
     totalMembers: 1,
     maxCapacity: 1,
     departmentRequirements: null,
-    description: "Cultural event - Ramp Walk: 1 member"
+    description: "Cultural event - Style Saga (Ramp Walk): 1 member"
   }
 };
 

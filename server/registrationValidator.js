@@ -1,6 +1,22 @@
 // Registration validation utilities
 const { EVENT_REQUIREMENTS } = require("./defaults");
 
+const DEPARTMENT_ALIASES = {
+  "HR": "HR",
+  "PEOPLE PULSE": "HR",
+  "MARKETING": "Marketing",
+  "BRAND BLITZ": "Marketing",
+  "FINANCE": "Finance",
+  "FINANCE FRONTIER": "Finance"
+};
+
+function normalizeDepartment(department) {
+  if (!department) return "";
+  const key = String(department).trim().toUpperCase();
+  const normalized = DEPARTMENT_ALIASES[key];
+  return normalized || "";
+}
+
 /**
  * Validate team composition against event requirements
  * @param {Object} registration - Registration object with participants array
@@ -33,10 +49,16 @@ function validateTeamComposition(registration, eventName) {
 
     // Count participants by department
     registration.participants.forEach((p) => {
-      if (departmentCounts.hasOwnProperty(p.department)) {
-        departmentCounts[p.department]++;
+      const normalizedDepartment = normalizeDepartment(p.department);
+      console.log(
+        `[Validator] Participant "${p.name}" department: "${p.department}" → normalized: "${normalizedDepartment}"`
+      );
+      if (departmentCounts.hasOwnProperty(normalizedDepartment)) {
+        departmentCounts[normalizedDepartment]++;
       }
     });
+
+    console.log("[Validator] Department counts:", departmentCounts);
 
     // Validate each department requirement
     Object.entries(requirements.departmentRequirements).forEach(
@@ -141,5 +163,6 @@ module.exports = {
   getEventRequirements,
   getAllEventRequirements,
   getEventsList,
-  formatValidationErrors
+  formatValidationErrors,
+  normalizeDepartment
 };

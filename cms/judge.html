@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Judge Portal - NEXUS</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS Judge Portal - Score Entry">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+<style>
+/* ── Judge Portal Styles ── */
+.judge-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  min-height: 100vh;
+}
+.judge-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.judge-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.judge-badge {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #f5a623, #e63c5c);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+}
+.judge-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+}
+.judge-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.judge-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+}
+.judge-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5a623, #e63c5c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  color: #000;
+}
+.step-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.step-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.step-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(245,166,35,0.15);
+}
+.round-btn {
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.round-btn.active {
+  background: rgba(245,166,35,0.15);
+  color: var(--accent);
+  border-color: rgba(245,166,35,0.35);
+  box-shadow: 0 0 20px rgba(245,166,35,0.1);
+}
+.round-btn:hover:not(.active) {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+}
+.score-input {
+  width: 80px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s;
+}
+.score-input:focus {
+  border-color: rgba(245,166,35,0.6);
+  background: rgba(245,166,35,0.06);
+  box-shadow: 0 0 0 3px rgba(245,166,35,0.08);
+}
+.score-input.saved {
+  border-color: rgba(16,185,129,0.4);
+  background: rgba(16,185,129,0.04);
+}
+.total-cell {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--accent);
+}
+.save-indicator {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  background: #111827;
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #10b981;
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+.save-indicator.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reg-no-badge {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+  background: rgba(245,166,35,0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.participant-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.submit-btn {
+  background: linear-gradient(135deg, #f5a623, #d4890f);
+  color: #000;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(245,166,35,0.3);
+}
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.draft-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #f5a623;
+  background: rgba(245,166,35,0.1);
+  border: 1px solid rgba(245,166,35,0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+</style>
+</head>
+<body style="background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh">
+
+<!-- Auto-save indicator -->
+<div id="saveIndicator" class="save-indicator">
+  <span>●</span> Scores auto-saved locally
+</div>
+
+<div class="judge-main">
+
+  <!-- Header -->
+  <div class="judge-header">
+    <div class="judge-hero">
+      <div class="judge-badge">🏅</div>
+      <div>
+        <div class="judge-title">Judge Portal</div>
+        <div class="judge-sub">NEXUS Event Scoring System</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div id="userCard" class="judge-user-info" style="display:none">
+        <div class="judge-avatar" id="judgeAvatar">J</div>
+        <div>
+          <div style="font-size:13px;font-weight:600" id="judgeName">Judge</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">🏅 Judge</div>
+        </div>
+      </div>
+      <button onclick="logout()" style="background:rgba(230,60,92,0.1);color:#e63c5c;border:1px solid rgba(230,60,92,0.2);padding:8px 16px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Step 1: Select Event -->
+  <div class="step-card">
+    <div class="step-label">Step 1 — Select Event</div>
+    <select id="eventSelector" onchange="onEventChange()" style="max-width:440px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%">
+      <option value="">-- Choose an Event --</option>
+    </select>
+  </div>
+
+  <!-- Step 2: Select Round (hidden until event chosen) -->
+  <div class="step-card" id="roundCard" style="display:none">
+    <div class="step-label">Step 2 — Select Round</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="round-btn active" id="roundBtn1" onclick="selectRound(1)">Round 1</button>
+      <button class="round-btn" id="roundBtn2" onclick="selectRound(2)">Round 2</button>
+      <button class="round-btn" id="roundBtn3" onclick="selectRound(3)">Round 3</button>
+    </div>
+  </div>
+
+  <!-- Scoring Area -->
+  <div id="scoringArea"></div>
+
+</div>
+
+<script>
+let currentUser = null;
+let registrations = [];
+let scoresStore = {};
+let settings = {};
+let currentEventKey = '';
+let currentRound = 1;
+const LS_PREFIX = 'nexus_judge_';
+
+function escapeHtml(v) {
+  return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function getScoreKey(eventKey, round) {
+  return `${eventKey}_R${round}`;
+}
+
+function getLsKey(scoreKey) {
+  return `${LS_PREFIX}${scoreKey}`;
+}
+
+// Get columns from server scores or default
+function getColumns(scoreKey) {
+  const stored = scoresStore[scoreKey];
+  if (stored && Array.isArray(stored._columns) && stored._columns.length > 0) {
+    return stored._columns;
+  }
+  return [
+    { k: 'col1', label: 'Criteria 1', max: 25 },
+    { k: 'col2', label: 'Criteria 2', max: 25 },
+    { k: 'col3', label: 'Criteria 3', max: 25 },
+    { k: 'col4', label: 'Criteria 4', max: 25 }
+  ];
+}
+
+// ─── LocalStorage persistence ──────────────────────────────────────────
+function saveToLocalStorage(scoreKey, data) {
+  localStorage.setItem(getLsKey(scoreKey), JSON.stringify(data));
+  flashSaveIndicator();
+}
+
+function loadFromLocalStorage(scoreKey) {
+  try {
+    const raw = localStorage.getItem(getLsKey(scoreKey));
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function flashSaveIndicator() {
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ─── Event selection ───────────────────────────────────────────────────
+function buildEventSelector() {
+  const select = document.getElementById('eventSelector');
+  const events = (settings.events || []).filter(e => String(e.id||'').trim() && String(e.name||'').trim());
+  const opts = ['<option value="">-- Choose an Event --</option>'];
+  events.forEach(e => opts.push(`<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`));
+  select.innerHTML = opts.join('');
+}
+
+function onEventChange() {
+  const val = document.getElementById('eventSelector').value;
+  if (!val) {
+    document.getElementById('roundCard').style.display = 'none';
+    document.getElementById('scoringArea').innerHTML = '';
+    currentEventKey = '';
+    return;
+  }
+  currentEventKey = val;
+  document.getElementById('roundCard').style.display = 'block';
+  selectRound(currentRound);
+}
+
+function selectRound(round) {
+  currentRound = round;
+  [1,2,3].forEach(r => {
+    const b = document.getElementById(`roundBtn${r}`);
+    if (b) b.className = 'round-btn' + (r === round ? ' active' : '');
+  });
+  if (currentEventKey) loadScoringTable();
+}
+
+// ─── Load Scoring Table ────────────────────────────────────────────────
+function normalizeEventName(v) {
+  return String(v||'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+}
+
+function isRegistrationEligible(reg, eventKey) {
+  const regEvents = Array.isArray(reg.registeredEvents)
+    ? reg.registeredEvents.map(v => String(v).trim().toLowerCase())
+    : [];
+  const ek = String(eventKey).trim().toLowerCase();
+
+  // Direct ID match
+  if (regEvents.includes(ek)) return true;
+
+  // Direct event name match
+  const normalized = normalizeEventName(reg.event);
+  if (normalized === String(eventKey).toUpperCase()) return true;
+
+  // Look up the CMS event object for this eventKey
+  const eventObj = (settings.events||[]).find(e =>
+    String(e.id).toLowerCase() === ek
+  );
+  if (eventObj) {
+    const eventNameLower = String(eventObj.name || '').toLowerCase();
+    const eventNameNorm = normalizeEventName(eventObj.name);
+    const regNorm = normalizeEventName(reg.event);
+    if (regNorm === eventNameNorm) return true;
+
+    // Match registeredEvents slugs against the CMS event name
+    for (const slug of regEvents) {
+      const slugNorm = normalizeEventName(slug);
+      if (slugNorm === eventNameNorm) return true;
+      if (eventNameNorm.includes(slugNorm) || slugNorm.includes(eventNameNorm)) return true;
+    }
+
+    // Keyword-based matching for common mappings
+    const KEYWORD_MAP = {
+      'dance': ['dance', 'rhythm', 'rumble', 'rhythm rumble'],
+      'rampwalk': ['ramp', 'walk', 'style', 'saga', 'style saga', 'ramp walk'],
+      'finverse': ['finance', 'finverse', 'frontier', 'finance frontier'],
+      'asventiq': ['marketing', 'asventiq', 'brand', 'blitz', 'brand blitz'],
+      'mindwar': ['mind', 'war', 'mindwar', 'people', 'pulse', 'people pulse', 'hr']
+    };
+
+    for (const slug of regEvents) {
+      const keywords = KEYWORD_MAP[slug.toLowerCase()];
+      if (keywords) {
+        for (const kw of keywords) {
+          if (eventNameLower.includes(kw)) return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+// Get relevant participant names based on the event being scored
+function getParticipantNames(reg, eventKey, eventObj) {
+  const participants = reg.participants || [];
+  if (!participants.length) return reg.leader || '-';
+
+  const eventNameLower = eventObj ? String(eventObj.name || '').toLowerCase() : '';
+
+  let relevant = [];
+
+  if (eventNameLower.includes('people') || eventNameLower.includes('pulse') || eventNameLower.includes('hr')) {
+    relevant = participants.filter(p => p.department === 'HR');
+  } else if (eventNameLower.includes('brand') || eventNameLower.includes('blitz') || eventNameLower.includes('marketing')) {
+    relevant = participants.filter(p => p.department === 'Marketing');
+  } else if (eventNameLower.includes('finance') || eventNameLower.includes('frontier')) {
+    relevant = participants.filter(p => p.department === 'Finance');
+  } else if (eventNameLower.includes('rhythm') || eventNameLower.includes('rumble') || eventNameLower.includes('dance')) {
+    relevant = participants.filter(p => p.danceParticipant);
+  } else if (eventNameLower.includes('style') || eventNameLower.includes('saga') || eventNameLower.includes('ramp')) {
+    relevant = participants.filter(p => p.rampWalkParticipant);
+  }
+
+  if (relevant.length > 0) {
+    return relevant.map(p => p.name).filter(Boolean).join(', ') || '-';
+  }
+
+  const allNames = participants.map(p => p.name).filter(Boolean);
+  return allNames.length > 0 ? allNames.join(', ') : (reg.leader || '-');
+}
+
+function loadScoringTable() {
+  const eventKey = currentEventKey;
+  const round = currentRound;
+  const scoreKey = getScoreKey(eventKey, round);
+
+  const eventObj = (settings.events||[]).find(e => String(e.id) === String(eventKey));
+  const eventName = eventObj ? eventObj.name : eventKey;
+
+  const eventRegs = registrations.filter(reg => isRegistrationEligible(reg, eventKey));
+  const cols = getColumns(scoreKey);
+  const maxTotal = cols.reduce((s, c) => s + (parseInt(c.max)||0), 0);
+
+  // Load saved data: prefer localStorage (draft), then fall back to server
+  const lsDraft = loadFromLocalStorage(scoreKey);
+  const serverScores = scoresStore[scoreKey] || {};
+
+  // Determine if there's a draft
+  const hasDraft = lsDraft !== null;
+
+  let html = `
+    <div class="step-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px">
+            ${escapeHtml(eventName)} — Round ${round}
+          </div>
+          <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:10px">
+            <span>${eventRegs.length} registered teams</span>
+            <span>·</span>
+            <span>Max: ${maxTotal} pts/team</span>
+            ${hasDraft ? '<span class="draft-badge">📝 Draft saved locally</span>' : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          ${hasDraft ? `<button onclick="clearDraft('${escapeHtml(scoreKey)}')" style="background:rgba(230,60,92,0.08);color:#e63c5c;border:1px solid rgba(230,60,92,0.2);padding:8px 14px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer">🗑 Clear Draft</button>` : ''}
+          <button class="submit-btn" onclick="submitScores('${escapeHtml(scoreKey)}')" id="submitBtn">
+            <span>✓</span> Submit Scores to Server
+          </button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto">
+      <table class="cms-table" id="scoreTable_${escapeHtml(scoreKey)}">
+        <thead><tr>
+          <th style="width:40px">Rank</th>
+          <th>Reg No</th>
+          <th>Team Name</th>
+          <th>Participant</th>
+          ${cols.map(col => `<th>${escapeHtml(col.label)}<br><span style="color:var(--accent);font-size:10px">/${col.max}</span></th>`).join('')}
+          <th>Total<br><span style="color:var(--accent);font-size:10px">/${maxTotal}</span></th>
+        </tr></thead>
+        <tbody id="scoreTbody_${escapeHtml(scoreKey)}">`;
+
+  if (eventRegs.length === 0) {
+    html += `<tr><td colspan="${cols.length + 5}" style="text-align:center;color:var(--muted);padding:40px;font-size:13px">
+      <div style="font-size:32px;margin-bottom:12px">📋</div>
+      No teams are registered for this event yet.<br>
+      <span style="font-size:11px;opacity:0.6">Once registrations come in, they'll appear here automatically.</span>
+    </td></tr>`;
+  } else {
+    eventRegs.forEach(reg => {
+      const entryId = `reg_${reg.id}`;
+      // Use localStorage draft first, then server scores
+      const savedDraft = lsDraft && lsDraft[entryId] ? lsDraft[entryId] : null;
+      const savedServer = serverScores[entryId] || {};
+      const saved = savedDraft || savedServer;
+      const total = cols.reduce((sum, col) => sum + (parseFloat(saved[col.k]) || 0), 0);
+      const participantName = getParticipantNames(reg, eventKey, eventObj);
+
+      html += `
+        <tr data-entry-id="${entryId}">
+          <td class="rank-cell" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;text-align:center;color:var(--muted)">-</td>
+          <td><span class="reg-no-badge">#${escapeHtml(reg.code)}</span></td>
+          <td>
+            <div style="font-weight:600;font-size:13px">${escapeHtml(reg.teamName || reg.college)}</div>
+            <div class="participant-sub">${escapeHtml(reg.college)}</div>
+          </td>
+          <td>
+            <div style="font-size:13px">${escapeHtml(participantName)}</div>
+          </td>
+          ${cols.map(col => `
+            <td>
+              <input
+                class="score-input${savedDraft && savedDraft[col.k] ? ' saved' : ''}"
+                type="number" min="0" max="${col.max}"
+                value="${saved[col.k]||''}"
+                placeholder="0"
+                data-key="${col.k}"
+                data-max="${col.max}"
+                oninput="onScoreInput('${escapeHtml(scoreKey)}')"
+                onblur="validateScore(this)"
+              >
+            </td>`).join('')}
+          <td class="total-cell" id="total_${entryId}">${total||0}</td>
+        </tr>`;
+    });
+  }
+
+  html += `</tbody></table></div>
+    </div>
+
+    <!-- Live Rankings -->
+    <div class="step-card">
+      <div class="step-label">Live Rankings</div>
+      <div id="liveRankings_${escapeHtml(scoreKey)}"></div>
+    </div>`;
+
+  document.getElementById('scoringArea').innerHTML = html;
+
+  // Restore from localStorage if draft exists
+  if (hasDraft) {
+    restoreFromDraft(scoreKey, cols);
+  }
+
+  updateTotals(scoreKey, cols);
+}
+
+// ─── Draft Management ──────────────────────────────────────────────────
+function onScoreInput(scoreKey) {
+  const cols = getColumns(scoreKey);
+  const draft = collectCurrentScores(scoreKey);
+  saveToLocalStorage(scoreKey, draft);
+  updateTotals(scoreKey, cols);
+}
+
+function collectCurrentScores(scoreKey) {
+  const tbody = document.getElementById(`scoreTbody_${scoreKey}`);
+  if (!tbody) return {};
+  const data = {};
+  tbody.querySelectorAll('tr[data-entry-id]').forEach(row => {
+    const entryId = row.dataset.entryId;
+    const inputs = row.querySelectorAll('.score-input');
+    const rowData = {};
+    inputs.forEach(inp => { rowData[inp.dataset.key] = inp.value || '0'; });
+    data[entryId] = rowData;
+  });
+  return data;
+}
+
+function restoreFromDraft(scoreKey, cols) {
+  const draft = loadFromLocalStorage(scoreKey);
+  if (!draft) return;
+  const tbody = document.getElementById(`scoreTbody_${scoreKey}`);
+  if (!tbody) return;
+  tbody.querySelectorAll('tr[data-entry-id]').forEach(row => {
+    const entryId = row.dataset.entryId;
+    if (!draft[entryId]) return;
+    row.querySelectorAll('.score-input').forEach(inp => {
+      const val = draft[entryId][inp.dataset.key];
+      if (val !== undefined) {
+        inp.value = val;
+        inp.classList.add('saved');
+      }
+    });
+  });
+  updateTotals(scoreKey, cols);
+}
+
+function clearDraft(scoreKey) {
+  if (!confirm('Clear your locally saved draft? This will not remove submitted scores from the server.')) return;
+  localStorage.removeItem(getLsKey(scoreKey));
+  loadScoringTable();
+  showToast('Draft cleared');
+}
+
+// ─── Submit to Server ──────────────────────────────────────────────────
+async function submitScores(scoreKey) {
+  const btn = document.getElementById('submitBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Submitting...'; }
+
+  try {
+    const cols = getColumns(scoreKey);
+    const tbody = document.getElementById(`scoreTbody_${scoreKey}`);
+    if (!tbody) throw new Error('Score table not found');
+
+    // Build payload — merge with existing server scores so we don't wipe manual entries
+    const serverScores = scoresStore[scoreKey] || {};
+    const payload = Object.assign({}, serverScores);
+
+    // Preserve columns & manual entries
+    if (cols && cols.length > 0) payload._columns = cols;
+    if (!payload._manual) payload._manual = [];
+
+    tbody.querySelectorAll('tr[data-entry-id]').forEach(row => {
+      const entryId = row.dataset.entryId;
+      const inputs = row.querySelectorAll('.score-input');
+      const data = {};
+      inputs.forEach(inp => { data[inp.dataset.key] = inp.value || '0'; });
+      payload[entryId] = data;
+    });
+
+    await NexusCMS.saveEventScores(scoreKey, payload);
+
+    // Update local scoresStore
+    scoresStore[scoreKey] = payload;
+
+    // Clear localStorage draft (submitted to server now)
+    localStorage.removeItem(getLsKey(scoreKey));
+
+    showToast('✓ Scores submitted successfully!');
+
+    // Refresh to show clean state
+    loadScoringTable();
+    await NexusCMS.addAuditLog(`Judge submitted scores: ${scoreKey}`);
+  } catch (err) {
+    showToast(err.message || 'Failed to submit scores', 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span>✓</span> Submit Scores to Server'; }
+  }
+}
+
+// ─── Ranking & Validation ──────────────────────────────────────────────
+function validateScore(input) {
+  const max = parseInt(input.dataset.max, 10);
+  const value = parseFloat(input.value);
+  if (Number.isNaN(value) || value < 0) { input.value = ''; return; }
+  if (value > max) { input.value = max; showToast(`Max score is ${max}`, 'error'); }
+}
+
+function updateTotals(scoreKey, cols) {
+  if (!cols) cols = getColumns(scoreKey);
+  const tbody = document.getElementById(`scoreTbody_${scoreKey}`);
+  if (!tbody) return;
+
+  const maxTotal = cols.reduce((s, c) => s + (parseInt(c.max)||0), 0);
+  const rows = [...tbody.querySelectorAll('tr[data-entry-id]')];
+  const ranked = rows.map(row => {
+    let total = 0;
+    row.querySelectorAll('.score-input').forEach(inp => total += parseFloat(inp.value)||0);
+    const entryId = row.dataset.entryId;
+    const cell = document.getElementById(`total_${entryId}`);
+    if (cell) cell.textContent = total;
+    return { row, total };
+  }).sort((a, b) => b.total - a.total);
+
+  ranked.forEach((item, i) => {
+    const rc = item.row.querySelector('.rank-cell');
+    if (rc) {
+      rc.textContent = i + 1;
+      rc.style.color = i === 0 ? '#f5a623' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'var(--muted)';
+    }
+  });
+
+  const rankingsEl = document.getElementById(`liveRankings_${scoreKey}`);
+  if (!rankingsEl) return;
+
+  if (!ranked.length || ranked.every(r => r.total === 0)) {
+    rankingsEl.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;font-size:13px">Enter scores above to see live rankings.</div>';
+    return;
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+  const colors = ['#f5a623','#c0c0c0','#cd7f32'];
+  rankingsEl.innerHTML = ranked.filter(r => r.total > 0).slice(0,10).map((item, i) => {
+    const teamName = item.row.querySelector('td:nth-child(3)').querySelector('div:first-child')?.textContent || '-';
+    const participant = item.row.querySelector('td:nth-child(4)')?.textContent?.trim() || '-';
+    const regNo = item.row.querySelector('td:nth-child(2)')?.textContent?.trim() || '-';
+    return `
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,255,255,0.02);border-radius:12px;margin-bottom:8px;${i<3?`border-left:3px solid ${colors[i]}`:'border-left:3px solid rgba(255,255,255,0.05)'}">
+        <div style="font-size:24px;width:38px;text-align:center;flex-shrink:0">${medals[i]||`<span style='font-family:Syne;font-weight:800;font-size:16px;color:var(--muted)'>${i+1}</span>`}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(teamName)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${escapeHtml(participant)} · ${escapeHtml(regNo)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;${i<3?`color:${colors[i]}`:'color:var(--text)'}">${item.total}</div>
+          <div style="font-size:10px;color:var(--muted)">/${maxTotal} pts</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────
+(async function () {
+  // Judges can only access judge.html — redirect if not logged in
+  currentUser = await NexusCMS.initPage('judge');
+  if (!currentUser) return;
+
+  // Show user info
+  const userCard = document.getElementById('userCard');
+  const avatar = document.getElementById('judgeAvatar');
+  const nameEl = document.getElementById('judgeName');
+  if (userCard) userCard.style.display = 'flex';
+  if (avatar) avatar.textContent = (currentUser.name||'J').slice(0,1).toUpperCase();
+  if (nameEl) nameEl.textContent = currentUser.name || 'Judge';
+
+  [registrations, scoresStore, settings] = await Promise.all([
+    NexusCMS.fetchRegistrations(),
+    NexusCMS.fetchScores(),
+    NexusCMS.fetchSettings()
+  ]);
+
+  buildEventSelector();
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(reg => {
+        setInterval(() => reg.update().catch(() => {}), 60000);
+      }).catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

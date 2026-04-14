@@ -31,6 +31,7 @@ function serializeRegistration(doc) {
     address: doc.address,
     email: doc.email,
     event: doc.event,
+    teamName: doc.teamName || "",
     faculty: doc.faculty,
     facultyPhone: doc.facultyPhone,
     leader: doc.leader,

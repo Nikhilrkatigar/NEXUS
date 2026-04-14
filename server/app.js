@@ -44,6 +44,9 @@ app.get("/manifest.json", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "manifest.json"));
 });
 
+// Explicitly serve uploads (payment screenshots, site assets, team members)
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+
 app.use(express.static(path.join(__dirname, "..")));
 
 app.use((req, res) => {
@@ -66,8 +69,22 @@ async function start() {
   await connectDatabase();
   await seedDefaults();
 
-  app.listen(port, () => {
+  app.listen(port, '0.0.0.0', () => {
+    const os = require('os');
+    const interfaces = os.networkInterfaces();
+    let ipAddress = 'localhost';
+    
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          ipAddress = iface.address;
+          break;
+        }
+      }
+    }
+    
     console.log(`NEXUS backend running on http://localhost:${port}`);
+    console.log(`Access from other devices: http://${ipAddress}:${port}`);
   });
 }
 

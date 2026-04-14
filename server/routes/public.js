@@ -12,7 +12,8 @@ const {
   validateTeamComposition,
   getEventRequirements,
   getAllEventRequirements,
-  formatValidationErrors
+  formatValidationErrors,
+  normalizeDepartment
 } = require("../registrationValidator");
 
 const router = express.Router();
@@ -99,25 +100,42 @@ router.post("/registrations", async (req, res, next) => {
   try {
     const college = String(req.body.college || "").trim();
     const email = String(req.body.email || "").trim();
-    const teamName = String(req.body.teamName || "").trim();
+    const teamName = String(req.body.teamName || college || "").trim(); // Use college name as default
     const event = String(req.body.event || "NEXUS_TEAM").trim();
     const category = String(req.body.category || "").trim();
 
-    if (!college || !email || !teamName) {
-      throw makeError("College, email, and team name are required", 400);
+    if (!college || !email) {
+      throw makeError("College and email are required", 400);
+    }
+
+    // Ensure teamName has a value
+    if (!teamName) {
+      throw makeError("College name is required to generate team name", 400);
     }
 
     // Parse participants with department information
     const participants = Array.isArray(req.body.participants)
-      ? req.body.participants.map((participant) => ({
-          name: String(participant.name || "").trim(),
-          phone: String(participant.phone || "").trim(),
-          department: String(participant.department || "").trim(),
-          isTeamLeader: Boolean(participant.isTeamLeader),
-          danceParticipant: Boolean(participant.danceParticipant),
-          rampWalkParticipant: Boolean(participant.rampWalkParticipant)
-        }))
+      ? req.body.participants.map((participant) => {
+          const normalized = normalizeDepartment(participant.department);
+          console.log(
+            `[Registration] Normalizing department: "${participant.department}" → "${normalized}"`
+          );
+          return {
+            name: String(participant.name || "").trim(),
+            phone: String(participant.phone || "").trim(),
+            department: normalized,
+            isTeamLeader: Boolean(participant.isTeamLeader),
+            danceParticipant: Boolean(
+              participant.danceParticipant ?? participant.rhythmRumbleParticipant
+            ),
+            rampWalkParticipant: Boolean(
+              participant.rampWalkParticipant ?? participant.styleSagaParticipant
+            )
+          };
+        })
       : [];
+
+    console.log("[Registration] Final participants:", JSON.stringify(participants, null, 2));
 
     // Create registration object for validation
     const registrationData = {

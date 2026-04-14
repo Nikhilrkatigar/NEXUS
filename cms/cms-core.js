@@ -5,6 +5,7 @@
   const API_ROOT = "/api";
 
   const NAV_LINKS = [
+    { id: "judge", label: "🏅 Judge Portal", href: "judge.html", roles: ["judge"] },
     { id: "dashboard", label: "Dashboard", href: "dashboard.html", roles: ["viewer", "organiser", "superadmin"] },
     { id: "registrations", label: "Registrations", href: "registrations.html", roles: ["viewer", "organiser", "superadmin"] },
     { id: "scores", label: "Scores", href: "scores.html", roles: ["viewer", "organiser", "superadmin"] },
@@ -178,6 +179,19 @@
       return null;
     }
 
+    // Judges: can ONLY access judge.html — redirect them there from anywhere else
+    if (user.role === "judge" && active !== "judge") {
+      window.location.href = "judge.html";
+      return null;
+    }
+
+    // Non-judges: cannot access judge.html
+    if (user.role !== "judge" && active === "judge") {
+      showToast("Judge Portal is for judges only.", "error");
+      setTimeout(() => { window.location.href = "dashboard.html"; }, 500);
+      return null;
+    }
+
     if (config.requiredRoles && !config.requiredRoles.includes(user.role)) {
       showToast("You do not have access to this page.", "error");
       setTimeout(() => {
@@ -314,6 +328,10 @@
     return !!user && user.role === "viewer";
   }
 
+  function isJudge(user) {
+    return !!user && user.role === "judge";
+  }
+
   window.NexusCMS = {
     addAuditLog,
     clearAuditLog,
@@ -328,6 +346,7 @@
     getStoredUser,
     initPage,
     isViewer,
+    isJudge,
     login,
     logout,
     saveEventScores,

@@ -121,12 +121,49 @@ function isRegistrationEligibleForEvent(registration, eventKey) {
   const registeredEvents = Array.isArray(registration.registeredEvents)
     ? registration.registeredEvents.map((value) => String(value).trim().toLowerCase())
     : [];
+  const ek = String(eventKey).trim().toLowerCase();
 
-  if (registeredEvents.includes(String(eventKey).trim().toLowerCase())) {
-    return true;
+  // Direct ID match
+  if (registeredEvents.includes(ek)) return true;
+
+  // Legacy event name match
+  if (mapEventKey(registration.event) === eventKey) return true;
+
+  // Look up the CMS event object for this eventKey
+  const eventObj = (settings.events||[]).find(e =>
+    String(e.id).toLowerCase() === ek
+  );
+  if (eventObj) {
+    const eventNameLower = String(eventObj.name || '').toLowerCase();
+    const eventNameNorm = normalizeEventName(eventObj.name);
+
+    // Match registeredEvents slugs against the CMS event name
+    for (const slug of registeredEvents) {
+      const slugNorm = normalizeEventName(slug);
+      if (slugNorm === eventNameNorm) return true;
+      if (eventNameNorm.includes(slugNorm) || slugNorm.includes(eventNameNorm)) return true;
+    }
+
+    // Keyword-based matching for common mappings
+    const KEYWORD_MAP = {
+      'dance': ['dance', 'rhythm', 'rumble', 'rhythm rumble'],
+      'rampwalk': ['ramp', 'walk', 'style', 'saga', 'style saga', 'ramp walk'],
+      'finverse': ['finance', 'finverse', 'frontier', 'finance frontier'],
+      'asventiq': ['marketing', 'asventiq', 'brand', 'blitz', 'brand blitz'],
+      'mindwar': ['mind', 'war', 'mindwar', 'people', 'pulse', 'people pulse', 'hr']
+    };
+
+    for (const slug of registeredEvents) {
+      const keywords = KEYWORD_MAP[slug.toLowerCase()];
+      if (keywords) {
+        for (const kw of keywords) {
+          if (eventNameLower.includes(kw)) return true;
+        }
+      }
+    }
   }
 
-  return mapEventKey(registration.event) === eventKey;
+  return false;
 }
 
 function buildEventLabelsFromSettings() {
@@ -153,29 +190,74 @@ function computeEventRankings() {
   const results = {};
 
   Object.keys(EVENT_LABELS).forEach((eventKey) => {
-    const scoreSheet = allScores[eventKey] || {};
-    const manualEntries = scoreSheet._manual || [];
-    const columns = CRITERIA_COLS[eventKey] || [];
     const eventRegs = registrations.filter((registration) => isRegistrationEligibleForEvent(registration, eventKey));
+    const allCollegeScores = {}; // college -> best total across rounds
 
-    const regEntries = eventRegs.map((registration) => ({
-      id: `reg_${registration.id}`,
-      college: registration.college,
-      label: registration.college + ((registration.participants && registration.participants[0] && registration.participants[0].name) ? ` - ${registration.participants[0].name}` : '')
-    }));
-    const manualMapped = manualEntries.map((entry) => ({
-      id: `manual_${entry.id}`,
-      college: entry.label,
-      label: entry.label
-    }));
+    // Aggregate scores across all 3 rounds
+    [1, 2, 3].forEach((round) => {
+      const scoreKey = `${eventKey}_R${round}`;
+      const scoreSheet = allScores[scoreKey] || {};
+      const manualEntries = scoreSheet._manual || [];
+      const columns = Array.isArray(scoreSheet._columns) && scoreSheet._columns.length > 0
+        ? scoreSheet._columns.map(c => c.k)
+        : (CRITERIA_COLS[eventKey] || ['score']);
 
-    const scored = [...regEntries, ...manualMapped]
-      .map((entry) => {
+      const regEntries = eventRegs.map((registration) => ({
+        id: `reg_${registration.id}`,
+        college: registration.college,
+        label: registration.college + ((registration.participants && registration.participants[0] && registration.participants[0].name) ? ` - ${registration.participants[0].name}` : '')
+      }));
+      const manualMapped = manualEntries.map((entry) => ({
+        id: `manual_${entry.id}`,
+        college: entry.label,
+        label: entry.label
+      }));
+
+      [...regEntries, ...manualMapped].forEach((entry) => {
         const saved = scoreSheet[entry.id] || {};
-        const total = columns.reduce((sum, column) => sum + (parseFloat(saved[column]) || 0), 0);
-        return Object.assign({}, entry, { total });
-      })
-      .filter((entry) => entry.total > 0)
+        const total = columns.reduce((sum, colKey) => sum + (parseFloat(saved[colKey]) || 0), 0);
+        if (total > 0) {
+          if (!allCollegeScores[entry.college]) {
+            allCollegeScores[entry.college] = { college: entry.college, label: entry.label, totalAcrossRounds: 0, rounds: {} };
+          }
+          allCollegeScores[entry.college].totalAcrossRounds += total;
+          allCollegeScores[entry.college].rounds[round] = total;
+          // Also keep best round label for display
+          allCollegeScores[entry.college].label = entry.label;
+        }
+      });
+    });
+
+    // Also check legacy key (no _R suffix) for backward compatibility
+    const legacySheet = allScores[eventKey] || {};
+    if (Object.keys(legacySheet).some(k => k !== '_manual' && k !== '_columns')) {
+      const manualEntries = legacySheet._manual || [];
+      const columns = getCriteriaColumns(eventKey);
+      const regEntries = eventRegs.map((registration) => ({
+        id: `reg_${registration.id}`,
+        college: registration.college,
+        label: registration.college
+      }));
+      const manualMapped = manualEntries.map((entry) => ({
+        id: `manual_${entry.id}`,
+        college: entry.label,
+        label: entry.label
+      }));
+      [...regEntries, ...manualMapped].forEach((entry) => {
+        const saved = legacySheet[entry.id] || {};
+        const total = columns.reduce((sum, col) => sum + (parseFloat(saved[col]) || 0), 0);
+        if (total > 0) {
+          if (!allCollegeScores[entry.college]) {
+            allCollegeScores[entry.college] = { college: entry.college, label: entry.label, totalAcrossRounds: 0, rounds: {} };
+          }
+          allCollegeScores[entry.college].totalAcrossRounds += total;
+        }
+      });
+    }
+
+    const scored = Object.values(allCollegeScores)
+      .map(e => Object.assign({}, e, { total: e.totalAcrossRounds }))
+      .filter(e => e.total > 0)
       .sort((a, b) => b.total - a.total);
 
     if (scored.length) {

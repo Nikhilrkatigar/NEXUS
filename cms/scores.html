@@ -10,9 +10,18 @@
 <script src="cms-core.js"></script>
 <style id="cmsStyle"></style>
 <style>
-.score-input{width:70px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;text-align:center;outline:none}
-.score-input:focus{border-color:rgba(245,166,35,0.4)}
+.score-input{width:72px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;text-align:center;outline:none;transition:border-color 0.2s}
+.score-input:focus{border-color:rgba(245,166,35,0.5);background:rgba(245,166,35,0.05)}
+.score-input:disabled{opacity:0.4;cursor:not-allowed}
 .total-cell{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--accent)}
+.round-btn{padding:8px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted);cursor:pointer;transition:all 0.2s}
+.round-btn.active{background:rgba(245,166,35,0.15);color:var(--accent);border-color:rgba(245,166,35,0.3)}
+.round-btn:hover:not(.active){background:rgba(255,255,255,0.08);color:var(--text)}
+.col-config-row{display:flex;gap:10px;align-items:center;margin-bottom:8px;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.04)}
+.col-config-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.col-config-input:focus{border-color:rgba(245,166,35,0.4)}
+.reg-no-cell{font-family:monospace;font-size:12px;color:var(--accent);font-weight:700}
+.participant-cell{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -20,17 +29,30 @@
 <main class="cms-main">
   <div class="cms-header">
     <h1>Scores</h1>
-    <p>Enter and manage scores for each event. Rankings update automatically.</p>
+    <p>Select event and round to enter scores. Rankings update live.</p>
   </div>
-  <div class="cms-card" style="margin-bottom:24px">
+
+  <!-- Step 1: Event Selector -->
+  <div class="cms-card" style="margin-bottom:16px">
     <div class="form-group" style="margin-bottom:0">
-      <label>Select Event to Score</label>
-      <select id="eventSelector" onchange="loadEventScoring()" style="max-width:400px">
+      <label>Step 1 — Select Event to Score</label>
+      <select id="eventSelector" onchange="onEventChange()" style="max-width:420px">
         <option value="">-- Choose an Event --</option>
-        <!-- Options injected by JS -->
       </select>
     </div>
   </div>
+
+  <!-- Step 2: Round Selector (hidden until event selected) -->
+  <div class="cms-card" id="roundCard" style="margin-bottom:16px;display:none">
+    <label style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:12px">Step 2 — Select Round</label>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="round-btn active" id="roundBtn1" onclick="selectRound(1)">Round 1</button>
+      <button class="round-btn" id="roundBtn2" onclick="selectRound(2)">Round 2</button>
+      <button class="round-btn" id="roundBtn3" onclick="selectRound(3)">Round 3</button>
+    </div>
+  </div>
+
+  <!-- Scoring Area -->
   <div id="scoringArea"></div>
 </main>
 
@@ -41,8 +63,8 @@
     <div style="font-size:13px;color:#7a8499;margin-bottom:20px">Enter the team or college name</div>
     <input type="text" id="inputField" placeholder="Team name / College name" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px 14px;color:#f0f0f0;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:20px" onkeydown="if(event.key==='Enter')submitInput()">
     <div style="display:flex;gap:12px;justify-content:flex-end">
-      <button onclick="closeInputModal()" style="background:rgba(255,255,255,0.05);color:#f0f0f0;border:1px solid rgba(255,255,255,0.1);padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s">Cancel</button>
-      <button onclick="submitInput()" style="background:linear-gradient(135deg,#f5a623,#d4890f);color:#000;border:none;padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s">Add Team</button>
+      <button onclick="closeInputModal()" style="background:rgba(255,255,255,0.05);color:#f0f0f0;border:1px solid rgba(255,255,255,0.1);padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer">Cancel</button>
+      <button onclick="submitInput()" style="background:linear-gradient(135deg,#f5a623,#d4890f);color:#000;border:none;padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer">Add Team</button>
     </div>
   </div>
 </div>
@@ -53,245 +75,383 @@ let currentUser = null;
 let registrations = [];
 let scoresStore = {};
 let settings = {};
+let currentEventKey = '';
+let currentRound = 1;
 
-const EVENT_CRITERIA = {
-  FINVERSE_R1: { name: 'FINVERSE - Link and Think', cols: [{ k: 'brand_id', label: 'Brand Identification', max: 20 }, { k: 'accuracy', label: 'Accuracy', max: 15 }, { k: 'response', label: 'Response', max: 15 }], total: 50 },
-  FINVERSE_R2: { name: 'FINVERSE - Cash Clash', cols: [{ k: 'allocation', label: 'Allocation Strategy', max: 15 }, { k: 'impact', label: 'Impact on Citizens', max: 15 }, { k: 'feasibility', label: 'Feasibility', max: 10 }, { k: 'response', label: 'Response', max: 10 }], total: 50 },
-  FINVERSE_R3: { name: 'FINVERSE - Bid to Win', cols: [{ k: 'strategy', label: 'Bidding Strategy', max: 25 }, { k: 'valuation', label: 'Asset Valuation', max: 25 }], total: 50 },
-  ASVENTIQ_R1: { name: 'ASVENTIQ - IdeaNest', cols: [{ k: 'innovation', label: 'Innovation of Idea', max: 15 }, { k: 'clarity', label: 'Clarity of Concept', max: 15 }, { k: 'fit', label: 'Problem-Solution Fit', max: 15 }, { k: 'feasibility', label: 'Feasibility', max: 15 }, { k: 'revenue', label: 'Revenue Model', max: 15 }], total: 75 },
-  ASVENTIQ_R2: { name: 'ASVENTIQ - BrandShift', cols: [{ k: 'creativity', label: 'Creativity and Originality', max: 15 }, { k: 'relevance', label: 'Relevance to Brand', max: 15 }, { k: 'appeal', label: 'Visual Appeal', max: 15 }, { k: 'color', label: 'Color and Symbol Meaning', max: 15 }, { k: 'explanation', label: 'Explanation Clarity', max: 15 }], total: 75 },
-  ASVENTIQ_R3: { name: 'ASVENTIQ - AdvWar', cols: [{ k: 'creativity', label: 'Creativity and Uniqueness', max: 30 }, { k: 'clarity', label: 'Clarity of Message', max: 30 }, { k: 'targeting', label: 'Audience Targeting', max: 20 }, { k: 'communication', label: 'Communication', max: 20 }], total: 100 },
-  MINDWAR_R1: { name: 'MIND WAR - Battle Argument Arena', cols: [{ k: 'content', label: 'Content and Knowledge', max: 25 }, { k: 'communication', label: 'Communication Skills', max: 20 }, { k: 'confidence', label: 'Confidence', max: 20 }, { k: 'relevance', label: 'Relevance to Case', max: 20 }, { k: 'coordination', label: 'Team Coordination', max: 15 }], total: 100 },
-  MINDWAR_R2: { name: 'MIND WAR - The Final Phase', cols: [{ k: 'presence', label: 'Presence of Mind', max: 30 }, { k: 'confidence', label: 'Confidence Under Pressure', max: 25 }, { k: 'communication', label: 'Communication', max: 25 }, { k: 'accuracy', label: 'Accuracy and Decision', max: 20 }], total: 100 },
-  DANCE: { name: 'Dance Competition', cols: [{ k: 'choreo', label: 'Choreography and Creativity', max: 50 }, { k: 'sync', label: 'Synchronization', max: 50 }, { k: 'expression', label: 'Expression and Energy', max: 50 }, { k: 'costume', label: 'Costume and Presentation', max: 50 }, { k: 'impact', label: 'Overall Impact', max: 50 }], total: 250 },
-  RAMPWALK: { name: 'Ramp Walk', cols: [{ k: 'confidence', label: 'Confidence', max: 50 }, { k: 'walk', label: 'Walk and Posture', max: 100 }, { k: 'costume', label: 'Costume', max: 50 }, { k: 'theme', label: 'Theme', max: 50 }], total: 250 },
-  RISING_PALADIN: { name: 'Rising Paladin', cols: [{ k: 'performance', label: 'Overall Performance', max: 50 }, { k: 'skill', label: 'Skill Display', max: 50 }], total: 100 },
-  MATCHWIZ: { name: 'Matchwiz', cols: [{ k: 'teamwork', label: 'Teamwork', max: 30 }, { k: 'accuracy', label: 'Accuracy', max: 40 }, { k: 'speed', label: 'Speed', max: 30 }], total: 100 },
-  STARTATHON: { name: 'Startathon - The Hustle Hub', cols: [{ k: 'idea', label: 'Business Idea', max: 30 }, { k: 'presentation', label: 'Presentation', max: 35 }, { k: 'qna', label: 'Q and A', max: 35 }], total: 100 }
-};
+// ─── Column Configuration Defaults ───────────────────────────────────────
+const DEFAULT_COLS = [
+  { k: 'col1', label: 'Criteria 1', max: 25 },
+  { k: 'col2', label: 'Criteria 2', max: 25 },
+  { k: 'col3', label: 'Criteria 3', max: 25 },
+  { k: 'col4', label: 'Criteria 4', max: 25 }
+];
 
-const EVENT_NAME_MAP = {
-  FINVERSE_FINANCE: 'FINVERSE_R1',
-  ASVENTIQ_MARKETING: 'ASVENTIQ_R1',
-  MIND_WAR_HR: 'MINDWAR_R1',
-  DANCE_COMPETITION: 'DANCE',
-  RAMP_WALK: 'RAMPWALK',
-  RISING_PALADIN: 'RISING_PALADIN',
-  MATCHWIZ: 'MATCHWIZ',
-  STARTATHON_THE_HUSTLE_HUB: 'STARTATHON'
-};
-
-function normalizeEventName(value) {
-  return String(value || '').toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+function escapeHtml(v) {
+  return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+function getScoreKey(eventKey, round) {
+  return `${eventKey}_R${round}`;
 }
 
-function mapEventKey(eventName) {
-  const normalized = normalizeEventName(eventName);
-  if (EVENT_NAME_MAP[normalized]) return EVENT_NAME_MAP[normalized];
-  
-  const settingsEvents = settings.events || [];
-  const eventObj = settingsEvents.find(e => 
-    String(e.id).trim().toLowerCase() === String(eventName).trim().toLowerCase() ||
-    String(e.name).trim().toLowerCase() === String(eventName).trim().toLowerCase()
-  );
-  if (eventObj) return eventObj.id;
-  
-  return null;
+function getEventScores(scoreKey) {
+  if (!scoresStore[scoreKey]) scoresStore[scoreKey] = { _manual: [], _columns: null };
+  if (!scoresStore[scoreKey]._manual) scoresStore[scoreKey]._manual = [];
+  return scoresStore[scoreKey];
 }
 
-function isRegistrationEligibleForEvent(registration, eventKey) {
-  const registeredEvents = Array.isArray(registration.registeredEvents)
-    ? registration.registeredEvents.map((value) => String(value).trim().toLowerCase())
-    : [];
-
-  if (registeredEvents.includes(String(eventKey).trim().toLowerCase())) {
-    return true;
+function getColumns(scoreKey) {
+  const stored = scoresStore[scoreKey];
+  if (stored && Array.isArray(stored._columns) && stored._columns.length > 0) {
+    return stored._columns;
   }
-
-  return mapEventKey(registration.event) === eventKey;
-}
-
-function buildConfigFromSettings() {
-  const select = document.getElementById('eventSelector');
-  const previousValue = select.value;
-  const settingsEvents = (settings.events || []).filter((event) => {
-    return String(event.id || '').trim() && String(event.name || '').trim();
-  });
-  
-  settingsEvents.forEach(e => {
-    const eventKey = String(e.id);
-    if (!EVENT_CRITERIA[eventKey]) {
-      // Create a default single column criteria for dynamic events
-      EVENT_CRITERIA[eventKey] = {
-        name: e.name || eventKey,
-        cols: [{ k: 'score', label: 'Overall Score', max: 100 }],
-        total: 100
-      };
-    }
-  });
-
-  // Rebuild the select options based exclusively on EVENT_CRITERIA but only include ones from settings
-  // Actually, we'll just populate from settingsEvents to ensure deleted events are removed!
-  const htmlObj = ['<option value="">-- Choose an Event --</option>'];
-  settingsEvents.forEach(e => {
-     htmlObj.push(`<option value="${e.id}">${escapeHtml(e.name)}</option>`);
-  });
-  select.innerHTML = htmlObj.join('');
-
-  if (settingsEvents.some((event) => String(event.id) === previousValue)) {
-    select.value = previousValue;
-  }
-
-  if (!select.value) {
-    document.getElementById('scoringArea').innerHTML = '';
-    return;
-  }
-
-  loadEventScoring();
+  return DEFAULT_COLS;
 }
 
 function isReadOnly() {
   return NexusCMS.isViewer(currentUser);
 }
-
-function getEventScores(eventKey) {
-  if (!scoresStore[eventKey]) {
-    scoresStore[eventKey] = { _manual: [] };
-  }
-  if (!scoresStore[eventKey]._manual) {
-    scoresStore[eventKey]._manual = [];
-  }
-  return scoresStore[eventKey];
+function isJudgeUser() {
+  return NexusCMS.isJudge(currentUser);
+}
+function canEditConfig() {
+  return currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'organiser');
 }
 
-function loadEventScoring() {
+// ─── Event & Round Selection ──────────────────────────────────────────────
+function buildEventSelector() {
+  const select = document.getElementById('eventSelector');
+  const settingsEvents = (settings.events || []).filter(e => String(e.id||'').trim() && String(e.name||'').trim());
+  const opts = ['<option value="">-- Choose an Event --</option>'];
+  settingsEvents.forEach(e => {
+    opts.push(`<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`);
+  });
+  select.innerHTML = opts.join('');
+}
+
+function onEventChange() {
   const eventKey = document.getElementById('eventSelector').value;
   if (!eventKey) {
+    document.getElementById('roundCard').style.display = 'none';
     document.getElementById('scoringArea').innerHTML = '';
+    currentEventKey = '';
     return;
   }
+  currentEventKey = eventKey;
+  document.getElementById('roundCard').style.display = 'block';
+  selectRound(currentRound);
+}
 
-  const criteria = EVENT_CRITERIA[eventKey];
-  const eventRegistrations = registrations.filter((registration) => isRegistrationEligibleForEvent(registration, eventKey));
-  const eventScores = getEventScores(eventKey);
+function selectRound(round) {
+  currentRound = round;
+  [1,2,3].forEach(r => {
+    const btn = document.getElementById(`roundBtn${r}`);
+    if (btn) btn.className = 'round-btn' + (r === round ? ' active' : '');
+  });
+  if (currentEventKey) loadEventScoring();
+}
+
+// ─── Load Scoring Table ───────────────────────────────────────────────────
+function loadEventScoring() {
+  const eventKey = currentEventKey;
+  const round = currentRound;
+  const scoreKey = getScoreKey(eventKey, round);
+
+  const eventObj = (settings.events || []).find(e => String(e.id) === String(eventKey));
+  const eventName = eventObj ? eventObj.name : eventKey;
+
+  const eventRegs = registrations.filter(reg => isRegistrationEligibleForEvent(reg, eventKey));
+  const eventScores = getEventScores(scoreKey);
   const manualEntries = eventScores._manual || [];
+  const cols = getColumns(scoreKey);
+  const maxTotal = cols.reduce((s, c) => s + (parseInt(c.max)||0), 0);
   const readOnly = isReadOnly();
+  const judgeMode = isJudgeUser();
+  const configMode = canEditConfig();
 
   const allEntries = [
-    ...eventRegistrations.map((registration) => ({
-      id: `reg_${registration.id}`,
-      label: registration.college + ((registration.participants && registration.participants[0] && registration.participants[0].name) ? ` - ${registration.participants[0].name}` : ''),
-      regId: registration.id
+    ...eventRegs.map(reg => ({
+      id: `reg_${reg.id}`,
+      regNo: reg.code,
+      teamName: reg.teamName || reg.college,
+      participant: getParticipantNames(reg, eventKey, eventObj),
+      college: reg.college,
+      regId: reg.id
     })),
-    ...manualEntries.map((entry) => ({
+    ...manualEntries.map(entry => ({
       id: `manual_${entry.id}`,
-      label: entry.label,
+      regNo: '-',
+      teamName: entry.label,
+      participant: '-',
+      college: entry.label,
       manual: true
     }))
   ];
 
   let html = `
-    <div class="cms-card">
+    <div class="cms-card" style="margin-bottom:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
         <div>
-          <div class="cms-card-title" style="margin-bottom:4px">${criteria.name}</div>
-          <div style="font-size:12px;color:var(--muted)">${eventRegistrations.length} registered teams · Max: ${criteria.total} marks</div>
+          <div class="cms-card-title" style="margin-bottom:4px">${escapeHtml(eventName)} — Round ${round}</div>
+          <div style="font-size:12px;color:var(--muted)">${eventRegs.length} registered teams · ${allEntries.length} total entries · Max total: ${maxTotal} marks</div>
         </div>
-        <div style="display:flex;gap:10px;align-items:center">
-          ${readOnly ? '<span style="font-size:12px;color:var(--muted)">Viewer mode: read only</span>' : `<button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addManualEntry('${eventKey}')">Add Team Manually</button><button class="cms-btn cms-btn-primary" onclick="saveScoresForEvent('${eventKey}')">Save Scores</button>`}
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          ${readOnly ? '<span style="font-size:12px;color:var(--muted)">Viewer mode: read only</span>' : ''}
+          ${!readOnly && !judgeMode ? `<button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addManualEntry('${escapeHtml(scoreKey)}')">+ Add Team</button>` : ''}
+          ${!readOnly ? `<button class="cms-btn cms-btn-primary" onclick="saveScoresForEvent('${escapeHtml(scoreKey)}')">💾 Save Scores</button>` : ''}
         </div>
-      </div>
+      </div>`;
+
+  // ── Column Configuration (superadmin/organiser only) ──
+  if (configMode) {
+    html += `
+      <div style="background:rgba(245,166,35,0.04);border:1px solid rgba(245,166,35,0.12);border-radius:12px;padding:16px;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em">⚙ Configure Score Columns (4 max)</div>
+          <button onclick="saveColumns('${escapeHtml(scoreKey)}')" class="cms-btn cms-btn-primary cms-btn-sm">Save Columns</button>
+        </div>
+        <div id="colConfigArea_${escapeHtml(scoreKey)}">`;
+
+    const configCols = cols.slice(0,4);
+    configCols.forEach((col, i) => {
+      html += `
+        <div class="col-config-row" id="colRow_${i}">
+          <span style="font-size:11px;color:var(--muted);min-width:20px">${i+1}.</span>
+          <input class="col-config-input" style="flex:2" placeholder="Column label" id="colLabel_${i}" value="${escapeHtml(col.label)}">
+          <input class="col-config-input" style="width:80px" type="number" min="1" max="999" placeholder="Max" id="colMax_${i}" value="${col.max}">
+          <span style="font-size:11px;color:var(--muted)">pts</span>
+        </div>`;
+    });
+    // pad to 4 if fewer
+    for (let i = configCols.length; i < 4; i++) {
+      html += `
+        <div class="col-config-row" id="colRow_${i}">
+          <span style="font-size:11px;color:var(--muted);min-width:20px">${i+1}.</span>
+          <input class="col-config-input" style="flex:2" placeholder="Column label (optional)" id="colLabel_${i}" value="">
+          <input class="col-config-input" style="width:80px" type="number" min="1" max="999" placeholder="Max" id="colMax_${i}" value="25">
+          <span style="font-size:11px;color:var(--muted)">pts</span>
+        </div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  // ── Score Table ──
+  html += `
       <div style="overflow-x:auto">
-      <table class="cms-table" id="scoreTable_${eventKey}">
+      <table class="cms-table" id="scoreTable_${escapeHtml(scoreKey)}">
         <thead><tr>
-          <th>Rank</th><th>Team / College</th>
-          ${criteria.cols.map((column) => `<th>${column.label}<br><span style="color:var(--accent);font-size:10px">/${column.max}</span></th>`).join('')}
-          <th>Total /${criteria.total}</th>
+          <th style="width:40px">Rank</th>
+          <th>Reg No</th>
+          <th>Team Name</th>
+          <th>Participant</th>
+          ${cols.map(col => `<th>${escapeHtml(col.label)}<br><span style="color:var(--accent);font-size:10px">/${col.max}</span></th>`).join('')}
+          <th>Total /${maxTotal}</th>
           <th>Action</th>
         </tr></thead>
-        <tbody id="scoreTbody_${eventKey}">
-  `;
+        <tbody id="scoreTbody_${escapeHtml(scoreKey)}">`;
 
-  allEntries.forEach((entry) => {
+  allEntries.forEach(entry => {
     const saved = eventScores[entry.id] || {};
-    const total = criteria.cols.reduce((sum, column) => sum + (parseFloat(saved[column.k]) || 0), 0);
+    const total = cols.reduce((sum, col) => sum + (parseFloat(saved[col.k]) || 0), 0);
     html += `
       <tr data-entry-id="${entry.id}">
-        <td class="rank-cell" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px">-</td>
-        <td style="font-weight:500;min-width:180px">${entry.label}</td>
-        ${criteria.cols.map((column) => `<td><input class="score-input" type="number" min="0" max="${column.max}" value="${saved[column.k] || ''}" placeholder="0" data-key="${column.k}" data-max="${column.max}" oninput="updateTotals('${eventKey}')" onblur="validateScore(this)" ${readOnly ? 'disabled' : ''}></td>`).join('')}
-        <td class="total-cell" id="total_${entry.id}">${total || 0}</td>
-        <td>${entry.manual && !readOnly ? `<button class="cms-btn cms-btn-danger cms-btn-sm" onclick="removeManual('${eventKey}','${entry.id}')">x</button>` : '<span style="font-size:11px;color:var(--muted)">-</span>'}</td>
-      </tr>
-    `;
+        <td class="rank-cell" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;text-align:center">-</td>
+        <td class="reg-no-cell">${entry.regNo !== '-' ? `#${escapeHtml(entry.regNo)}` : '-'}</td>
+        <td style="font-weight:600;min-width:160px">${escapeHtml(entry.teamName)}</td>
+        <td class="participant-cell">${escapeHtml(entry.participant)}</td>
+        ${cols.map(col => `<td><input class="score-input" type="number" min="0" max="${col.max}" value="${saved[col.k]||''}" placeholder="0" data-key="${col.k}" data-max="${col.max}" oninput="updateTotals('${escapeHtml(scoreKey)}')" onblur="validateScore(this)" ${readOnly ? 'disabled' : ''}></td>`).join('')}
+        <td class="total-cell" id="total_${entry.id}">${total||0}</td>
+        <td>${entry.manual && !readOnly ? `<button class="cms-btn cms-btn-danger cms-btn-sm" onclick="removeManual('${escapeHtml(scoreKey)}','${entry.id}')">✕</button>` : '<span style="font-size:11px;color:var(--muted)">—</span>'}</td>
+      </tr>`;
   });
 
   if (allEntries.length === 0) {
-    html += `<tr><td colspan="${criteria.cols.length + 4}" style="text-align:center;color:var(--muted);padding:24px">No teams registered for this event yet.</td></tr>`;
+    html += `<tr><td colspan="${cols.length + 5}" style="text-align:center;color:var(--muted);padding:32px;font-size:13px">No teams registered for this event. <br><span style="font-size:11px;opacity:0.6">Add a team manually or ensure registrations are linked to this event.</span></td></tr>`;
   }
 
-  html += `</tbody></table></div></div>
+  html += `</tbody></table></div></div>`;
+
+  // ── Live Rankings ──
+  html += `
     <div class="cms-card" style="margin-top:20px">
-      <div class="cms-card-title">Live Rankings - ${criteria.name}</div>
-      <div id="liveRankings_${eventKey}"></div>
-    </div>
-  `;
+      <div class="cms-card-title">🏆 Live Rankings — ${escapeHtml(eventName)} Round ${round}</div>
+      <div id="liveRankings_${escapeHtml(scoreKey)}"></div>
+    </div>`;
 
   document.getElementById('scoringArea').innerHTML = html;
-  updateTotals(eventKey);
+  updateTotals(scoreKey);
 }
 
-function updateTotals(eventKey) {
-  const tbody = document.getElementById(`scoreTbody_${eventKey}`);
-  if (!tbody) return;
+// Get relevant participant names based on the event being scored
+// HR dept → PEOPLE PULSE, Marketing → BRAND BLITZ, Finance → FINANCE FRONTIER
+// Dance flag → RHYTHM RUMBLE, Ramp Walk flag → STYLE SAGA
+function getParticipantNames(reg, eventKey, eventObj) {
+  const participants = reg.participants || [];
+  if (!participants.length) return reg.leader || '-';
 
-  const rows = [...tbody.querySelectorAll('tr[data-entry-id]')];
-  const rankedEntries = rows.map((row) => {
-    const inputs = row.querySelectorAll('.score-input');
-    let total = 0;
-    inputs.forEach((input) => {
-      total += parseFloat(input.value) || 0;
-    });
+  const eventNameLower = eventObj ? String(eventObj.name || '').toLowerCase() : '';
 
-    const entryId = row.dataset.entryId;
-    const totalCell = document.getElementById(`total_${entryId}`);
-    if (totalCell) {
-      totalCell.textContent = total;
+  // Determine which participants are relevant for this event
+  let relevant = [];
+
+  // Department-based filtering using event name keywords
+  if (eventNameLower.includes('people') || eventNameLower.includes('pulse') || eventNameLower.includes('hr')) {
+    // HR event → show HR department members
+    relevant = participants.filter(p => p.department === 'HR');
+  } else if (eventNameLower.includes('brand') || eventNameLower.includes('blitz') || eventNameLower.includes('marketing')) {
+    // Marketing event → show Marketing department members
+    relevant = participants.filter(p => p.department === 'Marketing');
+  } else if (eventNameLower.includes('finance') || eventNameLower.includes('frontier')) {
+    // Finance event → show Finance department members
+    relevant = participants.filter(p => p.department === 'Finance');
+  } else if (eventNameLower.includes('rhythm') || eventNameLower.includes('rumble') || eventNameLower.includes('dance')) {
+    // Dance event → show dance participants
+    relevant = participants.filter(p => p.danceParticipant);
+  } else if (eventNameLower.includes('style') || eventNameLower.includes('saga') || eventNameLower.includes('ramp')) {
+    // Ramp Walk event → show ramp walk participants
+    relevant = participants.filter(p => p.rampWalkParticipant);
+  }
+
+  // If we found relevant participants, show their names
+  if (relevant.length > 0) {
+    return relevant.map(p => p.name).filter(Boolean).join(', ') || '-';
+  }
+
+  // Fallback: show all participant names
+  const allNames = participants.map(p => p.name).filter(Boolean);
+  return allNames.length > 0 ? allNames.join(', ') : (reg.leader || '-');
+}
+
+function normalizeEventName(v) {
+  return String(v||'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+}
+
+function isRegistrationEligibleForEvent(reg, eventKey) {
+  const regEvents = Array.isArray(reg.registeredEvents)
+    ? reg.registeredEvents.map(v => String(v).trim().toLowerCase())
+    : [];
+  const ek = String(eventKey).trim().toLowerCase();
+
+  // Direct ID match: registeredEvents contains the event key directly
+  if (regEvents.includes(ek)) return true;
+
+  // Direct event name match
+  const normalized = normalizeEventName(reg.event);
+  if (normalized === String(eventKey).toUpperCase()) return true;
+
+  // Look up the CMS event object for this eventKey
+  const eventObj = (settings.events||[]).find(e =>
+    String(e.id).toLowerCase() === ek
+  );
+  if (eventObj) {
+    const eventNameLower = String(eventObj.name || '').toLowerCase();
+    const eventNameNorm = normalizeEventName(eventObj.name);
+    const regNorm = normalizeEventName(reg.event);
+    // Match primary event name
+    if (regNorm === eventNameNorm) return true;
+
+    // Match registeredEvents slugs against the CMS event name/keywords
+    // e.g., slug "dance" matches event name "RHYTHM RUMBLE" via keyword mapping
+    // or slug "finverse" matches event name "FINANCE FRONTIER" / "FINVERSE"
+    for (const slug of regEvents) {
+      const slugNorm = normalizeEventName(slug);
+      // Exact name match (e.g., slug "finverse" === event name normalized)
+      if (slugNorm === eventNameNorm) return true;
+      // Event name contains the slug (e.g., "FINVERSE" contains "FINVERSE")
+      if (eventNameNorm.includes(slugNorm) || slugNorm.includes(eventNameNorm)) return true;
     }
 
-    return { row, total };
-  }).sort((a, b) => b.total - a.total);
+    // Keyword-based matching for common mappings
+    // Registration uses legacy keys, CMS uses display names
+    const KEYWORD_MAP = {
+      'dance': ['dance', 'rhythm', 'rumble', 'rhythm rumble'],
+      'rampwalk': ['ramp', 'walk', 'style', 'saga', 'style saga', 'ramp walk'],
+      'finverse': ['finance', 'finverse', 'frontier', 'finance frontier'],
+      'asventiq': ['marketing', 'asventiq', 'brand', 'blitz', 'brand blitz'],
+      'mindwar': ['mind', 'war', 'mindwar', 'people', 'pulse', 'people pulse', 'hr']
+    };
 
-  rankedEntries.forEach((entry, index) => {
-    const rankCell = entry.row.querySelector('.rank-cell');
-    if (!rankCell) return;
-    rankCell.textContent = index + 1;
-  });
+    for (const slug of regEvents) {
+      const keywords = KEYWORD_MAP[slug.toLowerCase()];
+      if (keywords) {
+        for (const kw of keywords) {
+          if (eventNameLower.includes(kw)) return true;
+        }
+      }
+    }
+  }
 
-  const rankings = document.getElementById(`liveRankings_${eventKey}`);
-  if (!rankings) return;
+  return false;
+}
 
-  if (!rankedEntries.length) {
-    rankings.innerHTML = '<div style="font-size:13px;color:var(--muted)">No scores entered yet.</div>';
+// ─── Column Save ─────────────────────────────────────────────────────────
+async function saveColumns(scoreKey) {
+  const newCols = [];
+  for (let i = 0; i < 4; i++) {
+    const labelEl = document.getElementById(`colLabel_${i}`);
+    const maxEl = document.getElementById(`colMax_${i}`);
+    if (!labelEl) continue;
+    const label = labelEl.value.trim();
+    const max = parseInt(maxEl.value) || 25;
+    if (label) {
+      newCols.push({ k: `col${i+1}`, label, max });
+    }
+  }
+  if (newCols.length === 0) {
+    showToast('Add at least one column', 'error');
     return;
   }
 
-  const criteria = EVENT_CRITERIA[eventKey];
-  rankings.innerHTML = rankedEntries.slice(0, 10).map((entry, index) => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:8px;${index < 3 ? 'border:1px solid rgba(245,166,35,0.1)' : ''}">
-      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;width:36px;text-align:center">${index + 1}</div>
-      <div style="flex:1;font-size:13px;font-weight:500">${entry.row.querySelector('td:nth-child(2)').textContent}</div>
-      <div style="font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);font-size:18px">${entry.total}</div>
-      <div style="font-size:11px;color:var(--muted)">/${criteria.total}</div>
+  const eventScores = getEventScores(scoreKey);
+  eventScores._columns = newCols;
+  scoresStore[scoreKey] = eventScores;
+  await NexusCMS.saveEventScores(scoreKey, eventScores);
+  showToast('✓ Columns saved! Reloading table...');
+  loadEventScoring();
+}
+
+// ─── Score Totals & Ranking ──────────────────────────────────────────────
+function updateTotals(scoreKey) {
+  const tbody = document.getElementById(`scoreTbody_${scoreKey}`);
+  if (!tbody) return;
+
+  const cols = getColumns(scoreKey);
+  const rows = [...tbody.querySelectorAll('tr[data-entry-id]')];
+  const ranked = rows.map(row => {
+    const inputs = row.querySelectorAll('.score-input');
+    let total = 0;
+    inputs.forEach(inp => total += parseFloat(inp.value) || 0);
+    const entryId = row.dataset.entryId;
+    const cell = document.getElementById(`total_${entryId}`);
+    if (cell) cell.textContent = total;
+    return { row, total };
+  }).sort((a, b) => b.total - a.total);
+
+  ranked.forEach((item, i) => {
+    const rc = item.row.querySelector('.rank-cell');
+    if (rc) rc.textContent = i + 1;
+  });
+
+  const rankingsEl = document.getElementById(`liveRankings_${scoreKey}`);
+  if (!rankingsEl) return;
+
+  const maxTotal = cols.reduce((s, c) => s + (parseInt(c.max)||0), 0);
+  if (!ranked.length) {
+    rankingsEl.innerHTML = '<div style="font-size:13px;color:var(--muted)">No scores entered yet.</div>';
+    return;
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+  rankingsEl.innerHTML = ranked.slice(0,10).map((item, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.02);border-radius:10px;margin-bottom:8px;${i<3?'border:1px solid rgba(245,166,35,0.12)':''}">
+      <div style="font-size:22px;width:36px;text-align:center">${medals[i]||`<span style='font-family:Syne;font-weight:800;font-size:16px'>${i+1}</span>`}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${item.row.querySelector('td:nth-child(3)').textContent}</div>
+        <div style="font-size:11px;color:var(--muted)">${item.row.querySelector('td:nth-child(4)').textContent}</div>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);font-size:20px">${item.total}</div>
+      <div style="font-size:11px;color:var(--muted)">/${maxTotal}</div>
     </div>
   `).join('');
 }
@@ -299,89 +459,89 @@ function updateTotals(eventKey) {
 function validateScore(input) {
   const max = parseInt(input.dataset.max, 10);
   const value = parseFloat(input.value);
-  if (Number.isNaN(value) || value < 0) {
-    input.value = '';
-    return;
-  }
-  if (value > max) {
-    input.value = max;
-    showToast(`Max score is ${max}`, 'error');
-  }
+  if (Number.isNaN(value) || value < 0) { input.value = ''; return; }
+  if (value > max) { input.value = max; showToast(`Max score is ${max}`, 'error'); }
 }
 
-async function saveScoresForEvent(eventKey) {
-  const tbody = document.getElementById(`scoreTbody_${eventKey}`);
+// ─── Save Scores ─────────────────────────────────────────────────────────
+async function saveScoresForEvent(scoreKey) {
+  const tbody = document.getElementById(`scoreTbody_${scoreKey}`);
   if (!tbody) return;
 
-  const eventScores = getEventScores(eventKey);
+  const cols = getColumns(scoreKey);
+  const eventScores = getEventScores(scoreKey);
   const rows = tbody.querySelectorAll('tr[data-entry-id]');
-  rows.forEach((row) => {
+  rows.forEach(row => {
     const entryId = row.dataset.entryId;
     const inputs = row.querySelectorAll('.score-input');
     const data = {};
-    inputs.forEach((input) => {
-      data[input.dataset.key] = input.value || '0';
-    });
+    inputs.forEach(inp => { data[inp.dataset.key] = inp.value || '0'; });
     eventScores[entryId] = data;
   });
 
-  await NexusCMS.saveEventScores(eventKey, eventScores);
-  showToast('Scores saved successfully!');
-  updateTotals(eventKey);
+  // Preserve columns config
+  if (!eventScores._columns || eventScores._columns.length === 0) {
+    eventScores._columns = cols;
+  }
+
+  scoresStore[scoreKey] = eventScores;
+  await NexusCMS.saveEventScores(scoreKey, eventScores);
+  showToast('✓ Scores saved successfully!');
+  updateTotals(scoreKey);
+  await NexusCMS.addAuditLog(`Saved scores: ${scoreKey}`);
 }
 
-function showInputModal(callback) {
+// ─── Manual Entry ─────────────────────────────────────────────────────────
+function showInputModal(cb) {
   document.getElementById('inputField').value = '';
-  pendingInputCallback = callback;
+  pendingInputCallback = cb;
   document.getElementById('inputModal').style.display = 'flex';
   setTimeout(() => document.getElementById('inputField').focus(), 100);
 }
-
 function closeInputModal() {
   document.getElementById('inputModal').style.display = 'none';
   pendingInputCallback = null;
 }
-
 function submitInput() {
   const label = document.getElementById('inputField').value.trim();
-  if (!label) {
-    showToast('Please enter a team name', 'error');
-    return;
-  }
+  if (!label) { showToast('Please enter a team name', 'error'); return; }
   closeInputModal();
-  if (pendingInputCallback) {
-    pendingInputCallback(label);
-  }
+  if (pendingInputCallback) pendingInputCallback(label);
 }
 
-async function addManualEntry(eventKey) {
+async function addManualEntry(scoreKey) {
   showInputModal(async function(label) {
-    const eventScores = getEventScores(eventKey);
+    const eventScores = getEventScores(scoreKey);
     eventScores._manual.push({ id: String(Date.now()), label });
-    await NexusCMS.saveEventScores(eventKey, eventScores);
+    scoresStore[scoreKey] = eventScores;
+    await NexusCMS.saveEventScores(scoreKey, eventScores);
     showToast(`Added team: ${label}`);
     loadEventScoring();
   });
 }
 
-async function removeManual(eventKey, entryId) {
-  const eventScores = getEventScores(eventKey);
-  const manualId = entryId.replace('manual_', '');
-  eventScores._manual = (eventScores._manual || []).filter((entry) => String(entry.id) !== String(manualId));
+async function removeManual(scoreKey, entryId) {
+  const eventScores = getEventScores(scoreKey);
+  const manualId = entryId.replace('manual_','');
+  eventScores._manual = (eventScores._manual||[]).filter(e => String(e.id) !== String(manualId));
   delete eventScores[entryId];
-  await NexusCMS.saveEventScores(eventKey, eventScores);
+  scoresStore[scoreKey] = eventScores;
+  await NexusCMS.saveEventScores(scoreKey, eventScores);
   loadEventScoring();
 }
 
+// ─── Init ─────────────────────────────────────────────────────────────────
 (async function () {
   currentUser = await NexusCMS.initPage('scores');
   if (!currentUser) return;
 
-  registrations = await NexusCMS.fetchRegistrations();
-  scoresStore = await NexusCMS.fetchScores();
-  settings = await NexusCMS.fetchSettings();
-  
-  buildConfigFromSettings();
+  [registrations, scoresStore, settings] = await Promise.all([
+    NexusCMS.fetchRegistrations(),
+    NexusCMS.fetchScores(),
+    NexusCMS.fetchSettings()
+  ]);
+
+  buildEventSelector();
 })();
 </script>
 
@@ -392,9 +552,7 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .then((reg) => {
         console.log('[App] Service Worker registered:', reg);
-        setInterval(() => {
-          reg.update().catch(err => console.warn('[App] Update check failed:', err));
-        }, 60000);
+        setInterval(() => { reg.update().catch(err => console.warn('[App] Update check failed:', err)); }, 60000);
       })
       .catch((err) => console.warn('[App] Service Worker registration failed:', err));
   });
