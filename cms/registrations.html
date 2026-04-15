@@ -21,7 +21,7 @@
   </div>
   <div class="cms-card" style="margin-bottom:20px">
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-      <input type="text" id="searchInput" placeholder="Search by college, event, code..." style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;flex:1;min-width:200px" oninput="renderTable()">
+      <input type="text" id="searchInput" placeholder="Search by college, team name, leader, code..." style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;flex:1;min-width:200px" oninput="renderTable()">
       <select id="eventFilter" style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;color:#f0f0f0;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;font-weight:500" onchange="renderTable()">
         <option value="">All Events</option>
       </select>
@@ -31,7 +31,7 @@
   <div class="cms-card">
     <table class="cms-table" id="regsTable">
       <thead><tr>
-        <th>#</th><th>Code</th><th>College</th><th>Event</th><th>Group Leader</th><th>Faculty</th><th>Participants</th><th>Payment</th><th>Date</th><th>Actions</th>
+        <th>#</th><th>Code</th><th>College</th><th>Team Name</th><th>Group Leader</th><th>Faculty</th><th>Participants</th><th>Payment</th><th>Date</th><th>Actions</th>
       </tr></thead>
       <tbody id="regsTbody"></tbody>
     </table>
@@ -53,6 +53,19 @@
 let regs = [];
 let currentEditingId = null;
 
+function getTeamName(registration) {
+  return registration.teamName || registration.college || '-';
+}
+
+function getLeaderName(registration) {
+  const participants = Array.isArray(registration.participants) ? registration.participants : [];
+  const selectedLeader = participants.find((participant) => participant.isTeamLeader && participant.name);
+  if (selectedLeader) return selectedLeader.name;
+  const firstNamedParticipant = participants.find((participant) => participant.name);
+  if (firstNamedParticipant) return firstNamedParticipant.name;
+  return registration.leader || '-';
+}
+
 function renderTable() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   const eventFilter = document.getElementById('eventFilter').value;
@@ -60,9 +73,10 @@ function renderTable() {
     const matchSearch =
       !search ||
       registration.college.toLowerCase().includes(search) ||
+      getTeamName(registration).toLowerCase().includes(search) ||
       registration.event.toLowerCase().includes(search) ||
       registration.code.toLowerCase().includes(search) ||
-      (registration.leader || '').toLowerCase().includes(search);
+      getLeaderName(registration).toLowerCase().includes(search);
     const matchEvent = !eventFilter || registration.event === eventFilter;
     return matchSearch && matchEvent;
   });
@@ -79,8 +93,8 @@ function renderTable() {
         <td style="color:var(--muted);font-size:12px">${index + 1}</td>
         <td><span class="badge badge-gold">#${registration.code}</span></td>
         <td style="font-weight:500">${registration.college}</td>
-        <td><span class="badge badge-blue" style="font-size:10px;white-space:nowrap">${registration.event}</span></td>
-        <td style="font-size:12px">${registration.leader || '-'}</td>
+        <td><span class="badge badge-blue" style="font-size:10px;white-space:nowrap">${getTeamName(registration)}</span></td>
+        <td style="font-size:12px">${getLeaderName(registration)}</td>
         <td style="font-size:12px;color:var(--muted)">${registration.faculty || '-'}</td>
         <td style="font-size:12px;color:var(--muted)">${(registration.participants || []).filter((participant) => participant.name).length} participant(s)</td>
         <td>${paymentBadge}</td>
@@ -154,11 +168,12 @@ function viewDetail(id) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
       ${[
         ['College', registration.college],
+        ['Team Name', getTeamName(registration)],
         ['Event', registration.event],
         ['Tracks', (registration.registeredEvents || []).join(', ') || '-'],
         ['Email', registration.email || '-'],
         ['Faculty', registration.faculty || '-'],
-        ['Group Leader', registration.leader || '-'],
+        ['Group Leader', getLeaderName(registration)],
         ['Registered', new Date(registration.timestamp).toLocaleString()]
       ].map(([label, value]) => `
         <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px">
@@ -190,16 +205,17 @@ function viewDetail(id) {
 }
 
 async function exportCSV() {
-  const headers = ['Code', 'College', 'Address', 'Email', 'Event', 'Tracks', 'Faculty', 'Group Leader', 'Participants', 'Payment Status', 'Date'];
+  const headers = ['Code', 'College', 'Team Name', 'Address', 'Email', 'Event', 'Tracks', 'Faculty', 'Group Leader', 'Participants', 'Payment Status', 'Date'];
   const rows = regs.map((registration) => [
     registration.code,
     registration.college,
+    getTeamName(registration),
     registration.address || '',
     registration.email || '',
     registration.event,
     (registration.registeredEvents || []).join('; '),
     registration.faculty || '',
-    registration.leader || '',
+    getLeaderName(registration),
     (registration.participants || []).filter((participant) => participant.name).map((participant) => participant.name).join('; '),
     registration.paymentStatus || 'pending',
     new Date(registration.timestamp).toLocaleString()
@@ -364,7 +380,7 @@ async function editRegistration(id) {
   const newEmail = prompt('Email:', registration.email);
   if (newEmail === null) return;
 
-  const newLeader = prompt('Team Leader:', registration.leader);
+  const newLeader = prompt('Team Leader:', getLeaderName(registration));
   if (newLeader === null) return;
 
   try {

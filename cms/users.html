@@ -21,7 +21,7 @@
     <div class="cms-card">
       <div class="cms-card-title">All Users</div>
       <table class="cms-table" id="usersTable">
-        <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+        <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Role</th><th>Event (Judges)</th><th></th>Actions</th></tr></thead>
         <tbody id="usersTbody"></tbody>
       </table>
     </div>
@@ -29,15 +29,23 @@
       <div class="cms-card-title" id="formTitle">Create New User</div>
       <div class="form-group"><label>Full Name</label><input type="text" id="u_name" placeholder="John Doe"></div>
       <div class="form-group"><label>Username</label><input type="text" id="u_username" placeholder="john_doe"></div>
-      <div class="form-group"><label>Password</label><input type="password" id="u_password" placeholder="Minimum 6 characters"></div>
+      <div class="form-group"><label>Password</label><div class="password-container" style="position:relative"><input type="password" id="u_password" placeholder="Minimum 6 characters" style="padding-right:40px"><button type="button" class="password-toggle" onclick="togglePasswordVisibility('u_password')">👁️</button></div></div>
       <div class="form-group">
         <label>Role</label>
-        <select id="u_role">
+        <select id="u_role" onchange="onRoleChange()">
           <option value="judge">🏅 Judge - Score entry via Judge Portal only</option>
+          <option value="checkin">✓ Check In - Handle participant check-in at event</option>
           <option value="organiser">Organiser - Can view and enter scores in CMS</option>
           <option value="viewer">Viewer - Read only</option>
           <option value="superadmin">Super Admin - Full access</option>
         </select>
+      </div>
+      <div class="form-group" id="eventField" style="display:none">
+        <label>Assigned Event</label>
+        <select id="u_event">
+          <option value="">-- Select Event --</option>
+        </select>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px" id="eventFieldNote">This judge can only access this specific event</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:8px">
         <button class="cms-btn cms-btn-primary" onclick="saveUser()" id="saveBtn">Create User</button>
@@ -45,8 +53,9 @@
       </div>
       <div style="margin-top:20px;padding:16px;background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.1);border-radius:8px;font-size:12px;color:var(--muted)">
         <strong style="color:var(--accent)">Role Permissions:</strong><br><br>
-        <strong style="color:#a855f7">🏅 Judge</strong> - Access to Judge Portal only: select event &amp; round, enter scores, data auto-saves<br><br>
-        <strong style="color:var(--text)">Organiser</strong> - View registrations, enter scores in full CMS, view championship<br><br>
+        <strong style="color:#a855f7">🏅 Judge</strong> - Access to Judge Portal only: select assigned event, enter scores, data auto-saves<br><br>
+        <strong style="color:#10b981">✓ Check In</strong> - Access to Check In Portal: check in participants for ALL events, search and filter teams<br><br>
+        <strong style="color:var(--text)">Organiser</strong> - View registrations, enter scores in full CMS, view championship, handle payments<br><br>
         <strong style="color:var(--text)">Viewer</strong> - View-only access to all sections<br><br>
         <strong style="color:var(--text)">Super Admin</strong> - Full access including user management, settings, and audit log
       </div>
@@ -55,7 +64,20 @@
 </main>
 <script>
 let users = [];
+let events = [];
 let editingId = null;
+
+function togglePasswordVisibility(fieldId) {
+  const field = document.getElementById(fieldId);
+  const btn = event.target.closest('.password-toggle');
+  if (field.type === 'password') {
+    field.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    field.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
 
 function renderUsers() {
   document.getElementById('usersTbody').innerHTML = users.map((user, index) => `
@@ -63,13 +85,37 @@ function renderUsers() {
       <td style="color:var(--muted);font-size:12px">${index + 1}</td>
       <td style="font-weight:500">${user.name}</td>
       <td style="font-family:monospace;font-size:12px;color:var(--accent)">${user.username}</td>
-      <td><span class="badge ${user.role === 'superadmin' ? 'badge-gold' : user.role === 'organiser' ? 'badge-blue' : user.role === 'judge' ? 'badge-purple' : 'badge-green'}">${user.role === 'judge' ? '🏅 judge' : user.role}</span></td>
+      <td><span class="badge ${user.role === 'superadmin' ? 'badge-gold' : user.role === 'organiser' ? 'badge-blue' : user.role === 'judge' ? 'badge-purple' : user.role === 'checkin' ? 'badge-green' : 'badge-green'}">${user.role === 'judge' ? '🏅 judge' : user.role === 'checkin' ? '✓ check-in' : user.role}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${user.role === 'judge' && user.assignedEvent ? getEventName(user.assignedEvent) : '—'}</td>
       <td style="display:flex;gap:6px">
         <button class="cms-btn cms-btn-sm" style="background:rgba(0,212,255,0.1);color:#00d4ff;border:none;cursor:pointer" onclick="editUser('${user.id}')">Edit</button>
         ${user.username !== 'admin' ? `<button class="cms-btn cms-btn-danger cms-btn-sm" onclick="deleteUser('${user.id}')">Delete</button>` : '<span style="font-size:11px;color:var(--muted)">Protected</span>'}
       </td>
     </tr>
   `).join('');
+}
+
+function getEventName(eventId) {
+  const event = events.find(e => String(e.id) === String(eventId));
+  return event ? event.name : eventId;
+}
+
+function onRoleChange() {
+  const role = document.getElementById('u_role').value;
+  const eventField = document.getElementById('eventField');
+  
+  if (role === 'judge') {
+    eventField.style.display = 'block';
+  } else {
+    eventField.style.display = 'none';
+  }
+}
+
+function populateEventSelector() {
+  const select = document.getElementById('u_event');
+  select.innerHTML = '<option value="">-- Select Event --</option>' + events.map(e => 
+    `<option value="${e.id}">${e.name}</option>`
+  ).join('');
 }
 
 async function refreshUsers() {
@@ -82,6 +128,7 @@ async function saveUser() {
   const username = document.getElementById('u_username').value.trim();
   const password = document.getElementById('u_password').value.trim();
   const role = document.getElementById('u_role').value;
+  const assignedEvent = role === 'judge' ? document.getElementById('u_event').value : null;
 
   if (!name || !username || (!editingId && !password)) {
     showToast('Fill in all required fields', 'error');
@@ -93,12 +140,17 @@ async function saveUser() {
     return;
   }
 
+  if (role === 'judge' && !assignedEvent) {
+    showToast('Judges must have an assigned event', 'error');
+    return;
+  }
+
   try {
     if (editingId) {
-      await NexusCMS.updateUser(editingId, { name, username, password, role });
+      await NexusCMS.updateUser(editingId, { name, username, password, role, assignedEvent });
       showToast('User updated!');
     } else {
-      await NexusCMS.createUser({ name, username, password, role });
+      await NexusCMS.createUser({ name, username, password, role, assignedEvent });
       showToast('User created!');
     }
 
@@ -118,6 +170,8 @@ function editUser(id) {
   document.getElementById('u_username').value = user.username;
   document.getElementById('u_password').value = '';
   document.getElementById('u_role').value = user.role;
+  document.getElementById('u_event').value = user.assignedEvent || '';
+  onRoleChange();
   document.getElementById('formTitle').textContent = 'Edit User';
   document.getElementById('saveBtn').textContent = 'Update User';
   document.getElementById('cancelBtn').style.display = 'inline-flex';
@@ -146,6 +200,8 @@ function resetForm() {
     document.getElementById(id).value = '';
   });
   document.getElementById('u_role').value = 'judge';
+  document.getElementById('u_event').value = '';
+  onRoleChange();
   document.getElementById('formTitle').textContent = 'Create New User';
   document.getElementById('saveBtn').textContent = 'Create User';
   document.getElementById('cancelBtn').style.display = 'none';
@@ -154,6 +210,10 @@ function resetForm() {
 (async function () {
   const user = await NexusCMS.initPage('users', { requiredRoles: ['superadmin'] });
   if (!user) return;
+
+  const settings = await NexusCMS.fetchSettings();
+  events = settings.events || [];
+  populateEventSelector();
 
   resetForm();
   await refreshUsers();

@@ -5,237 +5,500 @@
 <title>Judge Portal - NEXUS</title>
 <link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#060810">
+<meta name="theme-color" content="#ffffff">
 <meta name="description" content="NEXUS Judge Portal - Score Entry">
 <script src="cms-core.js"></script>
 <style id="cmsStyle"></style>
 <style>
-/* ── Judge Portal Styles ── */
+:root {
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --border: #e2e5ed;
+  --text: #1a1d26;
+  --muted: #6b7280;
+  --accent: #d97706;
+  --accent-bg: #fef3c7;
+  --accent-border: #fcd34d;
+  --accent-dark: #b45309;
+  --success: #059669;
+  --success-bg: #d1fae5;
+  --success-border: #6ee7b7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --danger-border: #fca5a5;
+  --info-bg: #eff6ff;
+  --info-border: #bfdbfe;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Judge Portal Layout ── */
 .judge-main {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 24px 20px 48px;
   min-height: 100vh;
 }
+
+/* ── Header ── */
 .judge-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
   gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
 }
 .judge-hero {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 .judge-badge {
-  width: 52px;
-  height: 52px;
-  background: linear-gradient(135deg, #f5a623, #e63c5c);
-  border-radius: 14px;
+  width: 46px;
+  height: 46px;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 22px;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(245,158,11,0.25);
 }
 .judge-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.1;
+  color: var(--text);
+  letter-spacing: -0.3px;
 }
 .judge-sub {
   font-size: 13px;
   color: var(--muted);
-  margin-top: 4px;
+  margin-top: 2px;
+  font-weight: 500;
 }
+
+/* ── User Info ── */
 .judge-user-info {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 18px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
 }
 .judge-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f5a623, #e63c5c);
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: 15px;
-  color: #000;
+  font-size: 14px;
+  color: #fff;
 }
+
+/* ── Step Cards ── */
 .step-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 16px;
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
 }
 .step-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 10px;
+  color: var(--accent-dark);
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 .step-label::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: rgba(245,166,35,0.15);
+  background: var(--border);
 }
+
+/* ── Helpful instruction text ── */
+.step-help {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: var(--radius-xs);
+}
+.step-help strong { color: var(--text); }
+
+/* ── Round Buttons ── */
 .round-btn {
-  padding: 10px 22px;
-  border-radius: 10px;
-  font-family: 'Syne', sans-serif;
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
   font-weight: 700;
   font-size: 13px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
+  border: 2px solid var(--border);
+  background: var(--surface);
   color: var(--muted);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 .round-btn.active {
-  background: rgba(245,166,35,0.15);
-  color: var(--accent);
-  border-color: rgba(245,166,35,0.35);
-  box-shadow: 0 0 20px rgba(245,166,35,0.1);
+  background: var(--accent-bg);
+  color: var(--accent-dark);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
 }
 .round-btn:hover:not(.active) {
-  background: rgba(255,255,255,0.08);
+  background: #f9fafb;
   color: var(--text);
+  border-color: #d1d5db;
 }
-.score-input {
-  width: 80px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 8px;
-  padding: 8px 10px;
+
+/* ── Select ── */
+select {
+  max-width: 440px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 16px;
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: inherit;
   font-size: 14px;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+}
+select option {
+  background: #fff;
+  color: #1a1d26;
+}
+
+/* ── Score Inputs ── */
+.score-input {
+  width: 72px;
+  background: #fafbfc;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 8px 6px;
+  color: var(--text);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 14px;
+  font-weight: 600;
   text-align: center;
   outline: none;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 .score-input:focus {
-  border-color: rgba(245,166,35,0.6);
-  background: rgba(245,166,35,0.06);
-  box-shadow: 0 0 0 3px rgba(245,166,35,0.08);
+  border-color: var(--accent);
+  background: #fffbeb;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
 }
 .score-input.saved {
-  border-color: rgba(16,185,129,0.4);
-  background: rgba(16,185,129,0.04);
+  border-color: var(--success-border);
+  background: var(--success-bg);
 }
+.score-input::placeholder {
+  color: #d1d5db;
+  font-weight: 400;
+}
+
+/* ── Table ── */
+.cms-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+.cms-table thead th {
+  background: #f9fafb;
+  border-bottom: 2px solid var(--border);
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.cms-table tbody tr {
+  transition: background 0.1s;
+}
+.cms-table tbody tr:hover {
+  background: #fafbfc;
+}
+.cms-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f1f3;
+  vertical-align: middle;
+}
+.cms-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Badges & Labels ── */
 .total-cell {
-  font-family: 'Syne', sans-serif;
   font-weight: 800;
   font-size: 16px;
-  color: var(--accent);
-}
-.save-indicator {
-  position: fixed;
-  top: 20px;
-  right: 24px;
-  background: #111827;
-  border: 1px solid rgba(16,185,129,0.3);
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 12px;
-  color: #10b981;
-  font-family: 'DM Sans', sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 9999;
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: all 0.3s ease;
-  pointer-events: none;
-}
-.save-indicator.show {
-  opacity: 1;
-  transform: translateY(0);
+  color: var(--accent-dark);
+  font-variant-numeric: tabular-nums;
 }
 .reg-no-badge {
-  font-family: monospace;
+  font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 11px;
-  color: var(--accent);
+  color: var(--accent-dark);
   font-weight: 700;
-  background: rgba(245,166,35,0.1);
-  padding: 2px 8px;
-  border-radius: 6px;
+  background: var(--accent-bg);
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--accent-border);
 }
 .participant-sub {
   font-size: 11px;
   color: var(--muted);
-  margin-top: 3px;
+  margin-top: 2px;
 }
+.draft-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--accent-dark);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+/* ── Rank badges ── */
+.rank-cell {
+  font-weight: 800;
+  font-size: 15px;
+  text-align: center;
+}
+.rank-gold { color: #d97706; }
+.rank-silver { color: #6b7280; }
+.rank-bronze { color: #b45309; }
+.rank-default { color: #d1d5db; }
+
+/* ── Buttons ── */
 .submit-btn {
-  background: linear-gradient(135deg, #f5a623, #d4890f);
-  color: #000;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
   border: none;
-  padding: 14px 32px;
-  border-radius: 10px;
-  font-family: 'Syne', sans-serif;
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
   font-weight: 800;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
+  transition: all 0.15s ease;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(217,119,6,0.25);
+  letter-spacing: -0.2px;
 }
 .submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(245,166,35,0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(217,119,6,0.3);
+}
+.submit-btn:active {
+  transform: translateY(0);
 }
 .submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
-.draft-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: #f5a623;
-  background: rgba(245,166,35,0.1);
-  border: 1px solid rgba(245,166,35,0.2);
-  padding: 4px 10px;
-  border-radius: 20px;
+
+.clear-draft-btn {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+  padding: 8px 14px;
+  border-radius: var(--radius-xs);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.clear-draft-btn:hover {
+  background: #fecaca;
+}
+
+.signout-btn {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.signout-btn:hover {
+  background: #fecaca;
+}
+
+/* ── Auto-save Indicator ── */
+.save-indicator {
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  background: var(--surface);
+  border: 1px solid var(--success-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--success);
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-16px);
+  transition: all 0.25s ease;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
 }
-select {
-  color-scheme: dark;
+.save-indicator.show {
+  opacity: 1;
+  transform: translateY(0);
 }
-select option {
-  background: #111827;
-  color: #f0f0f0;
+
+/* ── Event Display (assigned) ── */
+.event-display-field {
+  padding: 12px 16px;
+  background: var(--accent-bg);
+  border: 2px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--accent-dark);
+  font-weight: 700;
 }
+
+/* ── Scoring Area Header ── */
+.scoring-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.scoring-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+.scoring-meta {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* ── Empty State ── */
+.empty-state {
+  text-align: center;
+  color: var(--muted);
+  padding: 48px 24px;
+}
+.empty-state-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+.empty-state-text {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.empty-state-sub {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .judge-main { padding: 16px 12px 40px; }
+  .judge-header { margin-bottom: 20px; padding-bottom: 16px; }
+  .judge-title { font-size: 18px; }
+  .step-card { padding: 16px; }
+  .score-input { width: 60px; font-size: 13px; padding: 7px 4px; }
+  .cms-table { font-size: 12px; }
+  .cms-table thead th { padding: 8px 8px; font-size: 10px; }
+  .cms-table tbody td { padding: 8px; }
+  .submit-btn { padding: 10px 20px; font-size: 13px; }
+  .scoring-header { flex-direction: column; }
+}
+
+/* ── Focus visible for keyboard nav ── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* smooth scroll */
+html { scroll-behavior: smooth; }
 </style>
 </head>
-<body style="background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh">
+<body>
 
 <!-- Auto-save indicator -->
 <div id="saveIndicator" class="save-indicator">
-  <span>●</span> Scores auto-saved locally
+  <span style="font-size:14px">✓</span> Scores saved locally
 </div>
 
 <div class="judge-main">
@@ -243,36 +506,45 @@ select option {
   <!-- Header -->
   <div class="judge-header">
     <div class="judge-hero">
-      <div class="judge-badge">🏅</div>
+      <div class="judge-badge">⚖️</div>
       <div>
         <div class="judge-title">Judge Portal</div>
         <div class="judge-sub">NEXUS Event Scoring System</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px">
       <div id="userCard" class="judge-user-info" style="display:none">
         <div class="judge-avatar" id="judgeAvatar">J</div>
         <div>
-          <div style="font-size:13px;font-weight:600" id="judgeName">Judge</div>
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">🏅 Judge</div>
+          <div style="font-size:13px;font-weight:700" id="judgeName">Judge</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">⚖️ Judge</div>
         </div>
       </div>
-      <button onclick="logout()" style="background:rgba(230,60,92,0.1);color:#e63c5c;border:1px solid rgba(230,60,92,0.2);padding:8px 16px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer">Sign Out</button>
+      <button onclick="logout()" class="signout-btn">Sign Out</button>
     </div>
   </div>
 
   <!-- Step 1: Select Event -->
   <div class="step-card">
-    <div class="step-label">Step 1 — Select Event</div>
-    <select id="eventSelector" onchange="onEventChange()" style="max-width:440px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;color-scheme:dark">
+    <div class="step-label">Step 1 — Select Your Event</div>
+    <div class="step-help">
+      Choose the event you are judging. Participants registered for that event will appear below.
+    </div>
+    <div id="eventDisplayField" class="event-display-field" style="display:none">
+      <div style="display:flex;align-items:center;gap:8px">📌 <span id="assignedEventName"></span></div>
+    </div>
+    <select id="eventSelector" onchange="onEventChange()" aria-label="Select event to judge">
       <option value="">-- Choose an Event --</option>
     </select>
   </div>
 
-  <!-- Step 2: Select Round (hidden until event chosen) -->
+  <!-- Step 2: Select Round -->
   <div class="step-card" id="roundCard" style="display:none">
     <div class="step-label">Step 2 — Select Round</div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <div class="step-help">
+      Pick the round you are currently scoring. You can switch between rounds at any time.
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="round-btn active" id="roundBtn1" onclick="selectRound(1)">Round 1</button>
       <button class="round-btn" id="roundBtn2" onclick="selectRound(2)">Round 2</button>
       <button class="round-btn" id="roundBtn3" onclick="selectRound(3)">Round 3</button>
@@ -291,6 +563,7 @@ let scoresStore = {};
 let settings = {};
 let currentEventKey = '';
 let currentRound = 1;
+let eventRounds = {};
 const LS_PREFIX = 'nexus_judge_';
 
 function escapeHtml(v) {
@@ -305,7 +578,6 @@ function getLsKey(scoreKey) {
   return `${LS_PREFIX}${scoreKey}`;
 }
 
-// Get columns from server scores or default
 function getColumns(scoreKey) {
   const stored = scoresStore[scoreKey];
   if (stored && Array.isArray(stored._columns) && stored._columns.length > 0) {
@@ -343,8 +615,14 @@ function flashSaveIndicator() {
 function buildEventSelector() {
   const select = document.getElementById('eventSelector');
   const events = (settings.events || []).filter(e => String(e.id||'').trim() && String(e.name||'').trim());
+  
+  let eventsToShow = events;
+  if (currentUser && currentUser.assignedEvent) {
+    eventsToShow = events.filter(e => String(e.id) === String(currentUser.assignedEvent));
+  }
+  
   const opts = ['<option value="">-- Choose an Event --</option>'];
-  events.forEach(e => opts.push(`<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`));
+  eventsToShow.forEach(e => opts.push(`<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`));
   select.innerHTML = opts.join('');
 }
 
@@ -357,16 +635,58 @@ function onEventChange() {
     return;
   }
   currentEventKey = val;
-  document.getElementById('roundCard').style.display = 'block';
-  selectRound(currentRound);
+  
+  const eventObj = (settings.events || []).find(e => String(e.id) === String(val));
+  
+  let numRounds = 3;
+  if (eventObj) {
+    if (eventObj.rounds) {
+      const parsed = parseInt(eventObj.rounds, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        numRounds = parsed;
+      }
+    }
+  }
+  
+  eventRounds[val] = numRounds;
+  
+  const roundCard = document.getElementById('roundCard');
+  if (numRounds === 1) {
+    roundCard.style.display = 'none';
+    currentRound = 1;
+    loadScoringTable();
+  } else {
+    roundCard.style.display = 'block';
+    rebuildRoundButtons(numRounds);
+    currentRound = 1;
+    selectRound(1);
+  }
+}
+
+function rebuildRoundButtons(numRounds) {
+  for (let r = 1; r <= 3; r++) {
+    const btn = document.getElementById(`roundBtn${r}`);
+    if (btn) {
+      if (r <= numRounds) {
+        btn.style.display = 'inline-flex';
+        btn.className = 'round-btn' + (r === currentRound ? ' active' : '');
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+  }
 }
 
 function selectRound(round) {
   currentRound = round;
-  [1,2,3].forEach(r => {
+  const numRounds = eventRounds[currentEventKey] || 3;
+  
+  for (let r = 1; r <= numRounds; r++) {
     const b = document.getElementById(`roundBtn${r}`);
-    if (b) b.className = 'round-btn' + (r === round ? ' active' : '');
-  });
+    if (b) {
+      b.className = 'round-btn' + (r === round ? ' active' : '');
+    }
+  }
   if (currentEventKey) loadScoringTable();
 }
 
@@ -381,14 +701,11 @@ function isRegistrationEligible(reg, eventKey) {
     : [];
   const ek = String(eventKey).trim().toLowerCase();
 
-  // Direct ID match
   if (regEvents.includes(ek)) return true;
 
-  // Direct event name match
   const normalized = normalizeEventName(reg.event);
   if (normalized === String(eventKey).toUpperCase()) return true;
 
-  // Look up the CMS event object for this eventKey
   const eventObj = (settings.events||[]).find(e =>
     String(e.id).toLowerCase() === ek
   );
@@ -398,14 +715,12 @@ function isRegistrationEligible(reg, eventKey) {
     const regNorm = normalizeEventName(reg.event);
     if (regNorm === eventNameNorm) return true;
 
-    // Match registeredEvents slugs against the CMS event name
     for (const slug of regEvents) {
       const slugNorm = normalizeEventName(slug);
       if (slugNorm === eventNameNorm) return true;
       if (eventNameNorm.includes(slugNorm) || slugNorm.includes(eventNameNorm)) return true;
     }
 
-    // Keyword-based matching for common mappings
     const KEYWORD_MAP = {
       'dance': ['dance', 'rhythm', 'rumble', 'rhythm rumble'],
       'rampwalk': ['ramp', 'walk', 'style', 'saga', 'style saga', 'ramp walk'],
@@ -427,7 +742,6 @@ function isRegistrationEligible(reg, eventKey) {
   return false;
 }
 
-// Get relevant participant names based on the event being scored
 function getParticipantNames(reg, eventKey, eventObj) {
   const participants = reg.participants || [];
   if (!participants.length) return reg.leader || '-';
@@ -468,57 +782,60 @@ function loadScoringTable() {
   const cols = getColumns(scoreKey);
   const maxTotal = cols.reduce((s, c) => s + (parseInt(c.max)||0), 0);
 
-  // Load saved data: prefer localStorage (draft), then fall back to server
   const lsDraft = loadFromLocalStorage(scoreKey);
   const serverScores = scoresStore[scoreKey] || {};
-
-  // Determine if there's a draft
   const hasDraft = lsDraft !== null;
 
   let html = `
     <div class="step-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div class="scoring-header">
         <div>
-          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px">
+          <div class="scoring-title">
             ${escapeHtml(eventName)} — Round ${round}
           </div>
-          <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:10px">
-            <span>${eventRegs.length} registered teams</span>
+          <div class="scoring-meta">
+            <span>${eventRegs.length} team${eventRegs.length !== 1 ? 's' : ''} registered</span>
             <span>·</span>
-            <span>Max: ${maxTotal} pts/team</span>
+            <span>Max: ${maxTotal} pts per team</span>
             ${hasDraft ? '<span class="draft-badge">📝 Draft saved locally</span>' : ''}
           </div>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          ${hasDraft ? `<button onclick="clearDraft('${escapeHtml(scoreKey)}')" style="background:rgba(230,60,92,0.08);color:#e63c5c;border:1px solid rgba(230,60,92,0.2);padding:8px 14px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer">🗑 Clear Draft</button>` : ''}
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          ${hasDraft ? `<button onclick="clearDraft('${escapeHtml(scoreKey)}')" class="clear-draft-btn">🗑 Clear Draft</button>` : ''}
           <button class="submit-btn" onclick="submitScores('${escapeHtml(scoreKey)}')" id="submitBtn">
-            <span>✓</span> Submit Scores to Server
+            <span>✓</span> Submit Scores
           </button>
         </div>
       </div>
 
-      <div style="overflow-x:auto">
+      <div class="step-help" style="margin-bottom:16px">
+        Enter scores for each team below. Your entries are <strong>auto-saved locally</strong> as you type.
+        When finished, click <strong>"Submit Scores"</strong> to save to the server.
+      </div>
+
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
       <table class="cms-table" id="scoreTable_${escapeHtml(scoreKey)}">
         <thead><tr>
-          <th style="width:40px">Rank</th>
+          <th style="width:48px;text-align:center">#</th>
           <th>Reg No</th>
-          <th>Team Name</th>
+          <th>Team</th>
           <th>Participant</th>
-          ${cols.map(col => `<th>${escapeHtml(col.label)}<br><span style="color:var(--accent);font-size:10px">/${col.max}</span></th>`).join('')}
-          <th>Total<br><span style="color:var(--accent);font-size:10px">/${maxTotal}</span></th>
+          ${cols.map(col => `<th style="text-align:center">${escapeHtml(col.label)}<br><span style="color:var(--accent-dark);font-size:10px;font-weight:600">max ${col.max}</span></th>`).join('')}
+          <th style="text-align:center">Total<br><span style="color:var(--accent-dark);font-size:10px;font-weight:600">/ ${maxTotal}</span></th>
         </tr></thead>
         <tbody id="scoreTbody_${escapeHtml(scoreKey)}">`;
 
   if (eventRegs.length === 0) {
-    html += `<tr><td colspan="${cols.length + 5}" style="text-align:center;color:var(--muted);padding:40px;font-size:13px">
-      <div style="font-size:32px;margin-bottom:12px">📋</div>
-      No teams are registered for this event yet.<br>
-      <span style="font-size:11px;opacity:0.6">Once registrations come in, they'll appear here automatically.</span>
+    html += `<tr><td colspan="${cols.length + 5}">
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-text">No teams registered yet</div>
+        <div class="empty-state-sub">Once registrations come in, they'll appear here automatically.</div>
+      </div>
     </td></tr>`;
   } else {
     eventRegs.forEach(reg => {
       const entryId = `reg_${reg.id}`;
-      // Use localStorage draft first, then server scores
       const savedDraft = lsDraft && lsDraft[entryId] ? lsDraft[entryId] : null;
       const savedServer = serverScores[entryId] || {};
       const saved = savedDraft || savedServer;
@@ -527,17 +844,17 @@ function loadScoringTable() {
 
       html += `
         <tr data-entry-id="${entryId}">
-          <td class="rank-cell" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;text-align:center;color:var(--muted)">-</td>
+          <td class="rank-cell rank-default" style="text-align:center">-</td>
           <td><span class="reg-no-badge">#${escapeHtml(reg.code)}</span></td>
           <td>
-            <div style="font-weight:600;font-size:13px">${escapeHtml(reg.teamName || reg.college)}</div>
+            <div style="font-weight:700;font-size:13px;color:var(--text)">${escapeHtml(reg.teamName || reg.college)}</div>
             <div class="participant-sub">${escapeHtml(reg.college)}</div>
           </td>
           <td>
-            <div style="font-size:13px">${escapeHtml(participantName)}</div>
+            <div style="font-size:13px;color:var(--text)">${escapeHtml(participantName)}</div>
           </td>
           ${cols.map(col => `
-            <td>
+            <td style="text-align:center">
               <input
                 class="score-input${savedDraft && savedDraft[col.k] ? ' saved' : ''}"
                 type="number" min="0" max="${col.max}"
@@ -547,25 +864,19 @@ function loadScoringTable() {
                 data-max="${col.max}"
                 oninput="onScoreInput('${escapeHtml(scoreKey)}')"
                 onblur="validateScore(this)"
+                aria-label="${escapeHtml(col.label)} score for ${escapeHtml(reg.teamName || reg.college)}"
               >
             </td>`).join('')}
-          <td class="total-cell" id="total_${entryId}">${total||0}</td>
+          <td class="total-cell" style="text-align:center" id="total_${entryId}">${total||0}</td>
         </tr>`;
     });
   }
 
   html += `</tbody></table></div>
-    </div>
-
-    <!-- Live Rankings -->
-    <div class="step-card">
-      <div class="step-label">Live Rankings</div>
-      <div id="liveRankings_${escapeHtml(scoreKey)}"></div>
     </div>`;
 
   document.getElementById('scoringArea').innerHTML = html;
 
-  // Restore from localStorage if draft exists
   if (hasDraft) {
     restoreFromDraft(scoreKey, cols);
   }
@@ -624,18 +935,16 @@ function clearDraft(scoreKey) {
 // ─── Submit to Server ──────────────────────────────────────────────────
 async function submitScores(scoreKey) {
   const btn = document.getElementById('submitBtn');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Submitting...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> Submitting…'; }
 
   try {
     const cols = getColumns(scoreKey);
     const tbody = document.getElementById(`scoreTbody_${scoreKey}`);
     if (!tbody) throw new Error('Score table not found');
 
-    // Build payload — merge with existing server scores so we don't wipe manual entries
     const serverScores = scoresStore[scoreKey] || {};
     const payload = Object.assign({}, serverScores);
 
-    // Preserve columns & manual entries
     if (cols && cols.length > 0) payload._columns = cols;
     if (!payload._manual) payload._manual = [];
 
@@ -649,20 +958,17 @@ async function submitScores(scoreKey) {
 
     await NexusCMS.saveEventScores(scoreKey, payload);
 
-    // Update local scoresStore
     scoresStore[scoreKey] = payload;
 
-    // Clear localStorage draft (submitted to server now)
     localStorage.removeItem(getLsKey(scoreKey));
 
     showToast('✓ Scores submitted successfully!');
 
-    // Refresh to show clean state
     loadScoringTable();
     await NexusCMS.addAuditLog(`Judge submitted scores: ${scoreKey}`);
   } catch (err) {
     showToast(err.message || 'Failed to submit scores', 'error');
-    if (btn) { btn.disabled = false; btn.innerHTML = '<span>✓</span> Submit Scores to Server'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span>✓</span> Submit Scores'; }
   }
 }
 
@@ -671,7 +977,7 @@ function validateScore(input) {
   const max = parseInt(input.dataset.max, 10);
   const value = parseFloat(input.value);
   if (Number.isNaN(value) || value < 0) { input.value = ''; return; }
-  if (value > max) { input.value = max; showToast(`Max score is ${max}`, 'error'); }
+  if (value > max) { input.value = max; showToast(`Maximum score is ${max}`, 'error'); }
 }
 
 function updateTotals(scoreKey, cols) {
@@ -679,7 +985,6 @@ function updateTotals(scoreKey, cols) {
   const tbody = document.getElementById(`scoreTbody_${scoreKey}`);
   if (!tbody) return;
 
-  const maxTotal = cols.reduce((s, c) => s + (parseInt(c.max)||0), 0);
   const rows = [...tbody.querySelectorAll('tr[data-entry-id]')];
   const ranked = rows.map(row => {
     let total = 0;
@@ -694,46 +999,16 @@ function updateTotals(scoreKey, cols) {
     const rc = item.row.querySelector('.rank-cell');
     if (rc) {
       rc.textContent = i + 1;
-      rc.style.color = i === 0 ? '#f5a623' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'var(--muted)';
+      rc.className = 'rank-cell ' + (i === 0 ? 'rank-gold' : i === 1 ? 'rank-silver' : i === 2 ? 'rank-bronze' : 'rank-default');
     }
   });
-
-  const rankingsEl = document.getElementById(`liveRankings_${scoreKey}`);
-  if (!rankingsEl) return;
-
-  if (!ranked.length || ranked.every(r => r.total === 0)) {
-    rankingsEl.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;font-size:13px">Enter scores above to see live rankings.</div>';
-    return;
-  }
-
-  const medals = ['🥇','🥈','🥉'];
-  const colors = ['#f5a623','#c0c0c0','#cd7f32'];
-  rankingsEl.innerHTML = ranked.filter(r => r.total > 0).slice(0,10).map((item, i) => {
-    const teamName = item.row.querySelector('td:nth-child(3)').querySelector('div:first-child')?.textContent || '-';
-    const participant = item.row.querySelector('td:nth-child(4)')?.textContent?.trim() || '-';
-    const regNo = item.row.querySelector('td:nth-child(2)')?.textContent?.trim() || '-';
-    return `
-      <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,255,255,0.02);border-radius:12px;margin-bottom:8px;${i<3?`border-left:3px solid ${colors[i]}`:'border-left:3px solid rgba(255,255,255,0.05)'}">
-        <div style="font-size:24px;width:38px;text-align:center;flex-shrink:0">${medals[i]||`<span style='font-family:Syne;font-weight:800;font-size:16px;color:var(--muted)'>${i+1}</span>`}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(teamName)}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${escapeHtml(participant)} · ${escapeHtml(regNo)}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;${i<3?`color:${colors[i]}`:'color:var(--text)'}">${item.total}</div>
-          <div style="font-size:10px;color:var(--muted)">/${maxTotal} pts</div>
-        </div>
-      </div>`;
-  }).join('');
 }
 
 // ─── Init ──────────────────────────────────────────────────────────────
 (async function () {
-  // Judges can only access judge.html — redirect if not logged in
   currentUser = await NexusCMS.initPage('judge');
   if (!currentUser) return;
 
-  // Show user info
   const userCard = document.getElementById('userCard');
   const avatar = document.getElementById('judgeAvatar');
   const nameEl = document.getElementById('judgeName');
@@ -747,7 +1022,59 @@ function updateTotals(scoreKey, cols) {
     NexusCMS.fetchSettings()
   ]);
 
+  (settings.events || []).forEach(event => {
+    if (event.id) {
+      let roundCount = 3;
+      if (event.rounds) {
+        const parsed = parseInt(event.rounds, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          roundCount = parsed;
+        }
+      }
+      eventRounds[event.id] = roundCount;
+    }
+  });
+
   buildEventSelector();
+
+  if (currentUser && currentUser.assignedEvent) {
+    const eventDisplayField = document.getElementById('eventDisplayField');
+    const eventSelector = document.getElementById('eventSelector');
+    const assignedEventName = document.getElementById('assignedEventName');
+    
+    const event = (settings.events || []).find(e => String(e.id) === String(currentUser.assignedEvent));
+    if (event && assignedEventName) {
+      assignedEventName.textContent = event.name;
+      eventDisplayField.style.display = 'block';
+      eventSelector.style.display = 'none';
+      
+      currentEventKey = currentUser.assignedEvent;
+      
+      let numRounds = eventRounds[currentEventKey];
+      if (!numRounds || isNaN(numRounds)) {
+        numRounds = 3;
+        if (event.rounds) {
+          const parsed = parseInt(event.rounds, 10);
+          if (!isNaN(parsed) && parsed > 0) {
+            numRounds = parsed;
+          }
+        }
+        eventRounds[currentEventKey] = numRounds;
+      }
+      
+      const roundCard = document.getElementById('roundCard');
+      if (numRounds === 1) {
+        roundCard.style.display = 'none';
+        currentRound = 1;
+        loadScoringTable();
+      } else {
+        roundCard.style.display = 'block';
+        rebuildRoundButtons(numRounds);
+        currentRound = 1;
+        selectRound(1);
+      }
+    }
+  }
 })();
 </script>
 

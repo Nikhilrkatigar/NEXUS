@@ -21,8 +21,12 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["superadmin", "organiser", "viewer", "judge"],
+      enum: ["superadmin", "organiser", "viewer", "judge", "checkin"],
       default: "organiser"
+    },
+    assignedEvent: {
+      type: String,
+      default: null
     }
   },
   {

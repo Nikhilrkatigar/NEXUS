@@ -121,6 +121,14 @@ const registrationSchema = new mongoose.Schema(
     paymentVerifiedAt: {
       type: Date,
       default: null
+    },
+    checkedIn: {
+      type: Boolean,
+      default: false
+    },
+    checkedInAt: {
+      type: Date,
+      default: null
     }
   },
   {

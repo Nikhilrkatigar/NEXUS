@@ -101,6 +101,7 @@ router.post("/registrations", async (req, res, next) => {
     const college = String(req.body.college || "").trim();
     const email = String(req.body.email || "").trim();
     const teamName = String(req.body.teamName || college || "").trim(); // Use college name as default
+    const requestedLeader = String(req.body.leader || "").trim();
     const event = String(req.body.event || "NEXUS_TEAM").trim();
     const category = String(req.body.category || "").trim();
 
@@ -137,6 +138,12 @@ router.post("/registrations", async (req, res, next) => {
 
     console.log("[Registration] Final participants:", JSON.stringify(participants, null, 2));
 
+    const derivedLeader =
+      requestedLeader ||
+      participants.find((participant) => participant.isTeamLeader && participant.name)?.name ||
+      participants.find((participant) => participant.name)?.name ||
+      teamName;
+
     // Create registration object for validation
     const registrationData = {
       code: "temp",
@@ -147,7 +154,7 @@ router.post("/registrations", async (req, res, next) => {
       teamName,
       faculty: String(req.body.faculty || "").trim(),
       facultyPhone: String(req.body.facultyPhone || "").trim(),
-      leader: teamName,
+      leader: derivedLeader,
       participants,
       registeredEvents: [],
       category,

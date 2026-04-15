@@ -1420,10 +1420,22 @@ document.getElementById('registrationForm').onsubmit = async (e) => {
     isTeamLeader: card.querySelector('.team-leader-radio').checked
   }));
 
+  // Find the team leader from participants
+  const teamLeader = participants.find(p => p.isTeamLeader);
+  if (!teamLeader) {
+    showMessage('Please select a team leader from the participants', 'error');
+    return;
+  }
+
+  if (!teamLeader.name) {
+    showMessage('Team leader name cannot be empty', 'error');
+    return;
+  }
+
   const formData = {
     college: document.getElementById('college').value.trim(),
     email: document.getElementById('email').value.trim(),
-    teamName: document.getElementById('teamName').value.trim(),
+    teamName: teamLeader.name,
     event: eventKey,
     faculty: document.getElementById('faculty').value.trim(),
     facultyPhone: document.getElementById('facultyPhone').value.trim(),

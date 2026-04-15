@@ -19,6 +19,7 @@ function serializeUser(user) {
     name: user.name,
     username: user.username,
     role: user.role,
+    assignedEvent: user.assignedEvent,
     createdAt: user.createdAt
   };
 }
@@ -31,18 +32,22 @@ function serializeRegistration(doc) {
     address: doc.address,
     email: doc.email,
     event: doc.event,
+    category: doc.category || "",
     teamName: doc.teamName || "",
     faculty: doc.faculty,
     facultyPhone: doc.facultyPhone,
     leader: doc.leader,
     participants: doc.participants || [],
     registeredEvents: doc.registeredEvents || [],
+    departmentBreakdown: doc.departmentBreakdown || {},
     ip: normalizeIp(doc.sourceIp) || "-",
     timestamp: doc.createdAt,
     paymentStatus: doc.paymentStatus || "pending",
     paymentScreenshot: doc.paymentScreenshot || "",
     paymentScreenshotPath: doc.paymentScreenshotPath || "",
-    paymentVerifiedAt: doc.paymentVerifiedAt
+    paymentVerifiedAt: doc.paymentVerifiedAt,
+    checkedIn: !!doc.checkedIn,
+    checkedInAt: doc.checkedInAt || null
   };
 }
 

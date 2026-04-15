@@ -7,14 +7,14 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#060810">
 <meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
-<script src="cms-core.js"></script>
-<style id="cmsStyle"></style>
+<script src="cms-core.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script><style id="cmsStyle"></style>
 <style>
 .score-input{width:72px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;text-align:center;outline:none;transition:border-color 0.2s}
 .score-input:focus{border-color:rgba(245,166,35,0.5);background:rgba(245,166,35,0.05)}
 .score-input:disabled{opacity:0.4;cursor:not-allowed}
 .total-cell{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--accent)}
-.round-btn{padding:8px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted);cursor:pointer;transition:all 0.2s}
+.round-btn{padding:8px 18px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted);cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px}
+.round-btn:hover{background:rgba(255,255,255,0.08);color:var(--text)}
 .round-btn.active{background:rgba(245,166,35,0.15);color:var(--accent);border-color:rgba(245,166,35,0.3)}
 .round-btn:hover:not(.active){background:rgba(255,255,255,0.08);color:var(--text)}
 .col-config-row{display:flex;gap:10px;align-items:center;margin-bottom:8px;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.04)}
@@ -44,8 +44,11 @@
 
   <!-- Step 2: Round Selector (hidden until event selected) -->
   <div class="cms-card" id="roundCard" style="margin-bottom:16px;display:none">
-    <label style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:12px">Step 2 — Select Round</label>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <label style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);display:block">Step 2 — Select Round</label>
+      <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addNewRound()" style="margin-left:auto">+ Add Round</button>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap" id="roundButtonsContainer">
       <button class="round-btn active" id="roundBtn1" onclick="selectRound(1)">Round 1</button>
       <button class="round-btn" id="roundBtn2" onclick="selectRound(2)">Round 2</button>
       <button class="round-btn" id="roundBtn3" onclick="selectRound(3)">Round 3</button>
@@ -77,6 +80,7 @@ let scoresStore = {};
 let settings = {};
 let currentEventKey = '';
 let currentRound = 1;
+let eventRounds = {}; // Track rounds per event: { eventKey: numRounds }
 
 // ─── Column Configuration Defaults ───────────────────────────────────────
 const DEFAULT_COLS = [
@@ -94,16 +98,43 @@ function getScoreKey(eventKey, round) {
   return `${eventKey}_R${round}`;
 }
 
+function parseScoreKey(scoreKey) {
+  const normalized = String(scoreKey || '');
+  const match = normalized.match(/^(.*)_R(\d+)$/);
+  if (!match) {
+    return { eventKey: normalized, round: null };
+  }
+  return { eventKey: match[1], round: parseInt(match[2], 10) };
+}
+
+function findConfiguredColumns(scoreKey) {
+  const current = scoresStore[scoreKey];
+  if (current && Array.isArray(current._columns) && current._columns.length > 0) {
+    return current._columns;
+  }
+
+  const { eventKey } = parseScoreKey(scoreKey);
+  return Object.keys(scoresStore).reduce((found, key) => {
+    if (found) return found;
+    if (parseScoreKey(key).eventKey !== eventKey) return null;
+    const cols = scoresStore[key] && scoresStore[key]._columns;
+    return Array.isArray(cols) && cols.length > 0 ? cols : null;
+  }, null);
+}
+
 function getEventScores(scoreKey) {
-  if (!scoresStore[scoreKey]) scoresStore[scoreKey] = { _manual: [], _columns: null };
+  if (!scoresStore[scoreKey]) {
+    scoresStore[scoreKey] = { _manual: [], _columns: [] };
+  }
   if (!scoresStore[scoreKey]._manual) scoresStore[scoreKey]._manual = [];
+  if (!scoresStore[scoreKey]._columns) scoresStore[scoreKey]._columns = [];
   return scoresStore[scoreKey];
 }
 
 function getColumns(scoreKey) {
-  const stored = scoresStore[scoreKey];
-  if (stored && Array.isArray(stored._columns) && stored._columns.length > 0) {
-    return stored._columns;
+  const stored = findConfiguredColumns(scoreKey);
+  if (stored) {
+    return stored;
   }
   return DEFAULT_COLS;
 }
@@ -138,8 +169,50 @@ function onEventChange() {
     return;
   }
   currentEventKey = eventKey;
-  document.getElementById('roundCard').style.display = 'block';
+  
+  // Get number of rounds for this event (default to 3)
+  const eventObj = (settings.events || []).find(e => String(e.id) === String(eventKey));
+  const defaultRounds = eventObj && eventObj.rounds ? parseInt(eventObj.rounds) : 3;
+  
+  // Use stored event rounds, or fall back to default from settings
+  if (!eventRounds[eventKey]) {
+    eventRounds[eventKey] = defaultRounds;
+  }
+  const numRounds = eventRounds[eventKey];
+  
+  // Show/hide round selector based on number of rounds
+  const roundCard = document.getElementById('roundCard');
+  if (numRounds === 1) {
+    roundCard.style.display = 'none';
+    currentRound = 1;
+  } else {
+    roundCard.style.display = 'block';
+    // Rebuild round buttons for THIS event
+    rebuildRoundButtons(numRounds);
+  }
+  
   selectRound(currentRound);
+}
+
+// Rebuild round buttons based on this event's specific round count
+function rebuildRoundButtons(numRounds) {
+  const container = document.getElementById('roundButtonsContainer');
+  container.innerHTML = '';
+  
+  for (let r = 1; r <= numRounds; r++) {
+    const btn = document.createElement('button');
+    btn.className = 'round-btn' + (r === currentRound ? ' active' : '');
+    btn.id = `roundBtn${r}`;
+    btn.onclick = () => selectRound(r);
+    
+    // Only show remove button for rounds 2+ and only if more than 1 round
+    const removeBtn = r > 1 && numRounds > 1 
+      ? `<span style="margin-left:8px;cursor:pointer;color:var(--accent)" onclick="event.stopPropagation(); removeRound(${r})">✕</span>`
+      : '';
+    
+    btn.innerHTML = `Round ${r} ${removeBtn}`;
+    container.appendChild(btn);
+  }
 }
 
 function selectRound(round) {
@@ -149,6 +222,64 @@ function selectRound(round) {
     if (btn) btn.className = 'round-btn' + (r === round ? ' active' : '');
   });
   if (currentEventKey) loadEventScoring();
+}
+
+// ─── Add/Remove Rounds ──────────────────────────────────────────────────
+async function addNewRound() {
+  if (!currentEventKey) {
+    showToast('Please select an event first', 'error');
+    return;
+  }
+  
+  // Get current round count for this event
+  const currentCount = eventRounds[currentEventKey] || 3;
+  const nextRound = currentCount + 1;
+
+  if (nextRound > 10) {
+    showToast('Maximum 10 rounds allowed', 'error');
+    return;
+  }
+
+  // Update rounds for THIS event only
+  eventRounds[currentEventKey] = nextRound;
+  
+  // Rebuild buttons for this event
+  rebuildRoundButtons(nextRound);
+  
+  // Select the new round
+  selectRound(nextRound);
+  showToast(`✓ Round ${nextRound} added for this event!`);
+}
+
+function removeRound(round) {
+  if (!currentEventKey) return;
+  
+  if (round === 1) {
+    showToast('Cannot remove Round 1', 'error');
+    return;
+  }
+
+  const currentCount = eventRounds[currentEventKey] || 3;
+  
+  if (round > currentCount) {
+    showToast('Round does not exist', 'error');
+    return;
+  }
+
+  // Update rounds for THIS event only - decrease count
+  eventRounds[currentEventKey] = currentCount - 1;
+  
+  // Rebuild buttons for this event with the new count
+  rebuildRoundButtons(eventRounds[currentEventKey]);
+  
+  showToast(`✓ Round ${round} removed for this event!`);
+  
+  // Switch to a valid round
+  if (currentRound === round || currentRound > eventRounds[currentEventKey]) {
+    selectRound(1);
+  } else {
+    selectRound(currentRound);
+  }
 }
 
 // ─── Load Scoring Table ───────────────────────────────────────────────────
@@ -199,6 +330,8 @@ function loadEventScoring() {
           ${readOnly ? '<span style="font-size:12px;color:var(--muted)">Viewer mode: read only</span>' : ''}
           ${!readOnly && !judgeMode ? `<button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addManualEntry('${escapeHtml(scoreKey)}')">+ Add Team</button>` : ''}
           ${!readOnly ? `<button class="cms-btn cms-btn-primary" onclick="saveScoresForEvent('${escapeHtml(scoreKey)}')">💾 Save Scores</button>` : ''}
+          <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="printScores('${escapeHtml(scoreKey)}')">🖨 Print</button>
+          <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="downloadPDF('${escapeHtml(scoreKey)}')">📥 Download PDF</button>
         </div>
       </div>`;
 
@@ -272,15 +405,16 @@ function loadEventScoring() {
 
   html += `</tbody></table></div></div>`;
 
-  // ── Live Rankings ──
+  // ── 3-Round Comparison ──
   html += `
     <div class="cms-card" style="margin-top:20px">
-      <div class="cms-card-title">🏆 Live Rankings — ${escapeHtml(eventName)} Round ${round}</div>
+      <div class="cms-card-title">🏆 3-Round Comparison & Overall Winner</div>
       <div id="liveRankings_${escapeHtml(scoreKey)}"></div>
     </div>`;
 
   document.getElementById('scoringArea').innerHTML = html;
   updateTotals(scoreKey);
+  loadThreeRoundComparison(eventKey, scoreKey, allEntries, cols);
 }
 
 // Get relevant participant names based on the event being scored
@@ -403,12 +537,20 @@ async function saveColumns(scoreKey) {
     return;
   }
 
+  // Get existing event scores to preserve all data
   const eventScores = getEventScores(scoreKey);
-  eventScores._columns = newCols;
+  
+  // CRITICALLY: Set columns FIRST before any other modifications
+  eventScores._columns = newCols.map(col => ({ ...col }));
+  
+  // Update both local store and server
   scoresStore[scoreKey] = eventScores;
   await NexusCMS.saveEventScores(scoreKey, eventScores);
-  showToast('✓ Columns saved! Reloading table...');
-  loadEventScoring();
+  
+  showToast('✓ Columns saved permanently!');
+  
+  // Force reload to ensure columns are properly reflected
+  setTimeout(() => loadEventScoring(), 100);
 }
 
 // ─── Score Totals & Ranking ──────────────────────────────────────────────
@@ -463,6 +605,94 @@ function validateScore(input) {
   if (value > max) { input.value = max; showToast(`Max score is ${max}`, 'error'); }
 }
 
+// ─── Load 3-Round Comparison ─────────────────────────────────────────────
+async function loadThreeRoundComparison(eventKey, scoreKey, allEntries, cols) {
+  // Count how many rounds actually exist
+  let numRounds = 0;
+  for (let r = 1; r <= 99; r++) {
+    if (document.getElementById(`roundBtn${r}`)) {
+      numRounds = r;
+    } else {
+      break;
+    }
+  }
+  if (numRounds === 0) numRounds = 3; // fallback
+
+  // Get scores for all available rounds
+  const roundScores = {};
+  for (let r = 1; r <= numRounds; r++) {
+    roundScores[r] = getEventScores(getScoreKey(eventKey, r));
+  }
+
+  // Build comparison data for each entry
+  const comparisonData = allEntries.map(entry => {
+    const result = { ...entry, overall: 0 };
+    
+    for (let r = 1; r <= numRounds; r++) {
+      const roundData = roundScores[r][entry.id] || {};
+      const roundTotal = cols.reduce((sum, col) => sum + (parseFloat(roundData[col.k]) || 0), 0);
+      result[`r${r}`] = roundTotal;
+      result.overall += roundTotal;
+    }
+    
+    return result;
+  }).filter(item => item.overall > 0).sort((a, b) => b.overall - a.overall);
+
+  // Render comparison
+  const rankingsEl = document.getElementById(`liveRankings_${scoreKey}`);
+  if (!rankingsEl) return;
+
+  if (!comparisonData.length) {
+    rankingsEl.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:20px;text-align:center">No scores entered yet.</div>';
+    return;
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+  const maxPerRound = cols.reduce((s, c) => s + (parseInt(c.max)||0), 0);
+  const maxOverall = maxPerRound * numRounds;
+
+  // Build table headers based on actual number of rounds
+  let headerHTML = `
+    <tr style="background:rgba(245,166,35,0.08);border-bottom:1px solid rgba(255,255,255,0.1)">
+      <th style="padding:12px;text-align:center;color:var(--accent);font-weight:700;font-size:13px">Rank</th>
+      <th style="padding:12px;text-align:left;color:var(--accent);font-weight:700;font-size:13px">Team Name</th>`;
+  
+  for (let r = 1; r <= numRounds; r++) {
+    headerHTML += `<th style="padding:12px;text-align:center;color:var(--accent);font-weight:700;font-size:13px">Round ${r}<br><span style="font-size:11px;color:var(--muted);font-weight:400">/${maxPerRound}</span></th>`;
+  }
+  
+  headerHTML += `<th style="padding:12px;text-align:center;color:var(--accent);font-weight:700;font-size:13px;background:rgba(245,166,35,0.12)">Overall<br><span style="font-size:11px;color:var(--muted);font-weight:400">/${maxOverall}</span></th></tr>`;
+
+  // Build table rows
+  const rowHTML = comparisonData.map((item, i) => {
+    let row = `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);${i<3?'background:rgba(245,166,35,0.04)':''}">
+        <td style="padding:12px;text-align:center;font-size:18px">${medals[i]||`<span style='font-family:Syne;font-weight:800;font-size:14px'>${i+1}</span>`}</td>
+        <td style="padding:12px;text-align:left">
+          <div style="font-weight:600;font-size:13px">${escapeHtml(item.teamName)}</div>
+          <div style="font-size:11px;color:var(--muted)">${escapeHtml(item.participant)}</div>
+        </td>`;
+    
+    for (let r = 1; r <= numRounds; r++) {
+      const roundKey = `r${r}`;
+      const score = item[roundKey] || 0;
+      row += `<td style="padding:12px;text-align:center;font-size:14px;color:${score > 0 ? 'var(--accent)' : 'var(--muted)'}"><span style="font-weight:700">${score}</span></td>`;
+    }
+    
+    row += `<td style="padding:12px;text-align:center;font-size:16px;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);background:rgba(245,166,35,0.08)">${item.overall}</td></tr>`;
+    return row;
+  }).join('');
+
+  rankingsEl.innerHTML = `
+    <div style="overflow-x:auto;border-radius:10px;border:1px solid rgba(255,255,255,0.1)">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>${headerHTML}</thead>
+        <tbody>${rowHTML}</tbody>
+      </table>
+    </div>
+  `;
+}
+
 // ─── Save Scores ─────────────────────────────────────────────────────────
 async function saveScoresForEvent(scoreKey) {
   const tbody = document.getElementById(`scoreTbody_${scoreKey}`);
@@ -470,6 +700,10 @@ async function saveScoresForEvent(scoreKey) {
 
   const cols = getColumns(scoreKey);
   const eventScores = getEventScores(scoreKey);
+  
+  // ALWAYS preserve the currently configured columns before modifying scores
+  const savedColumns = findConfiguredColumns(scoreKey);
+  
   const rows = tbody.querySelectorAll('tr[data-entry-id]');
   rows.forEach(row => {
     const entryId = row.dataset.entryId;
@@ -479,15 +713,17 @@ async function saveScoresForEvent(scoreKey) {
     eventScores[entryId] = data;
   });
 
-  // Preserve columns config
-  if (!eventScores._columns || eventScores._columns.length === 0) {
-    eventScores._columns = cols;
-  }
+  // CRITICAL: Always preserve the columns - either use saved columns or fall back to current
+  eventScores._columns = savedColumns && savedColumns.length > 0 ? savedColumns : cols;
 
   scoresStore[scoreKey] = eventScores;
   await NexusCMS.saveEventScores(scoreKey, eventScores);
   showToast('✓ Scores saved successfully!');
+  
+  // Reload to ensure columns are properly reflected and preserved
   updateTotals(scoreKey);
+  setTimeout(() => loadEventScoring(), 50);
+  
   await NexusCMS.addAuditLog(`Saved scores: ${scoreKey}`);
 }
 
@@ -512,6 +748,10 @@ function submitInput() {
 async function addManualEntry(scoreKey) {
   showInputModal(async function(label) {
     const eventScores = getEventScores(scoreKey);
+    const savedColumns = findConfiguredColumns(scoreKey);
+    if (savedColumns) {
+      eventScores._columns = savedColumns.map(col => ({ ...col }));
+    }
     eventScores._manual.push({ id: String(Date.now()), label });
     scoresStore[scoreKey] = eventScores;
     await NexusCMS.saveEventScores(scoreKey, eventScores);
@@ -522,12 +762,122 @@ async function addManualEntry(scoreKey) {
 
 async function removeManual(scoreKey, entryId) {
   const eventScores = getEventScores(scoreKey);
+  const savedColumns = findConfiguredColumns(scoreKey);
+  if (savedColumns) {
+    eventScores._columns = savedColumns.map(col => ({ ...col }));
+  }
   const manualId = entryId.replace('manual_','');
   eventScores._manual = (eventScores._manual||[]).filter(e => String(e.id) !== String(manualId));
   delete eventScores[entryId];
   scoresStore[scoreKey] = eventScores;
   await NexusCMS.saveEventScores(scoreKey, eventScores);
   loadEventScoring();
+}
+
+// ─── Print & PDF Functions ────────────────────────────────────────────────
+function printScores(scoreKey) {
+  const scoreTable = document.getElementById('scoreTable_' + scoreKey);
+  if (!scoreTable) {
+    showToast('Table not found', 'error');
+    return;
+  }
+
+  const eventNameEl = document.querySelector('.cms-card-title');
+  const eventName = eventNameEl ? eventNameEl.textContent : 'Score Sheet';
+  
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Score Sheet</title><style>body{font-family:Arial,sans-serif;margin:20px;background:white;color:black}table{width:100%;border-collapse:collapse;margin-top:20px}th{background:#f5a623;color:white;padding:12px;font-weight:bold;border:1px solid #ddd}td{padding:10px;border:1px solid #ddd}h1{text-align:center}</style></head><body><h1>' + eventName + '</h1><p style="text-align:center">Generated: ' + new Date().toLocaleString() + '</p>');
+  printWindow.document.write(scoreTable.outerHTML);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  printWindow.print();
+}
+
+function downloadPDF(scoreKey) {
+  const scoreTable = document.getElementById('scoreTable_' + scoreKey);
+  if (!scoreTable) {
+    showToast('Table not found', 'error');
+    return;
+  }
+
+  const eventNameEl = document.querySelector('.cms-card-title');
+  const eventName = eventNameEl ? eventNameEl.textContent.trim() : 'Score Sheet';
+  const timestamp = new Date().toLocaleString();
+
+  const tableClone = scoreTable.cloneNode(true);
+  const rows = tableClone.querySelectorAll('tr');
+  
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('th, td');
+    if (cells.length > 0) {
+      cells[cells.length - 1].remove();
+    }
+  });
+
+  // Convert input fields to text values and make everything black
+  tableClone.querySelectorAll('input.score-input').forEach(input => {
+    const value = input.value || '-';
+    const td = input.parentElement;
+    td.textContent = value;
+    td.style.color = '#000000';
+    td.style.fontSize = '13px';
+    td.style.fontWeight = '600';
+  });
+
+  // Make all cells black text
+  tableClone.querySelectorAll('td').forEach(td => {
+    td.style.color = '#000000';
+    td.style.backgroundColor = '#ffffff';
+    if (td.classList.contains('total-cell')) {
+      td.style.color = '#000000';
+      td.style.fontWeight = 'bold';
+    }
+  });
+
+  tableClone.querySelectorAll('th').forEach(th => {
+    th.style.backgroundColor = '#f5a623';
+    th.style.color = '#ffffff';
+    th.style.fontWeight = 'bold';
+  });
+
+  const element = document.createElement('div');
+  element.style.padding = '20px';
+  element.style.fontFamily = 'Arial, sans-serif';
+  element.style.backgroundColor = 'white';
+  element.style.color = '#000000';
+
+  const title = document.createElement('h1');
+  title.textContent = eventName;
+  title.style.textAlign = 'center';
+  title.style.color = '#000000';
+  element.appendChild(title);
+
+  const info = document.createElement('p');
+  info.textContent = 'Generated: ' + timestamp;
+  info.style.textAlign = 'center';
+  info.style.color = '#333333';
+  info.style.fontSize = '12px';
+  element.appendChild(info);
+
+  const tableDiv = document.createElement('div');
+  tableDiv.style.marginTop = '20px';
+  tableDiv.appendChild(tableClone);
+  element.appendChild(tableDiv);
+
+  const filename = 'scores-' + eventName.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' + new Date().toISOString().split('T')[0] + '.pdf';
+
+  try {
+    html2pdf().set({
+      margin: 10,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, backgroundColor: '#ffffff' },
+      jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
+    }).from(element).save();
+    showToast('PDF download started!');
+  } catch(err) {
+    showToast('Error: ' + err.message, 'error');
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────
@@ -540,6 +890,13 @@ async function removeManual(scoreKey, entryId) {
     NexusCMS.fetchScores(),
     NexusCMS.fetchSettings()
   ]);
+
+  // Initialize event rounds from settings
+  (settings.events || []).forEach(event => {
+    if (event.id) {
+      eventRounds[event.id] = event.rounds ? parseInt(event.rounds) : 3;
+    }
+  });
 
   buildEventSelector();
 })();

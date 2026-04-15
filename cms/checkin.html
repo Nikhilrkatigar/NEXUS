@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Check In Portal - NEXUS</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="NEXUS Check In Portal - Event Day Check In">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+<style>
+:root {
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --border: #e2e5ed;
+  --text: #1a1d26;
+  --muted: #6b7280;
+  --accent: #d97706;
+  --accent-bg: #fef3c7;
+  --accent-border: #fcd34d;
+  --accent-dark: #b45309;
+  --success: #059669;
+  --success-bg: #d1fae5;
+  --success-border: #6ee7b7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --danger-border: #fca5a5;
+  --info-bg: #eff6ff;
+  --info-border: #bfdbfe;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Check In Portal Layout ── */
+.checkin-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.checkin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.checkin-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.checkin-badge {
+  width: 46px;
+  height: 46px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+}
+.checkin-title {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.checkin-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* ── User Info ── */
+.checkin-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+.checkin-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: #fff;
+}
+
+/* ── Step Cards ── */
+.step-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.step-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--success);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.step-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Help text ── */
+.step-help {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: var(--radius-xs);
+}
+.step-help strong { color: var(--text); }
+
+/* ── Search Box ── */
+.search-box {
+  max-width: 500px;
+  margin-bottom: 16px;
+}
+.search-box input {
+  width: 100%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 16px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search-box input:focus {
+  border-color: var(--success);
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
+}
+
+/* ── Table ── */
+.cms-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+.cms-table thead th {
+  background: #f9fafb;
+  border-bottom: 2px solid var(--border);
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.cms-table tbody tr {
+  transition: background 0.1s;
+}
+.cms-table tbody tr:hover {
+  background: #fafbfc;
+}
+.cms-table tbody tr.checked-in {
+  background: var(--success-bg);
+}
+.cms-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f1f3;
+  vertical-align: middle;
+}
+.cms-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Badges ── */
+.reg-no-badge {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--accent-dark);
+  font-weight: 700;
+  background: var(--accent-bg);
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--accent-border);
+}
+.checkin-badge-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+}
+.checkin-badge-text.checked {
+  color: var(--success);
+  background: var(--success-bg);
+  border-color: var(--success-border);
+}
+.checkin-badge-text.pending {
+  color: var(--muted);
+  background: #f3f4f6;
+  border-color: var(--border);
+}
+
+.participant-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── Buttons ── */
+.checkin-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-xs);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(16,185,129,0.2);
+  white-space: nowrap;
+}
+.checkin-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+}
+.checkin-btn:active {
+  transform: translateY(0);
+}
+.checkin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.checkin-btn.checked {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+  box-shadow: none;
+}
+.checkin-btn.checked:hover {
+  background: #d1fae5;
+}
+
+.signout-btn {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.signout-btn:hover {
+  background: #fecaca;
+}
+
+/* ── Stats ── */
+.checkin-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.stat-item {
+  flex: 1;
+  min-width: 150px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--success);
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* ── Empty State ── */
+.empty-state {
+  text-align: center;
+  color: var(--muted);
+  padding: 48px 24px;
+}
+.empty-state-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+.empty-state-text {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.empty-state-sub {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* ── Filter Buttons ── */
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn.active {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: var(--success-border);
+}
+.filter-btn:hover {
+  border-color: var(--success);
+}
+
+.details-btn {
+  background: #f9fafb;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.details-btn:hover {
+  background: #eef2f7;
+  border-color: #cdd5df;
+}
+.details-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 2000;
+}
+.details-modal.open {
+  display: flex;
+}
+.details-dialog {
+  width: min(820px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+.details-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.details-title {
+  font-size: 20px;
+  font-weight: 800;
+}
+.details-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.details-close {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.details-close:hover {
+  color: var(--text);
+  background: #f9fafb;
+}
+.details-body {
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+}
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.details-card {
+  background: #fafbfc;
+  border: 1px solid #edf0f4;
+  border-radius: 12px;
+  padding: 14px;
+}
+.details-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.details-value {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+  word-break: break-word;
+}
+.details-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.details-list {
+  display: grid;
+  gap: 10px;
+}
+.participant-card {
+  background: #fafbfc;
+  border: 1px solid #edf0f4;
+  border-radius: 12px;
+  padding: 14px;
+}
+.participant-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.participant-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.event-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.event-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+.details-empty {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .checkin-main { padding: 16px 12px 40px; }
+  .checkin-header { margin-bottom: 20px; padding-bottom: 16px; }
+  .checkin-title { font-size: 18px; }
+  .step-card { padding: 16px; }
+  .cms-table { font-size: 12px; }
+  .cms-table thead th { padding: 8px 8px; font-size: 10px; }
+  .cms-table tbody td { padding: 8px; }
+  .checkin-stats { flex-direction: column; }
+  .stat-item { min-width: auto; }
+  .filter-buttons { flex-direction: column; }
+  .filter-btn { width: 100%; }
+  .details-grid { grid-template-columns: 1fr; }
+  .details-header { padding: 16px; }
+  .details-body { padding: 16px; }
+}
+
+/* smooth scroll */
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<div class="checkin-main">
+
+  <!-- Header -->
+  <div class="checkin-header">
+    <div class="checkin-hero">
+      <div class="checkin-badge">✓</div>
+      <div>
+        <div class="checkin-title">Check In Portal</div>
+        <div class="checkin-sub">Event Day Participant Check In</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="userCard" class="checkin-user-info" style="display:none">
+        <div class="checkin-avatar" id="checkinAvatar">C</div>
+        <div>
+          <div style="font-size:13px;font-weight:700" id="checkinName">Organizer</div>
+          <div id="checkinRole" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Check-In Coordinator</div>
+        </div>
+      </div>
+      <button onclick="logout()" class="signout-btn">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Check In Info -->
+  <div class="step-card">
+    <div class="step-label">✓ Check-in Management</div>
+    <div class="step-help">
+      Check in teams and their participants as they arrive at the event. Click "Check In" to mark them as present.
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="checkin-stats" id="statsContainer">
+    <div class="stat-item">
+      <div class="stat-value" id="totalRegs">0</div>
+      <div class="stat-label">Total Registrations</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="checkedInCount">0</div>
+      <div class="stat-label">Checked In</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="pendingCount">0</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="step-card">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search by team name, college, or reg number..." oninput="onSearchInput()">
+    </div>
+    
+    <div class="filter-buttons">
+      <button class="filter-btn active" onclick="filterByStatus('all')">All</button>
+      <button class="filter-btn" onclick="filterByStatus('checked')">Checked In</button>
+      <button class="filter-btn" onclick="filterByStatus('pending')">Pending</button>
+    </div>
+  </div>
+
+  <!-- Check In Table -->
+  <div class="step-card">
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table class="cms-table" id="checkinTable">
+        <thead><tr>
+          <th>Reg No</th>
+          <th>Team Name</th>
+          <th>College</th>
+          <th>Leader</th>
+          <th style="text-align:center">Details</th>
+          <th style="text-align:center">Status</th>
+          <th style="text-align:center;width:140px">Check In</th>
+        </tr></thead>
+        <tbody id="checkinTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="detailsModal" class="details-modal" onclick="onDetailsBackdropClick(event)">
+  <div class="details-dialog" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
+    <div class="details-header">
+      <div>
+        <div class="details-title" id="detailsTitle">Team Details</div>
+        <div class="details-subtitle" id="detailsSubtitle">View registration information</div>
+      </div>
+      <button class="details-close" onclick="closeDetailsModal()" aria-label="Close details">&times;</button>
+    </div>
+    <div class="details-body" id="detailsBody"></div>
+  </div>
+</div>
+
+<script>
+let currentUser = null;
+let registrations = [];
+let checkinStore = {};
+let settings = {};
+let currentFilter = 'all';
+let searchQuery = '';
+
+const LS_PREFIX = 'nexus_checkin_';
+
+function escapeHtml(v) {
+  return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function getLsKey() {
+  return `${LS_PREFIX}checkins`;
+}
+
+function formatValue(value) {
+  const text = value === null || value === undefined ? '' : String(value).trim();
+  return text || '—';
+}
+
+function formatDateTime(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return formatValue(value);
+  return date.toLocaleString();
+}
+
+function openDetailsModal(regId) {
+  const reg = registrations.find((entry) => String(entry.id) === String(regId));
+  if (!reg) {
+    showToast('Team details not found', 'error');
+    return;
+  }
+
+  const modal = document.getElementById('detailsModal');
+  const title = document.getElementById('detailsTitle');
+  const subtitle = document.getElementById('detailsSubtitle');
+  const body = document.getElementById('detailsBody');
+  const participants = Array.isArray(reg.participants) ? reg.participants : [];
+  const registeredEvents = Array.isArray(reg.registeredEvents) ? reg.registeredEvents : [];
+
+  title.textContent = reg.teamName || reg.college || 'Team Details';
+  subtitle.textContent = `Registration #${formatValue(reg.code)} - ${formatValue(reg.event)}`;
+
+  body.innerHTML = `
+    <div class="details-grid">
+      <div class="details-card">
+        <div class="details-label">Registration No</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.code))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Main Event</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.event))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Category</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.category))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">College</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.college))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Team Name</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.teamName || reg.college))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Leader</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.leader))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Faculty In Charge</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.faculty))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Faculty Phone</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.facultyPhone))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Email</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.email))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Address</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.address))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Payment Status</div>
+        <div class="details-value">${escapeHtml(formatValue(reg.paymentStatus))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Registered At</div>
+        <div class="details-value">${escapeHtml(formatDateTime(reg.timestamp))}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Current Check-In</div>
+        <div class="details-value">${checkinStore[reg.id] ? 'Checked In' : 'Pending'}</div>
+      </div>
+      <div class="details-card">
+        <div class="details-label">Checked In At</div>
+        <div class="details-value">${escapeHtml(formatDateTime(reg.checkedInAt))}</div>
+      </div>
+    </div>
+    <div>
+      <div class="details-section-title">Department Breakdown</div>
+      <div class="details-grid">
+        <div class="details-card">
+          <div class="details-label">HR</div>
+          <div class="details-value">${escapeHtml(formatValue(reg.departmentBreakdown && reg.departmentBreakdown.HR))}</div>
+        </div>
+        <div class="details-card">
+          <div class="details-label">Marketing</div>
+          <div class="details-value">${escapeHtml(formatValue(reg.departmentBreakdown && reg.departmentBreakdown.Marketing))}</div>
+        </div>
+        <div class="details-card">
+          <div class="details-label">Finance</div>
+          <div class="details-value">${escapeHtml(formatValue(reg.departmentBreakdown && reg.departmentBreakdown.Finance))}</div>
+        </div>
+        <div class="details-card">
+          <div class="details-label">Payment Verified At</div>
+          <div class="details-value">${escapeHtml(formatDateTime(reg.paymentVerifiedAt))}</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="details-section-title">Registered Events</div>
+      <div class="event-tags">
+        ${registeredEvents.length
+          ? registeredEvents.map((item) => `<span class="event-tag">${escapeHtml(formatValue(item))}</span>`).join('')
+          : '<div class="details-empty">No extra events listed.</div>'}
+      </div>
+    </div>
+    <div>
+      <div class="details-section-title">Participants</div>
+      <div class="details-list">
+        ${participants.length
+          ? participants.map((participant, index) => `
+              <div class="participant-card">
+                <div class="participant-name">${escapeHtml(formatValue(participant && participant.name ? participant.name : `Participant ${index + 1}`))}</div>
+                <div class="participant-meta">
+                  ${escapeHtml(formatValue(participant && participant.department ? participant.department : 'Department not provided'))}
+                  ${participant && participant.phone ? ` | ${escapeHtml(formatValue(participant.phone))}` : ''}
+                  ${participant && participant.isTeamLeader ? ' | Team Leader' : ''}
+                  ${participant && participant.danceParticipant ? ' | Dance' : ''}
+                  ${participant && participant.rampWalkParticipant ? ' | Ramp Walk' : ''}
+                </div>
+              </div>
+            `).join('')
+          : '<div class="details-empty">No participant details available.</div>'}
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetailsModal() {
+  const modal = document.getElementById('detailsModal');
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function onDetailsBackdropClick(event) {
+  if (event.target.id === 'detailsModal') {
+    closeDetailsModal();
+  }
+}
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeDetailsModal();
+  }
+});
+
+// ─── LocalStorage persistence ──────────────────────────────────────────
+function saveCheckInsToStorage(data) {
+  localStorage.setItem(getLsKey(), JSON.stringify(data));
+  showToast('Check-in data saved locally');
+}
+
+function loadCheckInsFromStorage() {
+  try {
+    const raw = localStorage.getItem(getLsKey());
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+// ─── Check In Functions ────────────────────────────────────────────────
+async function toggleCheckIn(regId) {
+  const btn = document.querySelector(`[data-reg-id="${regId}"]`);
+  if (btn) btn.disabled = true;
+
+  try {
+    const isCheckedIn = checkinStore[regId];
+    checkinStore[regId] = !isCheckedIn;
+
+    // Save to server via API
+    await NexusCMS.request(`/cms/checkin/${regId}`, {
+      method: 'POST',
+      body: { checkedIn: !isCheckedIn }
+    });
+
+    // Also save to localStorage for backup
+    saveCheckInsToStorage(checkinStore);
+
+    loadCheckinTable();
+    updateStats();
+
+    const status = !isCheckedIn ? 'checked in' : 'unmarked';
+    showToast(`✓ Participant ${status}`, 'success');
+
+    await NexusCMS.addAuditLog(`Check-in: Registration ${regId} marked as ${!isCheckedIn ? 'checked in' : 'pending'}`);
+  } catch (err) {
+    showToast(err.message || 'Failed to update check-in status', 'error');
+    checkinStore[regId] = !checkinStore[regId]; // Revert on error
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ─── Search & Filter ───────────────────────────────────────────────────
+function onSearchInput() {
+  searchQuery = document.getElementById('searchInput').value.toLowerCase();
+  loadCheckinTable();
+}
+
+function filterByStatus(status) {
+  currentFilter = status;
+
+  // Update filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+
+  loadCheckinTable();
+}
+
+function isRegistrationVisible(reg) {
+  // Status filter
+  if (currentFilter === 'checked' && !checkinStore[reg.id]) return false;
+  if (currentFilter === 'pending' && checkinStore[reg.id]) return false;
+
+  // Search filter
+  if (searchQuery) {
+    const searchableText = [
+      reg.code,
+      reg.teamName,
+      reg.college,
+      reg.leader,
+      reg.event,
+      (reg.participants || []).map(p => p.name).join(' ')
+    ].join(' ').toLowerCase();
+
+    if (!searchableText.includes(searchQuery)) return false;
+  }
+
+  return true;
+}
+
+// ─── Load Check In Table ───────────────────────────────────────────────
+function loadCheckinTable() {
+  const tbody = document.getElementById('checkinTbody');
+  const visibleRegs = registrations.filter(reg => isRegistrationVisible(reg));
+
+  if (visibleRegs.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7">
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-text">No registrations found</div>
+            <div class="empty-state-sub">Try adjusting your search or filter criteria.</div>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  visibleRegs.forEach(reg => {
+    const isChecked = checkinStore[reg.id];
+
+    html += `
+      <tr ${isChecked ? 'class="checked-in"' : ''} data-reg-id="${reg.id}">
+        <td><span class="reg-no-badge">#${escapeHtml(reg.code)}</span></td>
+        <td>
+          <div style="font-weight:700;font-size:13px;color:var(--text)">${escapeHtml(reg.teamName || reg.college)}</div>
+        </td>
+        <td>
+          <div style="font-size:13px">${escapeHtml(reg.college)}</div>
+        </td>
+        <td>
+          <div style="font-size:13px">${escapeHtml(reg.leader || '-')}</div>
+        </td>
+        <td style="text-align:center">
+          <button class="details-btn" onclick="openDetailsModal('${escapeHtml(reg.id)}')" title="View full team details">
+            &#128065;
+          </button>
+        </td>
+        <td style="text-align:center">
+          <span class="checkin-badge-text ${isChecked ? 'checked' : 'pending'}">
+            ${isChecked ? '✓ Checked' : '⏳ Pending'}
+          </span>
+        </td>
+        <td style="text-align:center">
+          <button 
+            class="checkin-btn ${isChecked ? 'checked' : ''}" 
+            onclick="toggleCheckIn('${escapeHtml(reg.id)}')"
+            data-reg-id="${reg.id}"
+            title="${isChecked ? 'Mark as pending' : 'Mark as checked in'}"
+          >
+            ${isChecked ? '✓ Checked In' : '☐ Check In'}
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+}
+
+// ─── Update Stats ──────────────────────────────────────────────────────
+function updateStats() {
+  const total = registrations.length;
+  const checked = Object.values(checkinStore).filter(v => v).length;
+  const pending = total - checked;
+
+  document.getElementById('totalRegs').textContent = total;
+  document.getElementById('checkedInCount').textContent = checked;
+  document.getElementById('pendingCount').textContent = pending;
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────
+(async function () {
+  currentUser = await NexusCMS.initPage('checkin', { requiredRoles: ['checkin'] });
+  if (!currentUser) return;
+
+  const userCard = document.getElementById('userCard');
+  const avatar = document.getElementById('checkinAvatar');
+  const nameEl = document.getElementById('checkinName');
+  const roleEl = document.getElementById('checkinRole');
+  if (userCard) userCard.style.display = 'flex';
+  if (avatar) avatar.textContent = (currentUser.name||'O').slice(0,1).toUpperCase();
+  if (nameEl) nameEl.textContent = currentUser.name || 'Check-In Coordinator';
+  if (roleEl) roleEl.textContent = 'Check-In Coordinator';
+
+  const [regs, checkins, sett] = await Promise.all([
+    NexusCMS.fetchRegistrations(),
+    NexusCMS.request('/cms/checkins').catch(() => ({})),
+    NexusCMS.fetchSettings()
+  ]);
+
+  registrations = regs || [];
+  checkinStore = checkins || loadCheckInsFromStorage();
+  settings = sett || {};
+
+  loadCheckinTable();
+  updateStats();
+})();
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(reg => {
+        setInterval(() => reg.update().catch(() => {}), 60000);
+      }).catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

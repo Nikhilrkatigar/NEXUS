@@ -6,6 +6,7 @@
 
   const NAV_LINKS = [
     { id: "judge", label: "🏅 Judge Portal", href: "judge.html", roles: ["judge"] },
+    { id: "checkin", label: "✓ Check In", href: "checkin.html", roles: ["checkin"] },
     { id: "dashboard", label: "Dashboard", href: "dashboard.html", roles: ["viewer", "organiser", "superadmin"] },
     { id: "registrations", label: "Registrations", href: "registrations.html", roles: ["viewer", "organiser", "superadmin"] },
     { id: "scores", label: "Scores", href: "scores.html", roles: ["viewer", "organiser", "superadmin"] },
@@ -106,6 +107,22 @@
     return !!user && allowedRoles.includes(user.role);
   }
 
+  function getHomePageForRole(user) {
+    if (!user) {
+      return "login.html";
+    }
+
+    if (user.role === "judge") {
+      return "judge.html";
+    }
+
+    if (user.role === "checkin") {
+      return "checkin.html";
+    }
+
+    return "dashboard.html";
+  }
+
   function renderSidebar(active) {
     const user = getStoredUser() || {};
     const links = NAV_LINKS.filter((link) => canAccess(user, link.roles));
@@ -189,14 +206,27 @@
     // Non-judges: cannot access judge.html
     if (user.role !== "judge" && active === "judge") {
       showToast("Judge Portal is for judges only.", "error");
-      setTimeout(() => { window.location.href = "dashboard.html"; }, 500);
+      setTimeout(() => { window.location.href = getHomePageForRole(user); }, 500);
+      return null;
+    }
+
+    // Check In: can ONLY access checkin.html — redirect them there from anywhere else
+    if (user.role === "checkin" && active !== "checkin") {
+      window.location.href = "checkin.html";
+      return null;
+    }
+
+    // Non-check-in: cannot access checkin.html
+    if (user.role !== "checkin" && active === "checkin") {
+      showToast("Check In Portal is for check-in coordinators only.", "error");
+      setTimeout(() => { window.location.href = getHomePageForRole(user); }, 500);
       return null;
     }
 
     if (config.requiredRoles && !config.requiredRoles.includes(user.role)) {
       showToast("You do not have access to this page.", "error");
       setTimeout(() => {
-        window.location.href = "dashboard.html";
+        window.location.href = getHomePageForRole(user);
       }, 500);
       return null;
     }
@@ -345,11 +375,13 @@
     fetchTimeline,
     fetchUsers,
     getStoredUser,
+    getHomePageForRole,
     initPage,
     isViewer,
     isJudge,
     login,
     logout,
+    request,
     saveEventScores,
     showToast,
     updateSettings,
@@ -415,6 +447,9 @@ const CMS_CSS = `
   .form-group label{display:block;font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
   .form-group input,.form-group select,.form-group textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:all 0.2s}
   .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:rgba(245,166,35,0.4)}
+  .password-container{position:relative;width:100%}
+  .password-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px 8px;transition:color 0.2s;display:flex;align-items:center;justify-content:center}
+  .password-toggle:hover{color:var(--accent)}
   .form-group select{background:rgba(17,24,39,0.8);color:#f0f0f0}
   .form-group select option{background:#111827;color:#f0f0f0;font-weight:500}
   .form-group select option:checked{background:linear-gradient(135deg,#f5a623,#d4890f);color:#000}

@@ -143,7 +143,13 @@ async function loadSettings(){
     }
     if(data.assignments&&data.assignments.length>0){
       currentAssignments=data.assignments;
+      displayAssignments(data.assignments);
+      document.getElementById('randomStatus').textContent=`${data.assignments.length} assignments ready`;
       if(data.applied){NexusCMS.showToast('Assignments have been applied to registrations ✓','success')}
+    }else{
+      currentAssignments=null;
+      document.getElementById('previewCard').style.display='none';
+      document.getElementById('randomStatus').textContent=''
     }
   }catch(error){showError(error.message)}
 }

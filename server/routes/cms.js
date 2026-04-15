@@ -314,6 +314,8 @@ router.post("/users", requireRole("superadmin"), async (req, res, next) => {
     const username = String(req.body.username || "").trim().toLowerCase();
     const password = String(req.body.password || "");
     const role = String(req.body.role || "organiser").trim();
+    let assignedEvent = String(req.body.assignedEvent || "").trim();
+    assignedEvent = assignedEvent ? assignedEvent : null;
 
     if (!name || !username || !password) {
       throw makeError("Name, username, and password are required", 400);
@@ -321,6 +323,10 @@ router.post("/users", requireRole("superadmin"), async (req, res, next) => {
 
     if (password.length < 6) {
       throw makeError("Password must be at least 6 characters", 400);
+    }
+
+    if (role === "judge" && !assignedEvent) {
+      throw makeError("Judges must have an assigned event", 400);
     }
 
     if (await User.exists({ username })) {
@@ -331,6 +337,7 @@ router.post("/users", requireRole("superadmin"), async (req, res, next) => {
       name,
       username,
       role,
+      assignedEvent,
       passwordHash: "pending"
     });
     await user.setPassword(password);
@@ -358,6 +365,13 @@ router.put("/users/:id", requireRole("superadmin"), async (req, res, next) => {
     user.name = String(req.body.name || user.name).trim();
     user.username = String(req.body.username || user.username).trim().toLowerCase();
     user.role = String(req.body.role || user.role).trim();
+    let assignedEvent = String(req.body.assignedEvent || "").trim();
+    assignedEvent = assignedEvent ? assignedEvent : null;
+    user.assignedEvent = assignedEvent;
+
+    if (user.role === "judge" && !user.assignedEvent) {
+      throw makeError("Judges must have an assigned event", 400);
+    }
 
     const password = String(req.body.password || "");
     if (password) {
@@ -617,10 +631,13 @@ router.get("/team-randomizer", async (req, res, next) => {
     const teamNames = data.teamNames || [];
     const assignments = data.assignments || [];
     
-    // Count how many registrations have random team names applied
-    const appliedCount = registrations.filter(r => {
-      return assignments.some(a => a.registrationId === String(r._id));
-    }).length;
+    const appliedCount = data.applied
+      ? registrations.filter((registration) =>
+          assignments.some(
+            (assignment) => assignment.registrationId === String(registration._id)
+          )
+        ).length
+      : 0;
 
     res.json({
       teamNames,
@@ -683,7 +700,7 @@ router.post("/team-randomizer/randomize", requireRole("superadmin", "organiser")
     }
 
     const teamNames = [...settings.values.teamNames];
-    const registrations = await Registration.find().lean();
+    const registrations = await Registration.find().sort({ createdAt: 1 }).lean();
 
     if (registrations.length === 0) {
       throw makeError("No registrations found", 400);
@@ -711,6 +728,8 @@ router.post("/team-randomizer/randomize", requireRole("superadmin", "organiser")
     // Store assignments (not yet applied)
     settings.values.assignments = assignments;
     settings.values.applied = false;
+    settings.values.appliedAt = null;
+    settings.markModified("values");
     await settings.save();
 
     await writeAuditLog({
@@ -753,6 +772,8 @@ router.post("/team-randomizer/apply", requireRole("superadmin", "organiser"), as
     if (settings) {
       settings.values.applied = true;
       settings.values.appliedAt = new Date();
+      settings.values.assignments = assignments;
+      settings.markModified("values");
       await settings.save();
     }
 
@@ -766,6 +787,48 @@ router.post("/team-randomizer/apply", requireRole("superadmin", "organiser"), as
       ok: true,
       appliedCount,
       message: `Successfully applied random names to ${appliedCount} registrations`
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ──── Check-In Management ────────────────────────────────────
+router.get("/checkins", requireRole("checkin"), async (req, res, next) => {
+  try {
+    const registrations = await Registration.find({}, { id: 1, checkedIn: 1, checkedInAt: 1 }).lean();
+    const checkins = {};
+    registrations.forEach(reg => {
+      checkins[String(reg._id)] = reg.checkedIn || false;
+    });
+    res.json(checkins);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/checkin/:id", requireRole("checkin"), async (req, res, next) => {
+  try {
+    const registration = await Registration.findById(req.params.id);
+    if (!registration) {
+      throw makeError("Registration not found", 404);
+    }
+
+    const checkedIn = req.body.checkedIn === true;
+    registration.checkedIn = checkedIn;
+    registration.checkedInAt = checkedIn ? new Date() : null;
+    await registration.save();
+
+    await writeAuditLog({
+      action: `Check-in updated: ${registration.code} - ${checkedIn ? 'Checked In' : 'Unmarked'}`,
+      req,
+      user: req.user
+    });
+
+    res.json({
+      ok: true,
+      checkedIn,
+      checkedInAt: registration.checkedInAt
     });
   } catch (error) {
     next(error);
