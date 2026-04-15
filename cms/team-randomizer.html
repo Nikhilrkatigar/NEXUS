@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Team Randomizer - NEXUS CMS</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+<style>
+.team-names-textarea{width:100%;min-height:200px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px;color:var(--text);font-family:'DM Sans',monospace;font-size:13px;outline:none;resize:vertical}
+.team-names-textarea:focus{border-color:rgba(245,166,35,0.5);background:rgba(245,166,35,0.05)}
+.team-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+.team-item{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);border-radius:6px;padding:12px;text-align:center;font-size:12px;color:var(--accent);font-weight:700}
+.assignment-table{width:100%;border-collapse:collapse;margin-top:12px}
+.assignment-table thead{background:rgba(245,166,35,0.1)}
+.assignment-table th,.assignment-table td{padding:12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.1);font-size:13px}
+.assignment-table th{font-weight:700;color:var(--accent)}
+.registered-team{color:var(--text);font-weight:600}
+.random-team{color:var(--accent);font-weight:700;font-family:'Syne',sans-serif}
+.badge{display:inline-block;padding:4px 12px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em}
+.badge.pending{background:rgba(255,193,7,0.15);color:#ffc107}
+.badge.applied{background:rgba(76,175,80,0.15);color:#4caf50}
+.status-text{font-size:12px;color:var(--muted);margin-top:8px}
+.section-divider{height:1px;background:rgba(255,255,255,0.1);margin:24px 0}
+</style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header">
+    <h1>Team Randomizer</h1>
+    <p>Assign random team display names to registered teams. Perfect for anonymizing or rebranding team identities.</p>
+  </div>
+
+  <div class="cms-card">
+    <h2>Step 1 — Add Team Display Names</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Enter 20 team names (one per line). These names will be randomly assigned to your registered teams.</p>
+    <div class="form-group">
+      <label>Team Names (One per Line)</label>
+      <textarea id="teamNamesInput" class="team-names-textarea" placeholder="Enter 20 team names (one per line). Example: Phoenix Warriors, Dragon Squad, Titans Elite, etc."></textarea>
+    </div>
+    <button class="cms-btn cms-btn-primary" onclick="saveTeamNames()" style="margin-top:12px">Save Team Names</button>
+    <div class="status-text" id="saveStatus"></div>
+  </div>
+
+  <div class="cms-card" id="savedNamesCard" style="display:none;margin-top:16px">
+    <h3>Saved Team Names (<span id="savedCount">0</span>/20)</h3>
+    <div class="team-list" id="savedNamesList"></div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <div class="cms-card">
+    <h2>Step 2 — Randomize & Assign</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">This will randomly assign saved team names to existing registrations.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <button class="cms-btn cms-btn-primary" onclick="generateRandomAssignment()">🎲 Generate Random Assignment</button>
+      <button class="cms-btn" onclick="resetState()" style="background:rgba(255,255,255,0.05);color:#f0f0f0;border:1px solid rgba(255,255,255,0.1)">Reset</button>
+    </div>
+    <div class="status-text" id="randomStatus"></div>
+  </div>
+
+  <div class="cms-card" id="previewCard" style="display:none;margin-top:16px">
+    <h2>Preview & Apply</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Review the random assignments before applying. You can generate again if needed.</p>
+    <div style="max-height:400px;overflow-y:auto;margin-bottom:16px">
+      <table class="assignment-table">
+        <thead>
+          <tr>
+            <th>Registration #</th>
+            <th>College / Registered Name</th>
+            <th>→</th>
+            <th>Random Team Name</th>
+          </tr>
+        </thead>
+        <tbody id="assignmentList"></tbody>
+      </table>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <button class="cms-btn cms-btn-primary" onclick="applyAssignments()">✓ Apply Assignments</button>
+      <button class="cms-btn" onclick="generateRandomAssignment()" style="background:rgba(255,255,255,0.05);color:#f0f0f0;border:1px solid rgba(255,255,255,0.1)">🎲 Generate Again</button>
+    </div>
+  </div>
+
+  <div class="cms-card" id="statusCard" style="display:none;margin-top:16px">
+    <h2>Current Status</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Team Names Available</div>
+        <div style="font-size:18px;font-weight:700;color:var(--accent)" id="statusTeamCount">0</div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Registrations</div>
+        <div style="font-size:18px;font-weight:700;color:var(--accent)" id="statusRegCount">0</div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Assignments Applied</div>
+        <div style="font-size:18px;font-weight:700;color:var(--accent)" id="statusAppliedCount">0</div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Status</div>
+        <span class="badge" id="statusBadge">Pending</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+let currentAssignments=null;
+let currentTeamNames=[];
+
+async function apiRequest(path,options){
+  const config=Object.assign({method:'GET'},options||{});
+  const headers=Object.assign({},config.headers||{});
+  const token=sessionStorage.getItem('nexus_token');
+  if(token){headers.Authorization=`Bearer ${token}`}
+  if(config.body&&!(config.body instanceof FormData)){
+    headers['Content-Type']='application/json';
+    config.body=JSON.stringify(config.body)
+  }
+  const response=await fetch(`/api${path}`,Object.assign({},config,{headers}));
+  const raw=await response.text();
+  const data=raw?JSON.parse(raw):{};
+  if(!response.ok){
+    const error=new Error(data.message||'Request failed');
+    error.status=response.status;
+    throw error
+  }
+  return data
+}
+
+async function loadSettings(){
+  try{
+    const data=await apiRequest('/cms/team-randomizer');
+    currentTeamNames=data.teamNames||[];
+    if(data.teamNames&&data.teamNames.length>0){
+      document.getElementById('teamNamesInput').value=data.teamNames.join('\n');
+      displaySavedNames(data.teamNames)
+    }
+    if(data.assignments&&data.assignments.length>0){
+      currentAssignments=data.assignments;
+      if(data.applied){NexusCMS.showToast('Assignments have been applied to registrations ✓','success')}
+    }
+  }catch(error){showError(error.message)}
+}
+
+function displaySavedNames(names){
+  const card=document.getElementById('savedNamesCard');
+  const count=document.getElementById('savedCount');
+  const list=document.getElementById('savedNamesList');
+  count.textContent=names.length;
+  list.innerHTML=names.map(name=>`<div class="team-item">${name}</div>`).join('');
+  card.style.display='block'
+}
+
+async function saveTeamNames(){
+  try{
+    const text=document.getElementById('teamNamesInput').value;
+    const names=text.split('\n').map(n=>n.trim()).filter(n=>n.length>0);
+    if(names.length===0){showError('Please enter at least one team name');return}
+    if(names.length>20){showError('Maximum 20 team names allowed');return}
+    const data=await apiRequest('/cms/team-randomizer/setup',{method:'POST',body:{teamNames:names}});
+    currentTeamNames=names;
+    displaySavedNames(names);
+    document.getElementById('saveStatus').textContent=`✓ Saved ${names.length} team names`;
+    document.getElementById('saveStatus').style.color='#4caf50';
+    await updateStatus()
+  }catch(error){showError(error.message)}
+}
+
+async function generateRandomAssignment(){
+  try{
+    if(currentTeamNames.length===0){showError('Please save team names first');return}
+    document.getElementById('randomStatus').textContent='Generating...';
+    const data=await apiRequest('/cms/team-randomizer/randomize',{method:'POST',body:{}});
+    currentAssignments=data.assignments;
+    displayAssignments(data.assignments);
+    document.getElementById('randomStatus').textContent=''
+  }catch(error){showError(error.message)}
+}
+
+function displayAssignments(assignments){
+  const tbody=document.getElementById('assignmentList');
+  tbody.innerHTML=assignments.map((a,idx)=>`<tr><td>${idx+1}</td><td><span class="registered-team">${a.originalName}</span></td><td style="text-align:center;color:var(--muted)">→</td><td><span class="random-team">${a.randomName}</span></td></tr>`).join('');
+  document.getElementById('previewCard').style.display='block'
+}
+
+async function applyAssignments(){
+  try{
+    if(!currentAssignments||currentAssignments.length===0){showError('No assignments to apply');return}
+    const confirmApply=confirm(`Apply these ${currentAssignments.length} random assignments? This will update all registrations.`);
+    if(!confirmApply)return;
+    const data=await apiRequest('/cms/team-randomizer/apply',{method:'POST',body:{assignments:currentAssignments}});
+    document.getElementById('previewCard').style.display='none';
+    NexusCMS.showToast('Assignments applied successfully! ✓','success');
+    await updateStatus();
+    await loadSettings()
+  }catch(error){showError(error.message)}
+}
+
+async function updateStatus(){
+  try{
+    const data=await apiRequest('/cms/team-randomizer');
+    document.getElementById('statusTeamCount').textContent=data.teamNames?data.teamNames.length:0;
+    document.getElementById('statusRegCount').textContent=data.registrationCount||0;
+    document.getElementById('statusAppliedCount').textContent=data.appliedCount||0;
+    const badge=document.getElementById('statusBadge');
+    if(data.applied){
+      badge.textContent='Applied';
+      badge.className='badge applied'
+    }else{
+      badge.textContent='Pending';
+      badge.className='badge pending'
+    }
+    document.getElementById('statusCard').style.display='block'
+  }catch(error){console.error('Error updating status:',error)}
+}
+
+function resetState(){
+  currentAssignments=null;
+  document.getElementById('previewCard').style.display='none';
+  document.getElementById('randomStatus').textContent=''
+}
+
+function showError(msg){
+  NexusCMS.showToast(msg,'error')
+}
+
+(async function(){
+  const user=await NexusCMS.initPage('team-randomizer',{requiredRoles:['superadmin','organiser']});
+  if(!user)return;
+  await loadSettings();
+  await updateStatus()
+})();
+</script>
+</body>
+</html>

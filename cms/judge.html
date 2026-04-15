@@ -222,6 +222,13 @@
   border-radius: 20px;
   font-weight: 600;
 }
+select {
+  color-scheme: dark;
+}
+select option {
+  background: #111827;
+  color: #f0f0f0;
+}
 </style>
 </head>
 <body style="background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh">
@@ -257,7 +264,7 @@
   <!-- Step 1: Select Event -->
   <div class="step-card">
     <div class="step-label">Step 1 — Select Event</div>
-    <select id="eventSelector" onchange="onEventChange()" style="max-width:440px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%">
+    <select id="eventSelector" onchange="onEventChange()" style="max-width:440px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;color-scheme:dark">
       <option value="">-- Choose an Event --</option>
     </select>
   </div>

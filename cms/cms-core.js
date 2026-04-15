@@ -10,6 +10,7 @@
     { id: "registrations", label: "Registrations", href: "registrations.html", roles: ["viewer", "organiser", "superadmin"] },
     { id: "scores", label: "Scores", href: "scores.html", roles: ["viewer", "organiser", "superadmin"] },
     { id: "championship", label: "Championship", href: "championship.html", roles: ["viewer", "organiser", "superadmin"] },
+    { id: "team-randomizer", label: "🎲 Team Randomizer", href: "team-randomizer.html", roles: ["superadmin", "organiser"] },
     { id: "events", label: "Events", href: "events.html", roles: ["superadmin"] },
     { id: "about", label: "About Us", href: "about.html", roles: ["superadmin"] },
     { id: "timeline", label: "Timeline", href: "timeline.html", roles: ["superadmin"] },

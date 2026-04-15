@@ -605,4 +605,171 @@ router.delete("/registrations/:code", requireRole("superadmin", "organiser"), as
   }
 });
 
+// ========== Team Randomizer Routes ==========
+
+// GET team randomizer status and data
+router.get("/team-randomizer", async (req, res, next) => {
+  try {
+    const settings = await Settings.findOne({ key: "team-randomizer" }).lean();
+    const registrations = await Registration.find().lean();
+    
+    const data = settings ? settings.values : {};
+    const teamNames = data.teamNames || [];
+    const assignments = data.assignments || [];
+    
+    // Count how many registrations have random team names applied
+    const appliedCount = registrations.filter(r => {
+      return assignments.some(a => a.registrationId === String(r._id));
+    }).length;
+
+    res.json({
+      teamNames,
+      assignments,
+      registrationCount: registrations.length,
+      appliedCount,
+      applied: data.applied || false
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST setup team names
+router.post("/team-randomizer/setup", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const teamNames = Array.isArray(req.body.teamNames) 
+      ? req.body.teamNames.map(n => String(n).trim()).filter(n => n.length > 0)
+      : [];
+
+    if (teamNames.length === 0) {
+      throw makeError("At least one team name is required", 400);
+    }
+
+    if (teamNames.length > 20) {
+      throw makeError("Maximum 20 team names allowed", 400);
+    }
+
+    await Settings.findOneAndUpdate(
+      { key: "team-randomizer" },
+      { 
+        key: "team-randomizer", 
+        values: {
+          teamNames,
+          assignments: [],
+          applied: false
+        }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    await writeAuditLog({
+      action: `Set up ${teamNames.length} team names for randomizer`,
+      req,
+      user: req.user
+    });
+
+    res.json({ ok: true, count: teamNames.length });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST generate random assignments
+router.post("/team-randomizer/randomize", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const settings = await Settings.findOne({ key: "team-randomizer" });
+    if (!settings || !settings.values.teamNames || settings.values.teamNames.length === 0) {
+      throw makeError("Please set up team names first", 400);
+    }
+
+    const teamNames = [...settings.values.teamNames];
+    const registrations = await Registration.find().lean();
+
+    if (registrations.length === 0) {
+      throw makeError("No registrations found", 400);
+    }
+
+    if (teamNames.length < registrations.length) {
+      throw makeError(`Need at least ${registrations.length} team names for ${registrations.length} registrations`, 400);
+    }
+
+    // Shuffle team names using Fisher-Yates algorithm
+    const shuffled = [...teamNames];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    // Create assignments
+    const assignments = registrations.map((reg, idx) => ({
+      registrationId: String(reg._id),
+      originalName: reg.teamName || reg.college || `Team ${idx + 1}`,
+      randomName: shuffled[idx],
+      code: reg.code
+    }));
+
+    // Store assignments (not yet applied)
+    settings.values.assignments = assignments;
+    settings.values.applied = false;
+    await settings.save();
+
+    await writeAuditLog({
+      action: `Generated random team name assignments for ${assignments.length} registrations`,
+      req,
+      user: req.user
+    });
+
+    res.json({ 
+      ok: true,
+      assignments,
+      count: assignments.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST apply assignments to registrations
+router.post("/team-randomizer/apply", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const assignments = Array.isArray(req.body.assignments) ? req.body.assignments : [];
+
+    if (assignments.length === 0) {
+      throw makeError("No assignments to apply", 400);
+    }
+
+    let appliedCount = 0;
+    for (const assignment of assignments) {
+      const registration = await Registration.findById(assignment.registrationId);
+      if (registration) {
+        registration.teamName = assignment.randomName;
+        await registration.save();
+        appliedCount++;
+      }
+    }
+
+    // Mark as applied in settings
+    const settings = await Settings.findOne({ key: "team-randomizer" });
+    if (settings) {
+      settings.values.applied = true;
+      settings.values.appliedAt = new Date();
+      await settings.save();
+    }
+
+    await writeAuditLog({
+      action: `Applied random team names to ${appliedCount} registrations`,
+      req,
+      user: req.user
+    });
+
+    res.json({
+      ok: true,
+      appliedCount,
+      message: `Successfully applied random names to ${appliedCount} registrations`
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
