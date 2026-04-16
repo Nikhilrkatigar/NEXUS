@@ -46,7 +46,7 @@
   <div class="cms-card" id="roundCard" style="margin-bottom:16px;display:none">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <label style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);display:block">Step 2 — Select Round</label>
-      <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="addNewRound()" style="margin-left:auto">+ Add Round</button>
+      <button class="cms-btn cms-btn-primary cms-btn-sm" id="addRoundBtn" onclick="addNewRound()" style="margin-left:auto">+ Add Round</button>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap" id="roundButtonsContainer">
       <button class="round-btn active" id="roundBtn1" onclick="selectRound(1)">Round 1</button>
@@ -149,6 +149,22 @@ function canEditConfig() {
   return currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'organiser');
 }
 
+function getConfiguredRoundCount(eventObj) {
+  if (!eventObj) return 3;
+
+  // New settings format can store rounds as an array of round objects.
+  if (Array.isArray(eventObj.rounds)) {
+    return Math.max(1, eventObj.rounds.length || 1);
+  }
+
+  const parsed = parseInt(eventObj.rounds, 10);
+  if (Number.isInteger(parsed) && parsed > 0) {
+    return parsed;
+  }
+
+  return 3;
+}
+
 // ─── Event & Round Selection ──────────────────────────────────────────────
 function buildEventSelector() {
   const select = document.getElementById('eventSelector');
@@ -172,17 +188,19 @@ function onEventChange() {
   
   // Get number of rounds for this event (default to 3)
   const eventObj = (settings.events || []).find(e => String(e.id) === String(eventKey));
-  const defaultRounds = eventObj && eventObj.rounds ? parseInt(eventObj.rounds) : 3;
+  const defaultRounds = getConfiguredRoundCount(eventObj);
   
   // Use stored event rounds, or fall back to default from settings
   if (!eventRounds[eventKey]) {
     eventRounds[eventKey] = defaultRounds;
   }
-  const numRounds = eventRounds[eventKey];
+  const numRounds = Math.max(1, parseInt(eventRounds[eventKey], 10) || 1);
+  currentRound = Math.min(Math.max(1, currentRound || 1), numRounds);
+  const canManageRounds = canEditConfig() && !isReadOnly();
   
   // Show/hide round selector based on number of rounds
   const roundCard = document.getElementById('roundCard');
-  if (numRounds === 1) {
+  if (numRounds === 1 && !canManageRounds) {
     roundCard.style.display = 'none';
     currentRound = 1;
   } else {
@@ -198,6 +216,7 @@ function onEventChange() {
 function rebuildRoundButtons(numRounds) {
   const container = document.getElementById('roundButtonsContainer');
   container.innerHTML = '';
+  const allowRoundEdit = canEditConfig() && !isReadOnly();
   
   for (let r = 1; r <= numRounds; r++) {
     const btn = document.createElement('button');
@@ -206,7 +225,7 @@ function rebuildRoundButtons(numRounds) {
     btn.onclick = () => selectRound(r);
     
     // Only show remove button for rounds 2+ and only if more than 1 round
-    const removeBtn = r > 1 && numRounds > 1 
+    const removeBtn = allowRoundEdit && r > 1 && numRounds > 1 
       ? `<span style="margin-left:8px;cursor:pointer;color:var(--accent)" onclick="event.stopPropagation(); removeRound(${r})">✕</span>`
       : '';
     
@@ -217,15 +236,20 @@ function rebuildRoundButtons(numRounds) {
 
 function selectRound(round) {
   currentRound = round;
-  [1,2,3].forEach(r => {
-    const btn = document.getElementById(`roundBtn${r}`);
-    if (btn) btn.className = 'round-btn' + (r === round ? ' active' : '');
+  document.querySelectorAll('#roundButtonsContainer .round-btn').forEach((btn) => {
+    const btnRound = parseInt(String(btn.id || '').replace('roundBtn', ''), 10);
+    btn.className = 'round-btn' + (btnRound === round ? ' active' : '');
   });
   if (currentEventKey) loadEventScoring();
 }
 
 // ─── Add/Remove Rounds ──────────────────────────────────────────────────
 async function addNewRound() {
+  if (!canEditConfig() || isReadOnly()) {
+    showToast('Only organisers and superadmins can manage rounds', 'error');
+    return;
+  }
+
   if (!currentEventKey) {
     showToast('Please select an event first', 'error');
     return;
@@ -252,6 +276,11 @@ async function addNewRound() {
 }
 
 function removeRound(round) {
+  if (!canEditConfig() || isReadOnly()) {
+    showToast('Only organisers and superadmins can manage rounds', 'error');
+    return;
+  }
+
   if (!currentEventKey) return;
   
   if (round === 1) {
@@ -607,16 +636,9 @@ function validateScore(input) {
 
 // ─── Load 3-Round Comparison ─────────────────────────────────────────────
 async function loadThreeRoundComparison(eventKey, scoreKey, allEntries, cols) {
-  // Count how many rounds actually exist
-  let numRounds = 0;
-  for (let r = 1; r <= 99; r++) {
-    if (document.getElementById(`roundBtn${r}`)) {
-      numRounds = r;
-    } else {
-      break;
-    }
-  }
-  if (numRounds === 0) numRounds = 3; // fallback
+  // Use event-level round configuration so comparison works even when round buttons are hidden.
+  const configuredRounds = parseInt(eventRounds[eventKey], 10);
+  const numRounds = Number.isInteger(configuredRounds) && configuredRounds > 0 ? configuredRounds : 1;
 
   // Get scores for all available rounds
   const roundScores = {};
@@ -894,9 +916,14 @@ function downloadPDF(scoreKey) {
   // Initialize event rounds from settings
   (settings.events || []).forEach(event => {
     if (event.id) {
-      eventRounds[event.id] = event.rounds ? parseInt(event.rounds) : 3;
+      eventRounds[event.id] = getConfiguredRoundCount(event);
     }
   });
+
+  const addRoundBtn = document.getElementById('addRoundBtn');
+  if (addRoundBtn && (!canEditConfig() || isReadOnly())) {
+    addRoundBtn.style.display = 'none';
+  }
 
   buildEventSelector();
 })();

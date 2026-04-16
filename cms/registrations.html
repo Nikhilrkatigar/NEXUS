@@ -1,238 +1,1076 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Registrations - NEXUS CMS</title>
 <link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#060810">
 <meta name="description" content="NEXUS CMS - Event Management & Championship Platform">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="cms-core.js"></script>
 <style id="cmsStyle"></style>
-</head>
-<body>
-<div id="sidebarContainer"></div>
-<main class="cms-main">
-  <div class="cms-header" style="display:flex;justify-content:space-between;align-items:flex-start">
-    <div><h1>Registrations</h1><p>All registered teams and participants</p></div>
-    <div style="display:flex;gap:10px">
-      <button class="cms-btn cms-btn-primary" onclick="exportCSV()">Export CSV</button>
-    </div>
-  </div>
-  <div class="cms-card" style="margin-bottom:20px">
-    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-      <input type="text" id="searchInput" placeholder="Search by college, team name, leader, code..." style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;flex:1;min-width:200px" oninput="renderTable()">
-      <select id="eventFilter" style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;color:#f0f0f0;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;font-weight:500" onchange="renderTable()">
-        <option value="">All Events</option>
-      </select>
-      <div style="font-size:13px;color:var(--muted)" id="countLabel"></div>
-    </div>
-  </div>
-  <div class="cms-card">
-    <table class="cms-table" id="regsTable">
-      <thead><tr>
-        <th>#</th><th>Code</th><th>College</th><th>Team Name</th><th>Group Leader</th><th>Faculty</th><th>Participants</th><th>Payment</th><th>Date</th><th>Actions</th>
-      </tr></thead>
-      <tbody id="regsTbody"></tbody>
-    </table>
-  </div>
-</main>
-
-<div id="detailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:800;align-items:center;justify-content:center;backdrop-filter:blur(10px)">
-  <div style="background:#111827;border:1px solid rgba(245,166,35,0.2);border-radius:20px;padding:40px;max-width:560px;width:90%;position:relative;max-height:80vh;overflow-y:auto">
-    <button onclick="document.getElementById('detailModal').style.display='none'" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">x</button>
-    <div style="position:absolute;top:16px;right:50px;display:flex;gap:8px">
-      <button onclick="editRegistration(currentEditingId)" style="background:rgba(245,166,35,0.1);color:#f5a623;border:1px solid rgba(245,166,35,0.3);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">✎ Edit</button>
-      <button onclick="deleteRegistration(currentEditingId)" style="background:rgba(230,60,92,0.1);color:#e63c5c;border:1px solid rgba(230,60,92,0.3);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">🗑 Delete</button>
-    </div>
-    <div id="detailContent"></div>
-  </div>
-</div>
-
-<script>
-let regs = [];
-let currentEditingId = null;
-
-function getTeamName(registration) {
-  return registration.teamName || registration.college || '-';
-}
-
-function getLeaderName(registration) {
-  const participants = Array.isArray(registration.participants) ? registration.participants : [];
-  const selectedLeader = participants.find((participant) => participant.isTeamLeader && participant.name);
-  if (selectedLeader) return selectedLeader.name;
-  const firstNamedParticipant = participants.find((participant) => participant.name);
-  if (firstNamedParticipant) return firstNamedParticipant.name;
-  return registration.leader || '-';
-}
-
-function renderTable() {
-  const search = document.getElementById('searchInput').value.toLowerCase();
-  const eventFilter = document.getElementById('eventFilter').value;
-  const filtered = regs.filter((registration) => {
-    const matchSearch =
-      !search ||
-      registration.college.toLowerCase().includes(search) ||
-      getTeamName(registration).toLowerCase().includes(search) ||
-      registration.event.toLowerCase().includes(search) ||
-      registration.code.toLowerCase().includes(search) ||
-      getLeaderName(registration).toLowerCase().includes(search);
-    const matchEvent = !eventFilter || registration.event === eventFilter;
-    return matchSearch && matchEvent;
-  });
-
-  document.getElementById('countLabel').textContent = `${filtered.length} registration${filtered.length !== 1 ? 's' : ''}`;
-  document.getElementById('regsTbody').innerHTML = filtered.length
-    ? filtered.map((registration, index) => {
-        const paymentStatus = registration.paymentStatus || 'pending';
-        const paymentBadge = paymentStatus === 'verified' 
-          ? '<span class="badge badge-green" style="font-size:10px">✓ Verified</span>'
-          : '<span class="badge badge-yellow" style="font-size:10px">⏳ Pending</span>';
-        return `
-      <tr>
-        <td style="color:var(--muted);font-size:12px">${index + 1}</td>
-        <td><span class="badge badge-gold">#${registration.code}</span></td>
-        <td style="font-weight:500">${registration.college}</td>
-        <td><span class="badge badge-blue" style="font-size:10px;white-space:nowrap">${getTeamName(registration)}</span></td>
-        <td style="font-size:12px">${getLeaderName(registration)}</td>
-        <td style="font-size:12px;color:var(--muted)">${registration.faculty || '-'}</td>
-        <td style="font-size:12px;color:var(--muted)">${(registration.participants || []).filter((participant) => participant.name).length} participant(s)</td>
-        <td>${paymentBadge}</td>
-        <td style="font-size:11px;color:var(--muted)">${new Date(registration.timestamp).toLocaleDateString()}</td>
-        <td><button class="cms-btn cms-btn-sm" style="background:rgba(245,166,35,0.1);color:#f5a623;border:none;cursor:pointer" onclick="viewDetail('${registration.id}')">View</button></td>
-      </tr>
-    `;
-      }).join('')
-    : '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px">No registrations found</td></tr>';
-}
-
-function viewDetail(id) {
-  const registration = regs.find((entry) => String(entry.id) === String(id));
-  if (!registration) {
-    console.warn("Registration not found with id:", id);
-    return;
+<style>
+  :root {
+    --bg-primary: #060810;
+    --bg-secondary: #0d1117;
+    --bg-card: #111827;
+    --bg-elevated: #1a2332;
+    --bg-hover: rgba(245,166,35,0.04);
+    --accent: #f5a623;
+    --accent-dim: rgba(245,166,35,0.15);
+    --accent-glow: rgba(245,166,35,0.3);
+    --green: #10b981;
+    --green-dim: rgba(16,185,129,0.12);
+    --red: #e63c5c;
+    --red-dim: rgba(230,60,92,0.12);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59,130,246,0.12);
+    --purple: #8b5cf6;
+    --purple-dim: rgba(139,92,246,0.12);
+    --yellow: #eab308;
+    --yellow-dim: rgba(234,179,8,0.12);
+    --text: #f0f0f0;
+    --text-secondary: #a0aec0;
+    --muted: #6b7280;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.5);
+    --shadow-glow: 0 0 30px rgba(245,166,35,0.1);
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  currentEditingId = id;
+  * { margin:0; padding:0; box-sizing:border-box; }
 
-  console.log("=== VIEWING REGISTRATION DETAIL ===");
-  console.log("Registration ID:", id);
-  console.log("Registration Code:", registration.code);
-  console.log("Payment Status:", registration.paymentStatus);
-  console.log("Payment Screenshot Filename:", registration.paymentScreenshot);
-  console.log("Payment Screenshot Path:", registration.paymentScreenshotPath);
-  console.log("Full registration object:", registration);
-  console.log("=====================================");
-
-  const paymentStatus = registration.paymentStatus || 'pending';
-  const paymentStatusDisplay = paymentStatus === 'verified' 
-    ? '<span style="color:#10b981;font-weight:600">✓ Verified</span>'
-    : '<span style="color:#f5a623;font-weight:600">⏳ Pending Verification</span>';
-
-  let paymentSection = `
-    <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:16px;margin-top:16px">
-      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Payment Status</div>
-      <div style="font-size:14px;margin-bottom:12px">${paymentStatusDisplay}</div>
-  `;
-
-  if (registration.paymentScreenshot) {
-    paymentSection += `
-      <div style="margin-top:12px">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Screenshot</div>
-        <img
-          id="paymentScreenshotImg_${registration.code}"
-          src="/api/cms/payment-screenshot/${registration.code}?t=${Date.now()}"
-          alt="Payment Screenshot"
-          style="max-width:100%;height:auto;border-radius:8px;border:1px solid rgba(245,166,35,0.2);cursor:pointer;display:block"
-          onclick="viewScreenshot('${registration.code}')"
-          onerror="this.onerror=null;this.src='/uploads/payment-screenshots/${registration.paymentScreenshot}?t=${Date.now()}';this.style.borderColor='rgba(245,166,35,0.2)';"
-        />
-        <p style="font-size:11px;color:var(--muted);margin-top:8px">Click to view full size · File: ${registration.paymentScreenshot}</p>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="cms-btn cms-btn-sm" style="background:rgba(16,185,129,0.1);color:#10b981;border:none;cursor:pointer;flex:1" onclick="verifyPayment('${registration.code}')">✓ Verify Payment</button>
-        <button class="cms-btn cms-btn-sm" style="background:rgba(230,60,92,0.1);color:#e63c5c;border:none;cursor:pointer;flex:1" onclick="rejectPayment('${registration.code}')">✕ Reject</button>
-      </div>
-    `;
-  } else {
-    paymentSection += `
-      <div style="color:var(--muted);font-size:12px;margin-top:8px">No payment screenshot uploaded yet</div>
-    `;
+  body {
+    font-family: 'DM Sans', 'Inter', -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
-  paymentSection += '</div>';
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-  document.getElementById('detailContent').innerHTML = `
-    <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#f5a623;margin-bottom:8px">Registration Details</div>
-    <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:#f5a623;letter-spacing:0.15em;padding:16px;background:rgba(245,166,35,0.06);border-radius:12px;border:1px dashed rgba(245,166,35,0.2);text-align:center;margin-bottom:24px">#${registration.code}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-      ${[
-        ['College', registration.college],
-        ['Team Name', getTeamName(registration)],
-        ['Event', registration.event],
-        ['Tracks', (registration.registeredEvents || []).join(', ') || '-'],
-        ['Email', registration.email || '-'],
-        ['Faculty', registration.faculty || '-'],
-        ['Group Leader', getLeaderName(registration)],
-        ['Registered', new Date(registration.timestamp).toLocaleString()]
-      ].map(([label, value]) => `
-        <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px">
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">${label}</div>
-          <div style="font-size:13px;font-weight:500">${value}</div>
-        </div>
-      `).join('')}
-    </div>
-    ${paymentSection}
-    ${(registration.participants || []).filter((participant) => participant.name).length ? `
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted);margin-top:20px">Participants</div>
-      ${(registration.participants || []).filter((participant) => participant.name).map((participant, index) => `
-        <div style="display:flex;justify-content:space-between;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:6px;font-size:13px">
-          <div>
-            <div>${index + 1}. ${participant.name}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">
-              ${participant.department || '-'}
-              ${participant.danceParticipant ? ' | Dance' : ''}
-              ${participant.rampWalkParticipant ? ' | Ramp Walk' : ''}
-            </div>
-          </div>
-          <span style="color:var(--muted)">${participant.phone || '-'}</span>
-        </div>
-      `).join('')}
-    ` : ''}
-  `;
+  /* Main Layout */
+  .cms-main {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
 
-  document.getElementById('detailModal').style.display = 'flex';
-}
+  /* Header Section */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
 
-async function exportCSV() {
-  const headers = ['Code', 'College', 'Team Name', 'Address', 'Email', 'Event', 'Tracks', 'Faculty', 'Group Leader', 'Participants', 'Payment Status', 'Date'];
-  const rows = regs.map((registration) => [
-    registration.code,
-    registration.college,
-    getTeamName(registration),
-    registration.address || '',
-    registration.email || '',
-    registration.event,
-    (registration.registeredEvents || []).join('; '),
-    registration.faculty || '',
-    getLeaderName(registration),
-    (registration.participants || []).filter((participant) => participant.name).map((participant) => participant.name).join('; '),
-    registration.paymentStatus || 'pending',
-    new Date(registration.timestamp).toLocaleString()
-  ]);
-  const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'nexus_registrations.csv';
-  link.click();
-  await NexusCMS.addAuditLog('Exported registrations CSV');
-  showToast('Registrations exported!');
-}
+  .page-header-left h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(24px, 4vw, 32px);
+    font-weight: 800;
+    background: linear-gradient(135deg, #f5a623 0%, #f7c948 50%, #f5a623 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
 
-function viewScreenshot(code) {
-  const modal = document.createElement('div');
-  modal.style.cssText = `
+  .page-header-left p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: var(--transition);
+  }
+
+  .stat-card:hover::before { opacity: 1; }
+  .stat-card:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+
+  .stat-card .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+
+  /* Filter Bar */
+  .filter-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    transition: var(--transition);
+  }
+
+  .filter-bar:focus-within {
+    border-color: rgba(245,166,35,0.3);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.08);
+  }
+
+  .search-wrapper {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+  }
+
+  .search-wrapper .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+    pointer-events: none;
+    transition: var(--transition);
+  }
+
+  .search-wrapper input {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px 11px 40px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13.5px;
+    outline: none;
+    transition: var(--transition);
+  }
+
+  .search-wrapper input:focus {
+    border-color: rgba(245,166,35,0.4);
+    background: rgba(245,166,35,0.03);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.06);
+  }
+
+  .search-wrapper input:focus + .search-icon {
+    color: var(--accent);
+  }
+
+  .search-wrapper input::placeholder {
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .filter-select {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px 36px 11px 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: var(--transition);
+    min-width: 140px;
+  }
+
+  .filter-select:focus {
+    border-color: rgba(245,166,35,0.4);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.06);
+  }
+
+  .filter-select option {
+    background: var(--bg-card);
+    color: var(--text);
+    padding: 8px;
+  }
+
+  .filter-count {
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .filter-count .count-num {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  /* View Toggle */
+  .view-toggle {
+    display: flex;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .view-toggle button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .view-toggle button.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .view-toggle button:hover:not(.active) {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0;
+    transition: var(--transition);
+  }
+
+  .btn:hover::after { opacity: 1; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #f5a623, #e6961e);
+    color: #000;
+    box-shadow: 0 2px 12px rgba(245,166,35,0.25);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 4px 20px rgba(245,166,35,0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--border-hover);
+    color: var(--text);
+  }
+
+  .btn-sm {
+    padding: 7px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .btn-icon {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Table Card */
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  /* Desktop Table */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .reg-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .reg-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .reg-table th {
+    background: var(--bg-elevated);
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    user-select: none;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .reg-table th:hover {
+    color: var(--text-secondary);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .reg-table th .sort-icon {
+    display: inline-block;
+    margin-left: 4px;
+    opacity: 0.3;
+    font-size: 10px;
+    transition: var(--transition);
+  }
+
+  .reg-table th:hover .sort-icon { opacity: 0.7; }
+
+  .reg-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    transition: var(--transition);
+  }
+
+  .reg-table tbody tr {
+    transition: var(--transition);
+    cursor: pointer;
+  }
+
+  .reg-table tbody tr:hover {
+    background: var(--bg-hover);
+  }
+
+  .reg-table tbody tr:hover td {
+    border-bottom-color: rgba(245,166,35,0.1);
+  }
+
+  .reg-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .reg-table tbody tr:active {
+    background: rgba(245,166,35,0.06);
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .badge-gold {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(245,166,35,0.2);
+  }
+
+  .badge-green {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+
+  .badge-yellow {
+    background: var(--yellow-dim);
+    color: var(--yellow);
+    border: 1px solid rgba(234,179,8,0.2);
+  }
+
+  .badge-blue {
+    background: var(--blue-dim);
+    color: var(--blue);
+    border: 1px solid rgba(59,130,246,0.2);
+  }
+
+  .badge-red {
+    background: var(--red-dim);
+    color: var(--red);
+    border: 1px solid rgba(230,60,92,0.2);
+  }
+
+  .badge-purple {
+    background: var(--purple-dim);
+    color: var(--purple);
+    border: 1px solid rgba(139,92,246,0.2);
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .badge-green .badge-dot { background: var(--green); }
+  .badge-yellow .badge-dot { background: var(--yellow); }
+  .badge-red .badge-dot { background: var(--red); }
+
+  /* Cell Styles */
+  .cell-code {
+    font-family: 'DM Sans', monospace;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .cell-college {
+    font-weight: 600;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cell-leader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .leader-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .cell-participants {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .participant-dots {
+    display: flex;
+  }
+
+  .participant-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    border: 2px solid var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-left: -6px;
+  }
+
+  .participant-dot:first-child { margin-left: 0; }
+
+  .participant-dot.more {
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 8px;
+  }
+
+  .cell-date {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .view-btn {
+    background: rgba(245,166,35,0.08);
+    color: var(--accent);
+    border: 1px solid rgba(245,166,35,0.15);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  .view-btn:hover {
+    background: rgba(245,166,35,0.15);
+    border-color: rgba(245,166,35,0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(245,166,35,0.15);
+  }
+
+  /* Card Grid View */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .reg-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reg-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0;
+    transition: var(--transition);
+  }
+
+  .reg-card:hover {
+    border-color: rgba(245,166,35,0.2);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .reg-card:hover::before { opacity: 1; }
+
+  .reg-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+
+  .reg-card-code {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .reg-card-college {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .reg-card-team {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+  }
+
+  .reg-card-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .reg-card-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .reg-card-meta-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .reg-card-meta-value {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .reg-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+  }
+
+  .empty-state-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+  }
+
+  .empty-state-desc {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 800;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(12px);
+    padding: 16px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-panel {
+    background: var(--bg-card);
+    border: 1px solid rgba(245,166,35,0.15);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    position: relative;
+    animation: slideUp 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .modal-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .modal-header-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .modal-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+
+  .modal-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+    border-color: var(--border-hover);
+  }
+
+  .modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-code-display {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 8vw, 52px);
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(245,166,35,0.06), rgba(245,166,35,0.02));
+    border-radius: var(--radius-md);
+    border: 1px dashed rgba(245,166,35,0.2);
+    text-align: center;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .modal-code-display::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(245,166,35,0.05), transparent);
+    pointer-events: none;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .detail-item {
+    background: rgba(255,255,255,0.025);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    border: 1px solid transparent;
+    transition: var(--transition);
+  }
+
+  .detail-item:hover {
+    border-color: var(--border);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .detail-item-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+
+  .detail-item-value {
+    font-size: 13.5px;
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .payment-section {
+    background: linear-gradient(135deg, rgba(245,166,35,0.04), rgba(245,166,35,0.01));
+    border: 1px solid rgba(245,166,35,0.15);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .payment-section-title {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .payment-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .payment-screenshot {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(245,166,35,0.15);
+    cursor: pointer;
+    transition: var(--transition);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .payment-screenshot:hover {
+    border-color: rgba(245,166,35,0.3);
+    transform: scale(1.01);
+  }
+
+  .payment-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .payment-actions button {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .btn-verify {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+
+  .btn-verify:hover {
+    background: rgba(16,185,129,0.2);
+    border-color: rgba(16,185,129,0.4);
+  }
+
+  .btn-reject {
+    background: var(--red-dim);
+    color: var(--red);
+    border: 1px solid rgba(230,60,92,0.2);
+  }
+
+  .btn-reject:hover {
+    background: rgba(230,60,92,0.2);
+    border-color: rgba(230,60,92,0.4);
+  }
+
+  .participants-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .participant-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.02);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    transition: var(--transition);
+    border: 1px solid transparent;
+  }
+
+  .participant-row:hover {
+    background: rgba(255,255,255,0.04);
+    border-color: var(--border);
+  }
+
+  .participant-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .participant-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .participant-name {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .participant-details {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .participant-tag {
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--purple-dim);
+    color: var(--purple);
+  }
+
+  .participant-phone {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* Screenshot Modal */
+  .screenshot-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.95);
@@ -241,184 +1079,1111 @@ function viewScreenshot(code) {
     align-items: center;
     justify-content: center;
     padding: 20px;
-  `;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .screenshot-overlay img {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Loading */
+  .loading-shimmer {
+    background: linear-gradient(90deg, var(--bg-elevated) 25%, rgba(255,255,255,0.04) 50%, var(--bg-elevated) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .loading-rows {
+    padding: 16px;
+  }
+
+  .loading-row {
+    height: 52px;
+    margin-bottom: 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Toast */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--shadow-lg);
+    animation: toastIn 0.3s ease forwards;
+    pointer-events: auto;
+    min-width: 280px;
+    max-width: 420px;
+  }
+
+  .toast.toast-out {
+    animation: toastOut 0.3s ease forwards;
+  }
+
+  .toast-success { border-left: 3px solid var(--green); }
+  .toast-error { border-left: 3px solid var(--red); }
+  .toast-info { border-left: 3px solid var(--blue); }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes toastOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(40px); }
+  }
+
+  /* Responsive: Tablet */
+  @media (max-width: 1024px) {
+    .cms-main { padding: 16px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .detail-grid { gap: 8px; }
+  }
+
+  /* Responsive: Mobile */
+  @media (max-width: 768px) {
+    .cms-main { padding: 12px; }
+    
+    .page-header {
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .header-actions {
+      width: 100%;
+    }
+
+    .header-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .stats-row {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .stat-card {
+      padding: 14px 16px;
+    }
+
+    .stat-card .stat-value { font-size: 22px; }
+
+    .filter-bar {
+      flex-direction: column;
+      padding: 14px;
+      gap: 10px;
+    }
+
+    .search-wrapper { min-width: 100%; }
+
+    .filter-bar > select,
+    .filter-bar > .filter-select {
+      width: 100%;
+    }
+
+    .filter-bottom-row {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Hide table on mobile, show cards */
+    .table-container { display: none; }
+    .cards-grid {
+      display: grid !important;
+      grid-template-columns: 1fr;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    .modal-panel {
+      max-width: 100%;
+      border-radius: var(--radius-lg);
+      max-height: 95vh;
+    }
+
+    .modal-header {
+      padding: 16px 18px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .modal-header-actions {
+      flex-wrap: wrap;
+    }
+
+    .modal-body { padding: 18px; }
+
+    .modal-code-display {
+      font-size: 36px;
+      padding: 16px;
+    }
+
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .payment-actions {
+      flex-direction: column;
+    }
+
+    .toast-container {
+      bottom: 12px;
+      right: 12px;
+      left: 12px;
+    }
+
+    .toast {
+      min-width: auto;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .stat-card { padding: 12px; }
+    .stat-card .stat-value { font-size: 20px; }
+    .stat-card .stat-label { font-size: 10px; }
+    .stat-card .stat-icon { width: 30px; height: 30px; font-size: 14px; margin-bottom: 8px; }
+
+    .cards-grid { padding: 8px; gap: 10px; }
+    .reg-card { padding: 16px; }
+    .reg-card-code { font-size: 16px; }
+    .reg-card-college { font-size: 14px; }
+  }
+
+  /* Desktop: hide card grid by default */
+  @media (min-width: 769px) {
+    .cards-grid.hidden-desktop { display: none; }
+  }
+
+  /* Number indicator */
+  .row-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-elevated) 25%, rgba(255,255,255,0.04) 50%, var(--bg-elevated) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+  }
+
+  /* Pulse animation for live data */
+  @keyframes gentle-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .live-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+    animation: gentle-pulse 2s infinite;
+  }
+
+  /* Confirmation dialog styles */
+  .confirm-dialog {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    animation: slideUp 0.3s ease;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .confirm-dialog h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .confirm-dialog p {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .confirm-dialog .confirm-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .confirm-dialog .confirm-actions button {
+    flex: 1;
+    padding: 11px 16px;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+  }
+</style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+
+<main class="cms-main">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>Registrations</h1>
+      <p>Manage teams, participants & payments</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" onclick="refreshData()" id="refreshBtn" title="Refresh data">
+        <span>↻</span> Refresh
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="exportCSV()">
+        <span>↓</span> Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:var(--accent-dim);color:var(--accent)">📋</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-label">Total Registrations</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:var(--green-dim);color:var(--green)">✓</div>
+      <div class="stat-value" id="statVerified">—</div>
+      <div class="stat-label">Verified Payments</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:var(--yellow-dim);color:var(--yellow)">⏳</div>
+      <div class="stat-value" id="statPending">—</div>
+      <div class="stat-label">Pending Payments</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:var(--blue-dim);color:var(--blue)">👥</div>
+      <div class="stat-value" id="statParticipants">—</div>
+      <div class="stat-label">Total Participants</div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="search-wrapper">
+      <input type="text" id="searchInput" placeholder="Search college, team, leader, code..." oninput="debouncedRender()">
+      <span class="search-icon">🔍</span>
+    </div>
+    <select id="eventFilter" class="filter-select" onchange="renderView()">
+      <option value="">All Events</option>
+    </select>
+    <select id="paymentFilter" class="filter-select" onchange="renderView()">
+      <option value="">All Payments</option>
+      <option value="verified">✓ Verified</option>
+      <option value="pending">⏳ Pending</option>
+    </select>
+    <div class="filter-bottom-row">
+      <div class="filter-count" id="countLabel">
+        <span class="live-indicator"></span>
+        <span>Loading...</span>
+      </div>
+      <div class="view-toggle" id="viewToggle">
+        <button class="active" onclick="setView('table')" title="Table view" id="viewTableBtn">☰</button>
+        <button onclick="setView('cards')" title="Card view" id="viewCardsBtn">▦</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="table-card" id="contentArea">
+    <!-- Loading State -->
+    <div class="loading-rows" id="loadingState">
+      <div class="loading-row loading-shimmer"></div>
+      <div class="loading-row loading-shimmer"></div>
+      <div class="loading-row loading-shimmer"></div>
+      <div class="loading-row loading-shimmer"></div>
+      <div class="loading-row loading-shimmer"></div>
+    </div>
+
+    <!-- Table View -->
+    <div class="table-container" id="tableView" style="display:none">
+      <table class="reg-table">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th onclick="sortBy('code')">Code <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('college')">College <span class="sort-icon">↕</span></th>
+            <th>Team Name</th>
+            <th onclick="sortBy('leader')">Leader <span class="sort-icon">↕</span></th>
+            <th>Participants</th>
+            <th onclick="sortBy('payment')">Payment <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('date')">Date <span class="sort-icon">↕</span></th>
+            <th style="width:70px"></th>
+          </tr>
+        </thead>
+        <tbody id="regsTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Cards View -->
+    <div class="cards-grid hidden-desktop" id="cardsView" style="display:none"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" style="display:none">
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-title">No registrations found</div>
+        <div class="empty-state-desc">Try adjusting your search or filter criteria to find what you're looking for.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <span class="modal-header-label">Registration Details</span>
+      </div>
+      <div class="modal-header-actions">
+        <button class="btn btn-sm btn-ghost" onclick="editRegistration(currentEditingId)" style="color:var(--accent);border-color:rgba(245,166,35,0.2)">
+          ✎ Edit
+        </button>
+        <button class="btn btn-sm btn-ghost" onclick="deleteRegistration(currentEditingId)" style="color:var(--red);border-color:rgba(230,60,92,0.2)">
+          🗑 Delete
+        </button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="detailContent"></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+let regs = [];
+let currentEditingId = null;
+let currentView = 'table';
+let sortField = 'date';
+let sortDir = 'desc';
+let debounceTimer = null;
+
+// ==================== UTILITY FUNCTIONS ====================
+
+function getTeamName(r) {
+  return r.teamName || r.college || '-';
+}
+
+function getLeaderName(r) {
+  const p = Array.isArray(r.participants) ? r.participants : [];
+  const leader = p.find(x => x.isTeamLeader && x.name);
+  if (leader) return leader.name;
+  const first = p.find(x => x.name);
+  if (first) return first.name;
+  return r.leader || '-';
+}
+
+function getInitials(name) {
+  if (!name || name === '-') return '?';
+  return name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+}
+
+function getParticipantCount(r) {
+  return (r.participants || []).filter(p => p.name).length;
+}
+
+function formatDate(timestamp) {
+  const d = new Date(timestamp);
+  const now = new Date();
+  const diff = now - d;
   
-  modal.innerHTML = `
-    <div style="position: relative; max-width: 90vw; max-height: 90vh;">
+  if (diff < 86400000) {
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 1) {
+      const mins = Math.floor(diff / 60000);
+      return mins < 2 ? 'Just now' : `${mins}m ago`;
+    }
+    return `${hours}h ago`;
+  }
+  if (diff < 172800000) return 'Yesterday';
+  
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+}
+
+function debouncedRender() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(renderView, 200);
+}
+
+// ==================== CUSTOM TOAST ====================
+
+function nexusToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  const typeClass = type === 'error' ? 'toast-error' : type === 'info' ? 'toast-info' : 'toast-success';
+  const icon = type === 'error' ? '✕' : type === 'info' ? 'ℹ' : '✓';
+  
+  toast.className = `toast ${typeClass}`;
+  toast.innerHTML = `<span style="font-size:16px">${icon}</span><span>${message}</span>`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('toast-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+// Override global showToast if it exists
+if (typeof showToast === 'undefined') {
+  window.showToast = nexusToast;
+} else {
+  const _originalToast = showToast;
+  window.showToast = function(msg, type) {
+    nexusToast(msg, type);
+  };
+}
+
+// ==================== CUSTOM CONFIRM ====================
+
+function nexusConfirm(title, message) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:950;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);animation:fadeIn 0.2s ease';
+    
+    overlay.innerHTML = `
+      <div class="confirm-dialog">
+        <h3 style="color:var(--text)">${title}</h3>
+        <p>${message}</p>
+        <div class="confirm-actions">
+          <button id="confirmCancel" style="background:rgba(255,255,255,0.06);color:var(--text-secondary);border:1px solid var(--border)">Cancel</button>
+          <button id="confirmOk" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(230,60,92,0.2)">Confirm</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    overlay.querySelector('#confirmCancel').onclick = () => { overlay.remove(); resolve(false); };
+    overlay.querySelector('#confirmOk').onclick = () => { overlay.remove(); resolve(true); };
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+  });
+}
+
+// ==================== STATS ====================
+
+function updateStats() {
+  const total = regs.length;
+  const verified = regs.filter(r => r.paymentStatus === 'verified').length;
+  const pending = total - verified;
+  const participants = regs.reduce((sum, r) => sum + getParticipantCount(r), 0);
+
+  animateCounter('statTotal', total);
+  animateCounter('statVerified', verified);
+  animateCounter('statPending', pending);
+  animateCounter('statParticipants', participants);
+}
+
+function animateCounter(id, target) {
+  const el = document.getElementById(id);
+  const current = parseInt(el.textContent) || 0;
+  if (current === target) { el.textContent = target; return; }
+  
+  const duration = 600;
+  const start = performance.now();
+  
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(current + (target - current) * eased);
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  
+  requestAnimationFrame(step);
+}
+
+// ==================== SORTING ====================
+
+function sortBy(field) {
+  if (sortField === field) {
+    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortField = field;
+    sortDir = 'asc';
+  }
+  renderView();
+}
+
+function sortRegistrations(list) {
+  return [...list].sort((a, b) => {
+    let va, vb;
+    switch (sortField) {
+      case 'code': va = a.code; vb = b.code; break;
+      case 'college': va = a.college.toLowerCase(); vb = b.college.toLowerCase(); break;
+      case 'leader': va = getLeaderName(a).toLowerCase(); vb = getLeaderName(b).toLowerCase(); break;
+      case 'payment': va = a.paymentStatus || 'pending'; vb = b.paymentStatus || 'pending'; break;
+      case 'date': default: va = new Date(a.timestamp).getTime(); vb = new Date(b.timestamp).getTime(); break;
+    }
+    if (va < vb) return sortDir === 'asc' ? -1 : 1;
+    if (va > vb) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+// ==================== VIEW TOGGLE ====================
+
+function setView(view) {
+  currentView = view;
+  document.getElementById('viewTableBtn').classList.toggle('active', view === 'table');
+  document.getElementById('viewCardsBtn').classList.toggle('active', view === 'cards');
+  renderView();
+}
+
+// ==================== FILTERING & RENDERING ====================
+
+function getFilteredRegs() {
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
+  const eventFilter = document.getElementById('eventFilter').value;
+  const paymentFilter = document.getElementById('paymentFilter').value;
+
+  return regs.filter(r => {
+    const matchSearch = !search ||
+      r.college.toLowerCase().includes(search) ||
+      getTeamName(r).toLowerCase().includes(search) ||
+      r.event.toLowerCase().includes(search) ||
+      r.code.toLowerCase().includes(search) ||
+      getLeaderName(r).toLowerCase().includes(search);
+    const matchEvent = !eventFilter || r.event === eventFilter;
+    const matchPayment = !paymentFilter || (r.paymentStatus || 'pending') === paymentFilter;
+    return matchSearch && matchEvent && matchPayment;
+  });
+}
+
+function renderView() {
+  const filtered = sortRegistrations(getFilteredRegs());
+  
+  // Update count
+  document.getElementById('countLabel').innerHTML = `
+    <span class="live-indicator"></span>
+    <span><span class="count-num">${filtered.length}</span> registration${filtered.length !== 1 ? 's' : ''}</span>
+  `;
+
+  const hasData = filtered.length > 0;
+  const isMobile = window.innerWidth <= 768;
+
+  // Hide loading
+  document.getElementById('loadingState').style.display = 'none';
+  
+  // Show/hide empty state
+  document.getElementById('emptyState').style.display = hasData ? 'none' : 'block';
+
+  if (isMobile || currentView === 'cards') {
+    document.getElementById('tableView').style.display = 'none';
+    document.getElementById('cardsView').style.display = hasData ? 'grid' : 'none';
+    renderCards(filtered);
+  } else {
+    document.getElementById('tableView').style.display = hasData ? 'block' : 'none';
+    document.getElementById('cardsView').style.display = 'none';
+    renderTable(filtered);
+  }
+}
+
+function renderTable(filtered) {
+  document.getElementById('regsTbody').innerHTML = filtered.map((r, i) => {
+    const paymentStatus = r.paymentStatus || 'pending';
+    const payBadge = paymentStatus === 'verified'
+      ? '<span class="badge badge-green"><span class="badge-dot"></span>Verified</span>'
+      : '<span class="badge badge-yellow"><span class="badge-dot"></span>Pending</span>';
+    
+    const leaderName = getLeaderName(r);
+    const pCount = getParticipantCount(r);
+    
+    let participantDots = '';
+    const visibleParticipants = (r.participants || []).filter(p => p.name).slice(0, 3);
+    participantDots = visibleParticipants.map(p => `<div class="participant-dot">${getInitials(p.name).charAt(0)}</div>`).join('');
+    if (pCount > 3) {
+      participantDots += `<div class="participant-dot more">+${pCount - 3}</div>`;
+    }
+
+    return `
+      <tr onclick="viewDetail('${r.id}')">
+        <td><div class="row-num">${i + 1}</div></td>
+        <td><span class="badge badge-gold cell-code">#${r.code}</span></td>
+        <td><div class="cell-college" title="${r.college}">${r.college}</div></td>
+        <td><span class="badge badge-blue" style="font-size:11px">${getTeamName(r)}</span></td>
+        <td>
+          <div class="cell-leader">
+            <div class="leader-avatar">${getInitials(leaderName)}</div>
+            <span style="font-size:12.5px">${leaderName}</span>
+          </div>
+        </td>
+        <td>
+          <div class="cell-participants">
+            <div class="participant-dots">${participantDots}</div>
+            <span style="font-size:12px;color:var(--muted)">${pCount}</span>
+          </div>
+        </td>
+        <td>${payBadge}</td>
+        <td class="cell-date">${formatDate(r.timestamp)}</td>
+        <td><button class="view-btn" onclick="event.stopPropagation();viewDetail('${r.id}')">View →</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderCards(filtered) {
+  document.getElementById('cardsView').innerHTML = filtered.map(r => {
+    const paymentStatus = r.paymentStatus || 'pending';
+    const payBadge = paymentStatus === 'verified'
+      ? '<span class="badge badge-green" style="font-size:11px"><span class="badge-dot"></span>Verified</span>'
+      : '<span class="badge badge-yellow" style="font-size:11px"><span class="badge-dot"></span>Pending</span>';
+
+    return `
+      <div class="reg-card" onclick="viewDetail('${r.id}')">
+        <div class="reg-card-header">
+          <div class="reg-card-code">#${r.code}</div>
+          ${payBadge}
+        </div>
+        <div class="reg-card-college">${r.college}</div>
+        <div class="reg-card-team">
+          <span class="badge badge-blue" style="font-size:11px">${getTeamName(r)}</span>
+        </div>
+        <div class="reg-card-meta">
+          <div class="reg-card-meta-item">
+            <span class="reg-card-meta-label">Leader</span>
+            <span class="reg-card-meta-value">${getLeaderName(r)}</span>
+          </div>
+          <div class="reg-card-meta-item">
+            <span class="reg-card-meta-label">Participants</span>
+            <span class="reg-card-meta-value">${getParticipantCount(r)} member${getParticipantCount(r) !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="reg-card-meta-item">
+            <span class="reg-card-meta-label">Event</span>
+            <span class="reg-card-meta-value">${r.event}</span>
+          </div>
+          <div class="reg-card-meta-item">
+            <span class="reg-card-meta-label">Faculty</span>
+            <span class="reg-card-meta-value">${r.faculty || '-'}</span>
+          </div>
+        </div>
+        <div class="reg-card-footer">
+          <span style="font-size:12px;color:var(--muted)">${formatDate(r.timestamp)}</span>
+          <button class="view-btn" onclick="event.stopPropagation();viewDetail('${r.id}')">Details →</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ==================== DETAIL MODAL ====================
+
+function viewDetail(id) {
+  const r = regs.find(entry => String(entry.id) === String(id));
+  if (!r) { console.warn("Registration not found:", id); return; }
+  currentEditingId = id;
+
+  const paymentStatus = r.paymentStatus || 'pending';
+  const paymentBadge = paymentStatus === 'verified'
+    ? '<span class="badge badge-green" style="font-size:12px"><span class="badge-dot"></span>Verified</span>'
+    : '<span class="badge badge-yellow" style="font-size:12px"><span class="badge-dot"></span>Pending</span>';
+
+  let paymentHTML = `
+    <div class="payment-section">
+      <div class="payment-section-title">💳 Payment Information</div>
+      <div class="payment-status-row">
+        <span style="font-size:13px;color:var(--text-secondary)">Status</span>
+        ${paymentBadge}
+      </div>
+  `;
+
+  if (r.paymentScreenshot) {
+    paymentHTML += `
+      <img
+        id="paymentScreenshotImg_${r.code}"
+        class="payment-screenshot"
+        src="/api/cms/payment-screenshot/${r.code}?t=${Date.now()}"
+        alt="Payment Screenshot"
+        onclick="viewScreenshot('${r.code}')"
+        onerror="this.onerror=null;this.src='/uploads/payment-screenshots/${r.paymentScreenshot}?t=${Date.now()}';"
+      />
+      <p style="font-size:11px;color:var(--muted)">📎 ${r.paymentScreenshot} · Click to enlarge</p>
+      <div class="payment-actions">
+        <button class="btn-verify" onclick="verifyPayment('${r.code}')">✓ Verify Payment</button>
+        <button class="btn-reject" onclick="rejectPayment('${r.code}')">✕ Reject</button>
+      </div>
+    `;
+  } else {
+    paymentHTML += `<p style="color:var(--muted);font-size:13px;padding:12px 0">No payment screenshot uploaded yet</p>`;
+  }
+  paymentHTML += '</div>';
+
+  const detailFields = [
+    ['College', r.college],
+    ['Team Name', getTeamName(r)],
+    ['Event', r.event],
+    ['Tracks', (r.registeredEvents || []).join(', ') || '-'],
+    ['Email', r.email || '-'],
+    ['Faculty', r.faculty || '-'],
+    ['Group Leader', getLeaderName(r)],
+    ['Registered', new Date(r.timestamp).toLocaleString()]
+  ];
+
+  const participants = (r.participants || []).filter(p => p.name);
+
+  let participantsHTML = '';
+  if (participants.length) {
+    participantsHTML = `
+      <div class="participants-section-title">
+        <span>👥</span> Participants (${participants.length})
+      </div>
+      ${participants.map((p, i) => `
+        <div class="participant-row">
+          <div class="participant-num">${i + 1}</div>
+          <div class="participant-info">
+            <div class="participant-name">
+              ${p.name}
+              ${p.isTeamLeader ? '<span class="badge badge-gold" style="font-size:9px;padding:2px 6px;margin-left:6px">LEADER</span>' : ''}
+            </div>
+            <div class="participant-details">
+              ${p.department ? `<span>${p.department}</span>` : ''}
+              ${p.danceParticipant ? '<span class="participant-tag">💃 Dance</span>' : ''}
+              ${p.rampWalkParticipant ? '<span class="participant-tag">🚶 Ramp Walk</span>' : ''}
+            </div>
+          </div>
+          <div class="participant-phone">${p.phone || '-'}</div>
+        </div>
+      `).join('')}
+    `;
+  }
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="modal-code-display">#${r.code}</div>
+    <div class="detail-grid">
+      ${detailFields.map(([label, value]) => `
+        <div class="detail-item">
+          <div class="detail-item-label">${label}</div>
+          <div class="detail-item-value">${value}</div>
+        </div>
+      `).join('')}
+    </div>
+    ${paymentHTML}
+    ${participantsHTML}
+  `;
+
+  document.getElementById('detailModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Close modal on overlay click
+document.getElementById('detailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Close modal on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ==================== ACTIONS ====================
+
+function viewScreenshot(code) {
+  const overlay = document.createElement('div');
+  overlay.className = 'screenshot-overlay';
+  overlay.onclick = function(e) { if (e.target === this) this.remove(); };
+  
+  overlay.innerHTML = `
+    <div style="position:relative">
       <button onclick="this.parentElement.parentElement.remove()" style="
-        position: absolute;
-        top: -40px;
-        right: 0;
-        background: none;
-        border: none;
-        color: white;
-        font-size: 24px;
-        cursor: pointer;
+        position:absolute;top:-44px;right:0;background:rgba(255,255,255,0.1);
+        border:none;color:white;font-size:18px;cursor:pointer;width:36px;height:36px;
+        border-radius:50%;display:flex;align-items:center;justify-content:center;
+        backdrop-filter:blur(4px);
       ">✕</button>
-      <img src="/api/cms/payment-screenshot/${code}" alt="Payment Screenshot" style="
-        max-width: 100%;
-        max-height: 90vh;
-        border-radius: 8px;
-      " />
+      <img src="/api/cms/payment-screenshot/${code}?t=${Date.now()}" alt="Payment Screenshot" 
+        onerror="this.parentElement.innerHTML='<p style=color:var(--muted)>Failed to load screenshot</p>'" />
     </div>
   `;
   
-  document.body.appendChild(modal);
+  document.body.appendChild(overlay);
 }
 
 async function verifyPayment(code) {
-  if (!confirm('Mark this payment as verified?')) return;
+  const ok = await nexusConfirm('Verify Payment', 'Are you sure you want to mark this payment as verified?');
+  if (!ok) return;
   
   try {
     const token = sessionStorage.getItem("nexus_token") || "";
     const response = await fetch(`/api/cms/registrations/${code}/verify-payment`, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
     });
-
     const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Verification failed');
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Verification failed');
-    }
-
-    // Update registration in local list
     const reg = regs.find(r => r.code === code);
-    if (reg) {
-      reg.paymentStatus = 'verified';
-    }
+    if (reg) reg.paymentStatus = 'verified';
 
-    showToast('✓ Payment verified successfully');
-    document.getElementById('detailModal').style.display = 'none';
-    renderTable();
+    nexusToast('Payment verified successfully', 'success');
+    closeModal();
+    renderView();
+    updateStats();
     await NexusCMS.addAuditLog(`Verified payment for registration: ${code}`);
   } catch (error) {
-    showToast(error.message, 'error');
+    nexusToast(error.message, 'error');
   }
 }
 
 async function rejectPayment(code) {
-  if (!confirm('Reject this payment? The user will need to resubmit.')) return;
+  const ok = await nexusConfirm('Reject Payment', 'Reject this payment? The user will need to resubmit their payment screenshot.');
+  if (!ok) return;
   
   try {
     const token = sessionStorage.getItem("nexus_token") || "";
     const response = await fetch(`/api/cms/registrations/${code}/reject-payment`, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
     });
-
     const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Rejection failed');
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Rejection failed');
-    }
-
-    // Update registration in local list
     const reg = regs.find(r => r.code === code);
-    if (reg) {
-      reg.paymentStatus = 'pending';
-      reg.paymentScreenshot = '';
-    }
+    if (reg) { reg.paymentStatus = 'pending'; reg.paymentScreenshot = ''; }
 
-    showToast('Payment rejected - user can resubmit');
-    document.getElementById('detailModal').style.display = 'none';
-    renderTable();
+    nexusToast('Payment rejected — user can resubmit', 'info');
+    closeModal();
+    renderView();
+    updateStats();
     await NexusCMS.addAuditLog(`Rejected payment for registration: ${code}`);
   } catch (error) {
-    showToast(error.message, 'error');
+    nexusToast(error.message, 'error');
   }
 }
 
 async function deleteRegistration(id) {
-  const registration = regs.find((entry) => String(entry.id) === String(id));
-  if (!registration) return;
+  const r = regs.find(entry => String(entry.id) === String(id));
+  if (!r) return;
 
-  if (!confirm(`Are you sure you want to delete registration #${registration.code} from ${registration.college}?\n\nThis action cannot be undone.`)) {
-    return;
-  }
+  const ok = await nexusConfirm('Delete Registration', `Permanently delete registration <strong>#${r.code}</strong> from <strong>${r.college}</strong>?<br><br>This action cannot be undone.`);
+  if (!ok) return;
 
   try {
-    const token = sessionStorage.getItem("nexus_token") || ""; 
-    const response = await fetch(`/api/cms/registrations/${registration.code}`, {
+    const token = sessionStorage.getItem("nexus_token") || "";
+    const response = await fetch(`/api/cms/registrations/${r.code}`, {
       method: 'DELETE',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
     });
-
     if (!response.ok) {
       const data = await response.json();
       throw new Error(data.message || 'Delete failed');
     }
 
-    // Remove from local array
-    regs = regs.filter(r => String(r.id) !== String(id));
-
-    showToast(`✓ Registration #${registration.code} deleted successfully`);
-    document.getElementById('detailModal').style.display = 'none';
-    renderTable();
-    await NexusCMS.addAuditLog(`Deleted registration: ${registration.code} (${registration.college})`);
+    regs = regs.filter(x => String(x.id) !== String(id));
+    nexusToast(`Registration #${r.code} deleted`, 'success');
+    closeModal();
+    renderView();
+    updateStats();
+    await NexusCMS.addAuditLog(`Deleted registration: ${r.code} (${r.college})`);
   } catch (error) {
-    showToast(error.message, 'error');
+    nexusToast(error.message, 'error');
   }
 }
 
 async function editRegistration(id) {
-  const registration = regs.find((entry) => String(entry.id) === String(id));
-  if (!registration) return;
+  const r = regs.find(entry => String(entry.id) === String(id));
+  if (!r) return;
 
-  const newCollege = prompt('College Name:', registration.college);
-  if (newCollege === null) return;
+  // Create inline edit modal
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:950;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);animation:fadeIn 0.2s ease';
 
-  const newEmail = prompt('Email:', registration.email);
-  if (newEmail === null) return;
+  overlay.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid rgba(245,166,35,0.15);border-radius:var(--radius-xl);padding:32px;max-width:480px;width:100%;animation:slideUp 0.3s ease;box-shadow:var(--shadow-lg)">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);margin-bottom:4px;font-weight:600">Edit Registration</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:24px;font-family:'Syne',sans-serif">#${r.code}</div>
+      
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div>
+          <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px;font-weight:500">College Name</label>
+          <input id="editCollege" value="${r.college}" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:var(--transition)" onfocus="this.style.borderColor='rgba(245,166,35,0.4)';this.style.boxShadow='0 0 0 3px rgba(245,166,35,0.06)'" onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px;font-weight:500">Email</label>
+          <input id="editEmail" value="${r.email || ''}" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:var(--transition)" onfocus="this.style.borderColor='rgba(245,166,35,0.4)';this.style.boxShadow='0 0 0 3px rgba(245,166,35,0.06)'" onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px;font-weight:500">Team Leader</label>
+          <input id="editLeader" value="${getLeaderName(r)}" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:var(--transition)" onfocus="this.style.borderColor='rgba(245,166,35,0.4)';this.style.boxShadow='0 0 0 3px rgba(245,166,35,0.06)'" onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+        </div>
+      </div>
 
-  const newLeader = prompt('Team Leader:', getLeaderName(registration));
-  if (newLeader === null) return;
+      <div style="display:flex;gap:10px;margin-top:28px">
+        <button id="editCancel" style="flex:1;padding:12px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.06);color:var(--text-secondary);border:1px solid var(--border);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition)">Cancel</button>
+        <button id="editSave" style="flex:1;padding:12px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#f5a623,#e6961e);color:#000;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:var(--transition);box-shadow:0 2px 12px rgba(245,166,35,0.25)">Save Changes</button>
+      </div>
+    </div>
+  `;
 
-  try {
-    const token = sessionStorage.getItem("nexus_token") || "";
-    const response = await fetch(`/api/cms/registrations/${registration.code}`, {
-      method: 'PUT',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        college: newCollege,
-        email: newEmail,
-        leader: newLeader
-      })
+  document.body.appendChild(overlay);
+  overlay.querySelector('#editCollege').focus();
+
+  overlay.querySelector('#editCancel').onclick = () => overlay.remove();
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  overlay.querySelector('#editSave').onclick = async () => {
+    const newCollege = overlay.querySelector('#editCollege').value.trim();
+    const newEmail = overlay.querySelector('#editEmail').value.trim();
+    const newLeader = overlay.querySelector('#editLeader').value.trim();
+
+    if (!newCollege) { nexusToast('College name is required', 'error'); return; }
+
+    try {
+      const token = sessionStorage.getItem("nexus_token") || "";
+      const response = await fetch(`/api/cms/registrations/${r.code}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ college: newCollege, email: newEmail, leader: newLeader })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Update failed');
+
+      const regIndex = regs.findIndex(x => String(x.id) === String(id));
+      if (regIndex !== -1) regs[regIndex] = data.registration;
+
+      overlay.remove();
+      nexusToast('Registration updated successfully', 'success');
+      viewDetail(id);
+      renderView();
+      await NexusCMS.addAuditLog(`Updated registration: ${r.code}`);
+    } catch (error) {
+      nexusToast(error.message, 'error');
+    }
+  };
+
+  // Submit on Enter
+  overlay.querySelectorAll('input').forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') overlay.querySelector('#editSave').click();
+      if (e.key === 'Escape') overlay.remove();
     });
+  });
+}
 
-    const data = await response.json();
+// ==================== CSV EXPORT ====================
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Update failed');
-    }
+async function exportCSV() {
+  const headers = ['Code', 'College', 'Team Name', 'Address', 'Email', 'Event', 'Tracks', 'Faculty', 'Group Leader', 'Participants', 'Payment Status', 'Date'];
+  const rows = regs.map(r => [
+    r.code, r.college, getTeamName(r), r.address || '', r.email || '', r.event,
+    (r.registeredEvents || []).join('; '), r.faculty || '', getLeaderName(r),
+    (r.participants || []).filter(p => p.name).map(p => p.name).join('; '),
+    r.paymentStatus || 'pending', new Date(r.timestamp).toLocaleString()
+  ]);
+  const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `nexus_registrations_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+  await NexusCMS.addAuditLog('Exported registrations CSV');
+  nexusToast('Registrations exported!', 'success');
+}
 
-    // Update local registration
-    const regIndex = regs.findIndex(r => String(r.id) === String(id));
-    if (regIndex !== -1) {
-      regs[regIndex] = data.registration;
-    }
+// ==================== REFRESH ====================
 
-    showToast('✓ Registration updated successfully');
-    currentEditingId = id;
-    viewDetail(id); // Refresh the view
-    renderTable();
-    await NexusCMS.addAuditLog(`Updated registration: ${registration.code}`);
-  } catch (error) {
-    showToast(error.message, 'error');
+async function refreshData() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">↻</span> Refreshing...';
+  
+  try {
+    regs = await NexusCMS.fetchRegistrations();
+    renderView();
+    updateStats();
+    nexusToast('Data refreshed', 'success');
+  } catch (err) {
+    nexusToast('Failed to refresh data', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>↻</span> Refresh';
   }
 }
+
+// ==================== RESPONSIVE HANDLER ====================
+
+let lastWidth = window.innerWidth;
+window.addEventListener('resize', () => {
+  const newWidth = window.innerWidth;
+  const crossedBreakpoint = (lastWidth > 768 && newWidth <= 768) || (lastWidth <= 768 && newWidth > 768);
+  if (crossedBreakpoint) renderView();
+  lastWidth = newWidth;
+});
+
+// ==================== KEYBOARD SHORTCUTS ====================
+
+document.addEventListener('keydown', (e) => {
+  // Ctrl+F or / to focus search
+  if ((e.ctrlKey && e.key === 'f') || (e.key === '/' && !e.target.closest('input, textarea, select'))) {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+});
+
+// Add spin keyframe
+const spinStyle = document.createElement('style');
+spinStyle.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+document.head.appendChild(spinStyle);
+
+// ==================== INIT ====================
 
 (async function () {
   const user = await NexusCMS.initPage('registrations');
@@ -427,15 +2192,18 @@ async function editRegistration(id) {
   await NexusCMS.addAuditLog('Viewed Registrations');
   regs = await NexusCMS.fetchRegistrations();
 
-  const events = [...new Set(regs.map((registration) => registration.event))];
-  events.forEach((eventName) => {
-    const option = document.createElement('option');
-    option.value = eventName;
-    option.textContent = eventName;
-    document.getElementById('eventFilter').appendChild(option);
+  // Populate event filter
+  const events = [...new Set(regs.map(r => r.event))].sort();
+  const eventSelect = document.getElementById('eventFilter');
+  events.forEach(ev => {
+    const opt = document.createElement('option');
+    opt.value = ev;
+    opt.textContent = ev;
+    eventSelect.appendChild(opt);
   });
 
-  renderTable();
+  updateStats();
+  renderView();
 })();
 </script>
 
@@ -444,13 +2212,11 @@ async function editRegistration(id) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then((reg) => {
+      .then(reg => {
         console.log('[App] Service Worker registered:', reg);
-        setInterval(() => {
-          reg.update().catch(err => console.warn('[App] Update check failed:', err));
-        }, 60000);
+        setInterval(() => reg.update().catch(err => console.warn('[App] Update check failed:', err)), 60000);
       })
-      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+      .catch(err => console.warn('[App] Service Worker registration failed:', err));
   });
 }
 </script>

@@ -207,6 +207,37 @@ function normalizeColor(value, fallback) {
   return /^#[0-9a-fA-F]{6}$/.test(String(value || '')) ? value : fallback;
 }
 
+function sanitizeRound(round, index) {
+  const source = round && typeof round === 'object' ? round : {};
+  return {
+    id: String(source.id || '').trim() || uid('round'),
+    num: String(source.num || `R${index + 1}`).trim() || `R${index + 1}`,
+    title: String(source.title || '').trim(),
+    desc: String(source.desc || '').trim(),
+    time: String(source.time || '').trim(),
+    color: normalizeColor(source.color, '#f5a623')
+  };
+}
+
+function nextRoundLabel(rounds) {
+  const used = (Array.isArray(rounds) ? rounds : [])
+    .map((round) => {
+      const match = String(round && round.num ? round.num : '').trim().match(/^R(\d+)$/i);
+      return match ? Number(match[1]) : 0;
+    })
+    .filter((value) => value > 0);
+  const next = used.length ? Math.max(...used) + 1 : ((rounds || []).length + 1);
+  return `R${next}`;
+}
+
+function sanitizeEventForEditor(event) {
+  const source = event && typeof event === 'object' ? event : {};
+  return {
+    ...source,
+    rounds: Array.isArray(source.rounds) ? source.rounds.map(sanitizeRound) : []
+  };
+}
+
 function makeEvent() {
   return {
     id: uid('event'),
@@ -474,6 +505,7 @@ function saveEventEditor() {
       deptColor: document.getElementById('editor_deptColor').value || '#f5a623',
       badgeColor: document.getElementById('editor_badgeColor').value || '#f5a623',
       badgeBg: document.getElementById('editor_badgeBg').value || 'rgba(245,166,35,0.1)',
+      rounds: (event.rounds || []).map(sanitizeRound),
       coordinators: event.coordinators || [],
       rules: {
         title: document.getElementById('editor_rules_title').value || 'Rules & Regulations',
@@ -532,16 +564,27 @@ async function uploadEventImage(id) {
 }
 
 function updateRound(eventId, roundId, key, value) {
-  events = events.map((event) => event.id === eventId ? { ...event, rounds: (event.rounds || []).map((round) => round.id === roundId ? { ...round, [key]: value } : round) } : event);
+  const targetRoundId = String(roundId || '').trim();
+  events = events.map((event) => event.id === eventId ? {
+    ...event,
+    rounds: (event.rounds || []).map((round) => String(round.id || '').trim() === targetRoundId ? { ...round, [key]: value } : round)
+  } : event);
 }
 
 function addRound(eventId) {
-  events = events.map((event) => event.id === eventId ? { ...event, rounds: [...(event.rounds || []), { id: uid('round'), num: `R${(event.rounds || []).length + 1}`, title: '', desc: '', time: '', color: '#f5a623' }] } : event);
+  events = events.map((event) => event.id === eventId ? {
+    ...event,
+    rounds: [...(event.rounds || []), { id: uid('round'), num: nextRoundLabel(event.rounds), title: '', desc: '', time: '', color: '#f5a623' }]
+  } : event);
   renderEventEditor(eventId);
 }
 
 function removeRound(eventId, roundId) {
-  events = events.map((event) => event.id === eventId ? { ...event, rounds: (event.rounds || []).filter((round) => round.id !== roundId) } : event);
+  const targetRoundId = String(roundId || '').trim();
+  events = events.map((event) => event.id === eventId ? {
+    ...event,
+    rounds: (event.rounds || []).filter((round) => String(round.id || '').trim() !== targetRoundId)
+  } : event);
   renderEventEditor(eventId);
 }
 
@@ -653,7 +696,8 @@ async function saveEventsSettings() {
   document.getElementById('eventsSectionTag').value = settings.eventsSectionTag || DEFAULT_SECTION.eventsSectionTag;
   document.getElementById('eventsSectionTitle').value = settings.eventsSectionTitle || DEFAULT_SECTION.eventsSectionTitle;
   document.getElementById('eventsSectionDesc').value = settings.eventsSectionDesc || DEFAULT_SECTION.eventsSectionDesc;
-  events = 'events' in settings ? (Array.isArray(settings.events) ? clone(settings.events) : []) : clone(DEFAULT_EVENTS);
+  events = ('events' in settings ? (Array.isArray(settings.events) ? clone(settings.events) : []) : clone(DEFAULT_EVENTS))
+    .map(sanitizeEventForEditor);
   renderEvents();
   
   // Close editor when clicking outside the panel

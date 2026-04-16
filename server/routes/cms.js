@@ -237,9 +237,26 @@ router.put("/settings", requireRole("superadmin"), async (req, res, next) => {
         .map((event) => String(event && event.id ? event.id : "").trim())
         .filter(Boolean);
 
-      await ScoreSheet.deleteMany({
-        eventKey: { $nin: activeEventKeys }
-      });
+      if (activeEventKeys.length > 0) {
+        const activeSet = new Set(activeEventKeys);
+        const scoreSheets = await ScoreSheet.find({}, { _id: 1, eventKey: 1 }).lean();
+
+        const staleSheetIds = scoreSheets
+          .filter((sheet) => {
+            const key = String(sheet.eventKey || "").trim();
+            if (!key) return true;
+            if (activeSet.has(key)) return false;
+
+            // Keep round-based score keys like EVENT_ID_R1 when EVENT_ID is active.
+            const match = key.match(/^(.*)_R\d+$/);
+            return !(match && activeSet.has(match[1]));
+          })
+          .map((sheet) => sheet._id);
+
+        if (staleSheetIds.length > 0) {
+          await ScoreSheet.deleteMany({ _id: { $in: staleSheetIds } });
+        }
+      }
     }
 
     await Settings.findOneAndUpdate(
