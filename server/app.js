@@ -44,7 +44,12 @@ app.get("/manifest.json", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "manifest.json"));
 });
 
-// Explicitly serve uploads (payment screenshots, site assets, team members)
+// Block direct access to sensitive payment screenshots - must go through authenticated API
+app.use("/uploads/payment-screenshots", (req, res) => {
+  res.status(403).json({ message: "Access denied" });
+});
+
+// Serve other uploads (site assets, team member images)
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.use(express.static(path.join(__dirname, "..")));
@@ -54,8 +59,15 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(err);
   const status = err.status || 500;
+
+  // Avoid noisy stack traces for expected client/auth errors (e.g., 401, 403, 404).
+  if (status >= 500) {
+    console.error(err);
+  } else if (!err.expose) {
+    console.warn(err);
+  }
+
   res.status(status).json({
     message: err.expose ? err.message : "Internal server error"
   });

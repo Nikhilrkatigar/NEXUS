@@ -464,8 +464,8 @@ router.get("/debug/screenshots", requireRole("superadmin"), async (req, res, nex
   }
 });
 
-// Get payment screenshot - NO AUTH required (registration code is identifier, not secret)
-router.get("/payment-screenshot/:code", async (req, res, next) => {
+// Get payment screenshot — auth required to prevent IDOR enumeration
+router.get("/payment-screenshot/:code", requireRole("superadmin", "organiser"), async (req, res, next) => {
   try {
     const registration = await Registration.findOne({ code: req.params.code }).lean();
 
@@ -543,14 +543,17 @@ router.post("/registrations/:code/reject-payment", requireRole("superadmin", "or
       throw makeError("Registration not found", 404);
     }
 
-    // Delete screenshot file
-    if (registration.paymentScreenshotPath && fs.existsSync(registration.paymentScreenshotPath)) {
-      fs.unlinkSync(registration.paymentScreenshotPath);
+    // Delete screenshot file by filename — avoids absolute path issues across environments
+    if (registration.paymentScreenshot) {
+      const screenshotDir = path.join(__dirname, "../../uploads/payment-screenshots");
+      const filePath = path.join(screenshotDir, registration.paymentScreenshot);
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (_) {}
+      }
     }
 
     registration.paymentStatus = "pending";
     registration.paymentScreenshot = "";
-    registration.paymentScreenshotPath = "";
     registration.paymentVerifiedAt = null;
     await registration.save();
 
@@ -579,13 +582,27 @@ router.put("/registrations/:code", requireRole("superadmin", "organiser"), async
       throw makeError("Registration not found", 404);
     }
 
-    // Update allowed fields
-    if (req.body.college) registration.college = String(req.body.college).trim();
-    if (req.body.email) registration.email = String(req.body.email).trim();
-    if (req.body.leader) registration.leader = String(req.body.leader).trim();
-    if (req.body.address) registration.address = String(req.body.address).trim();
-    if (req.body.faculty) registration.faculty = String(req.body.faculty).trim();
-    if (req.body.facultyPhone) registration.facultyPhone = String(req.body.facultyPhone).trim();
+    // Update allowed scalar fields
+    if (req.body.college !== undefined) registration.college = String(req.body.college).trim();
+    if (req.body.email !== undefined) registration.email = String(req.body.email).trim().toLowerCase();
+    if (req.body.leader !== undefined) registration.leader = String(req.body.leader).trim();
+    if (req.body.address !== undefined) registration.address = String(req.body.address).trim();
+    if (req.body.faculty !== undefined) registration.faculty = String(req.body.faculty).trim();
+    if (req.body.facultyPhone !== undefined) registration.facultyPhone = String(req.body.facultyPhone).trim();
+    if (req.body.teamName !== undefined) registration.teamName = String(req.body.teamName).trim();
+
+    // Allow organisers to update the participants roster directly
+    if (Array.isArray(req.body.participants)) {
+      const { normalizeDepartment } = require("../registrationValidator");
+      registration.participants = req.body.participants.map((p) => ({
+        name: String(p.name || "").trim(),
+        phone: String(p.phone || "").trim(),
+        department: normalizeDepartment(p.department),
+        isTeamLeader: Boolean(p.isTeamLeader),
+        danceParticipant: Boolean(p.danceParticipant),
+        rampWalkParticipant: Boolean(p.rampWalkParticipant)
+      }));
+    }
 
     await registration.save();
 
@@ -614,9 +631,13 @@ router.delete("/registrations/:code", requireRole("superadmin", "organiser"), as
       throw makeError("Registration not found", 404);
     }
 
-    // Delete screenshot file if exists
-    if (registration.paymentScreenshotPath && fs.existsSync(registration.paymentScreenshotPath)) {
-      fs.unlinkSync(registration.paymentScreenshotPath);
+    // Delete screenshot file by filename — avoids absolute path issues across environments
+    if (registration.paymentScreenshot) {
+      const screenshotDir = path.join(__dirname, "../../uploads/payment-screenshots");
+      const filePath = path.join(screenshotDir, registration.paymentScreenshot);
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (_) {}
+      }
     }
 
     await registration.deleteOne();

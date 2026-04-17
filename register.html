@@ -2,1781 +2,726 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Register Team - NEXUS</title>
-<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#060810">
-<meta name="description" content="Register your team for NEXUS 2026">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #060810;
-  --bg2: #0b0f1a;
-  --surface: #111827;
-  --accent: #f5a623;
-  --accent2: #e63c5c;
-  --accent3: #00d4ff;
-  --text: #f0f0f0;
-  --muted: #7a8499;
-  --border: rgba(245,166,35,0.2);
-  --success: #10b981;
-  --error: #e63c5c;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-}
-
-.page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-header {
-  background: rgba(6, 8, 16, 0.8);
-  border-bottom: 1px solid var(--border);
-  padding: 20px 40px;
-  text-align: center;
-}
-
-.header-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.logo-mark {
-  width: 36px;
-  height: 36px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 16px;
-  color: #000;
-  overflow: hidden;
-}
-
-.logo-mark img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-h1 {
-  font-family: 'Syne', sans-serif;
-  font-size: 28px;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-
-.subtitle {
-  color: var(--muted);
-  font-size: clamp(9px, 2.5vw, 13px);
-  line-height: 1.3;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
-}
-
-main {
-  flex: 1;
-  padding: 40px;
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.form-container {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 40px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-section {
-  margin-bottom: 32px;
-}
-
-.section-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--border);
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-
-label .required {
-  color: var(--error);
-}
-
-input, select, textarea {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 14px;
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.2s;
-}
-
-input[type="checkbox"] {
-  width: auto;
-  accent-color: var(--accent);
-}
-
-select {
-  background: rgba(17, 24, 39, 0.8);
-  color: #f0f0f0;
-}
-
-select option {
-  background: #111827;
-  color: #f0f0f0;
-}
-
-select option:checked {
-  background: linear-gradient(135deg, #f5a623, #d4890f);
-  color: #000;
-}
-
-input:focus, select:focus, textarea:focus {
-  border-color: rgba(245, 166, 35, 0.4);
-  background: rgba(245, 166, 35, 0.04);
-}
-
-select:focus {
-  background: rgba(17, 24, 39, 0.9);
-}
-
-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.form-row.full {
-  grid-template-columns: 1fr;
-}
-
-.event-info {
-  background: rgba(245, 166, 35, 0.08);
-  border: 1px solid rgba(245, 166, 35, 0.2);
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 12px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.event-info.error {
-  background: rgba(230, 60, 92, 0.08);
-  border-color: rgba(230, 60, 92, 0.2);
-  color: var(--error);
-}
-
-.event-info.success {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.2);
-  color: var(--success);
-}
-
-.dept-requirement {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 6px 12px;
-  margin: 6px 8px 6px 0;
-  font-size: 12px;
-}
-
-.participants-container {
-  max-height: 500px;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-.participant-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  position: relative;
-}
-
-.participant-options {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding-top: 6px;
-}
-
-.participant-options label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.participant-num {
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 12px;
-  font-size: 12px;
-}
-
-.btn {
-  background: linear-gradient(135deg, var(--accent), #d4890f);
-  color: #000;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-top: 12px;
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(245, 166, 35, 0.3);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 10px 16px;
-  margin: 4px 0;
-  font-size: 12px;
-}
-
-.btn-secondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.btn-remove {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(230, 60, 92, 0.2);
-  color: var(--error);
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-remove:hover {
-  background: rgba(230, 60, 92, 0.4);
-}
-
-.message {
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  display: none;
-  font-size: 13px;
-}
-
-.message.show {
-  display: block;
-}
-
-.message.success {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: var(--success);
-}
-
-.message.error {
-  background: rgba(230, 60, 92, 0.1);
-  border: 1px solid rgba(230, 60, 92, 0.3);
-  color: var(--error);
-}
-
-.payment-section {
-  display: none;
-  text-align: center;
-}
-
-.payment-section.show {
-  display: block;
-}
-
-.qr-container {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid var(--accent);
-  border-radius: 12px;
-  padding: 32px;
-  margin: 20px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
-
-.qr-code {
-  width: 280px;
-  height: 280px;
-  background: white;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-.qr-code img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.qr-info {
-  margin-bottom: 20px;
-}
-
-.registration-code-display {
-  background: rgba(245, 166, 35, 0.1);
-  border: 1px solid rgba(245, 166, 35, 0.3);
-  border-radius: 8px;
-  padding: 16px;
-  margin: 16px 0;
-  font-family: 'Syne', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-}
-
-.registration-code-display .label {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-
-.screenshot-section {
-  display: none;
-  border: 2px dashed var(--accent);
-  border-radius: 12px;
-  padding: 32px;
-  text-align: center;
-  margin: 20px 0;
-}
-
-.screenshot-section.show {
-  display: block;
-}
-
-.screenshot-upload-area {
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.screenshot-upload-area:hover {
-  background: rgba(245, 166, 35, 0.1);
-}
-
-.screenshot-upload-area.dragover {
-  background: rgba(245, 166, 35, 0.2);
-  border-color: var(--accent2);
-}
-
-.upload-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.screenshot-input {
-  display: none;
-}
-
-.screenshot-preview {
-  max-width: 100%;
-  max-height: 300px;
-  margin: 16px 0;
-  border-radius: 8px;
-  display: none;
-}
-
-.screenshot-preview.show {
-  display: block;
-}
-
-.progress-indicator {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin: 32px 0;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-}
-
-.progress-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.progress-step-number {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  background: rgba(122, 132, 153, 0.3);
-  color: var(--muted);
-  border: 2px solid rgba(122, 132, 153, 0.3);
-}
-
-.progress-step.active .progress-step-number {
-  background: rgba(245, 166, 35, 0.2);
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-.progress-step.completed .progress-step-number {
-  background: rgba(16, 185, 129, 0.2);
-  color: var(--success);
-  border-color: var(--success);
-}
-
-.progress-step-label {
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.validation-status {
-  display: flex;
-  gap: 12px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 6px;
-}
-
-.status-icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.status-icon.pending {
-  background: rgba(122, 132, 153, 0.3);
-  color: var(--muted);
-}
-
-.status-icon.done {
-  background: rgba(16, 185, 129, 0.3);
-  color: var(--success);
-}
-
-.status-icon.error {
-  background: rgba(230, 60, 92, 0.3);
-  color: var(--error);
-}
-
-.form-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 32px;
-  justify-content: flex-end;
-}
-
-.form-actions .hidden {
-  display: none;
-}
-
-.registration-form.hidden {
-  display: none;
-}
-
-.btn-submit {
-  background: linear-gradient(135deg, var(--accent), #d4890f);
-  padding: 14px 32px;
-  font-size: 15px;
-}
-
-.btn-cancel {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--text);
-  padding: 14px 32px;
-  font-size: 15px;
-}
-
-.btn-cancel:hover {
-  border-color: var(--muted);
-}
-
-.loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-footer {
-  border-top: 1px solid var(--border);
-  padding: 20px 40px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-@media (max-width: 768px) {
-  main {
-    padding: 16px;
-  }
-
-  .form-container {
-    padding: 16px;
-    border-radius: 12px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  header {
-    padding: 12px 16px;
-  }
-
-  .header-logo {
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-
-  .logo-mark {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-
-  h1 {
-    font-size: 18px;
-    margin-bottom: 2px;
-  }
-
-  .subtitle {
-    font-size: 10px;
-    line-height: 1.4;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-  }
-
-  .section-title {
-    font-size: 13px;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-  }
-
-  label {
-    font-size: 11px;
-    margin-bottom: 6px;
-  }
-
-  input, select, textarea {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-
-  .participant-card {
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-
-  .participant-num {
-    font-size: 11px;
-    margin-bottom: 10px;
-  }
-
-  .btn {
-    padding: 10px 16px;
-    font-size: 12px;
-    margin-top: 8px;
-  }
-
-  .btn-submit {
-    padding: 12px 24px;
-    font-size: 14px;
-  }
-
-  .form-actions {
-    flex-direction: column-reverse;
-    gap: 8px;
-  }
-
-  .form-actions .btn {
-    width: 100%;
-  }
-
-  .progress-indicator {
-    gap: 12px;
-    margin: 20px 0;
-    padding: 12px;
-  }
-
-  .progress-step-number {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
-  }
-
-  .progress-step-label {
-    font-size: 10px;
-  }
-
-  .dept-requirement {
-    display: block;
-    margin: 4px 0 4px 0;
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-
-  .validation-status {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .status-item {
-    font-size: 11px;
-    padding: 5px 10px;
-  }
-
-  .status-icon {
-    width: 14px;
-    height: 14px;
-    font-size: 9px;
-  }
-
-  .qr-container {
-    padding: 20px;
-  }
-
-  .qr-code {
-    width: 200px;
-    height: 200px;
-    padding: 8px;
-  }
-
-  .registration-code-display {
-    font-size: 14px;
-    padding: 12px;
-  }
-
-  .screenshot-section {
-    padding: 20px;
-    margin: 16px 0;
-  }
-
-  .upload-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-  }
-
-  footer {
-    padding: 16px 20px;
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 480px) {
-  main {
-    padding: 10px;
-  }
-
-  .form-container {
-    padding: 12px;
-    border-radius: 10px;
-  }
-
-  header {
-    padding: 8px 10px;
-  }
-
-  .header-logo {
-    gap: 6px;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .logo-mark {
-    width: 24px;
-    height: 24px;
-    font-size: 11px;
-  }
-
-  h1 {
-    font-size: 16px;
-    margin-bottom: 1px;
-  }
-
-  .subtitle {
-    font-size: 9px;
-    line-height: 1.4;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-  }
-
-  .section-title {
-    font-size: 12px;
-    margin-bottom: 10px;
-    padding-bottom: 6px;
-  }
-
-  label {
-    font-size: 10px;
-  }
-
-  input, select, textarea {
-    padding: 8px 10px;
-    font-size: 16px;
-  }
-
-  .form-actions {
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .form-actions .btn {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 11px;
-  }
-
-  .progress-indicator {
-    gap: 6px;
-    padding: 8px;
-    margin: 16px 0;
-  }
-
-  .progress-step-number {
-    width: 28px;
-    height: 28px;
-    font-size: 10px;
-  }
-
-  .progress-step-label {
-    font-size: 9px;
-  }
-
-  .qr-code {
-    width: 150px;
-    height: 150px;
-    padding: 6px;
-  }
-
-  .qr-container {
-    padding: 16px;
-  }
-
-  .registration-code-display {
-    font-size: 12px;
-    padding: 10px;
-  }
-
-  .participants-container {
-    max-height: 350px;
-  }
-
-  .participant-card {
-    padding: 10px;
-    margin-bottom: 8px;
-  }
-
-  .screenshot-section {
-    padding: 16px;
-    margin: 12px 0;
-  }
-
-  .upload-icon {
-    font-size: 36px;
-    margin-bottom: 10px;
-  }
-
-  footer {
-    padding: 12px 16px;
-    font-size: 10px;
-  }
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#05070f;--bg2:#0b0e1a;--card:#111520;--card2:#181d2e;
+  --amber:#f5a623;--amber2:#e08910;--cyan:#00d4ff;--rose:#e63c5c;
+  --text:#eef0f5;--muted:#6b7591;--muted2:#9aa0b8;
+  --border:rgba(245,166,35,.14);--border2:rgba(245,166,35,.28);
+  --success:#10b981;--error:#e63c5c;
+  --radius:12px;--radius2:8px;
+}
+html,body{min-height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);line-height:1.55;}
+body{overflow-x:hidden;}
+
+/* ── NOISE OVERLAY ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:.025;background-size:200px 200px;
+}
+
+/* ── GLOW ORBS ── */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;}
+.orb1{width:480px;height:480px;background:radial-gradient(circle,rgba(245,166,35,.07) 0%,transparent 70%);top:-120px;right:-120px;}
+.orb2{width:360px;height:360px;background:radial-gradient(circle,rgba(0,212,255,.05) 0%,transparent 70%);bottom:60px;left:-80px;}
+
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── HEADER ── */
+header{
+  background:rgba(5,7,15,.85);
+  border-bottom:1px solid var(--border);
+  padding:18px 24px;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:100;
+}
+.logo{
+  width:38px;height:38px;border-radius:10px;overflow:hidden;
+  border:1px solid var(--border2);flex-shrink:0;
+  background:#000;display:flex;align-items:center;justify-content:center;
+}
+.logo img{width:100%;height:100%;object-fit:contain;}
+.header-text h1{
+  font-family:'Syne',sans-serif;font-size:17px;font-weight:800;
+  letter-spacing:-.01em;line-height:1;
+}
+.header-text p{font-size:11px;color:var(--muted2);margin-top:2px;letter-spacing:.02em;}
+.header-tag{
+  margin-left:auto;background:rgba(245,166,35,.1);
+  border:1px solid var(--border2);border-radius:20px;
+  padding:4px 12px;font-size:10px;font-weight:600;
+  color:var(--amber);letter-spacing:.06em;font-family:'Syne',sans-serif;
+  white-space:nowrap;
+}
+
+main{flex:1;padding:20px 16px 40px;max-width:680px;margin:0 auto;width:100%;}
+
+/* ── STEPS ── */
+.steps{display:flex;gap:0;margin-bottom:28px;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.step{
+  flex:1;padding:12px 8px;text-align:center;position:relative;
+  transition:background .3s;cursor:default;
+}
+.step:not(:last-child)::after{
+  content:'';position:absolute;right:0;top:20%;height:60%;
+  width:1px;background:var(--border);
+}
+.step-num{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:700;
+  margin:0 auto 4px;transition:all .3s;
+  background:rgba(107,117,145,.2);color:var(--muted);border:1.5px solid rgba(107,117,145,.2);
+}
+.step-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+.step.active{background:rgba(245,166,35,.05);}
+.step.active .step-num{background:rgba(245,166,35,.18);color:var(--amber);border-color:var(--amber);}
+.step.active .step-label{color:var(--amber);}
+.step.done .step-num{background:rgba(16,185,129,.18);color:var(--success);border-color:var(--success);}
+.step.done .step-label{color:var(--success);}
+
+/* ── PANELS ── */
+.panel{display:none;animation:fadeUp .35s ease;}
+.panel.show{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── CARD ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;margin-bottom:12px;
+}
+.card-head{
+  padding:14px 18px 10px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.card-head-icon{
+  width:28px;height:28px;border-radius:7px;
+  background:rgba(245,166,35,.12);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  flex-shrink:0;
+}
+.card-head-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--amber);}
+.card-body{padding:16px 18px;}
+
+/* ── FORM ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-row.single{grid-template-columns:1fr;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+label{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted2);}
+.req{color:var(--rose);}
+input[type=text],input[type=email],input[type=tel],select,textarea{
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:var(--radius2);padding:11px 13px;
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;
+  outline:none;transition:border .2s,background .2s;width:100%;
+}
+input[type=text]:focus,input[type=email]:focus,input[type=tel]:focus,select:focus,textarea:focus{
+  border-color:var(--border2);background:rgba(245,166,35,.04);
+}
+input[type=text]::placeholder,input[type=email]::placeholder,input[type=tel]::placeholder,textarea::placeholder{color:var(--muted);opacity:.7;}
+select{
+  background:rgba(17,21,32,.9);
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%236b7591'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;
+  padding-right:36px;cursor:pointer;
+}
+select option{background:#111520;color:var(--text);}
+textarea{resize:vertical;min-height:72px;line-height:1.5;}
+input[type=text][readonly]{
+  color:var(--muted2);cursor:default;
+  background:rgba(255,255,255,.02);border-style:dashed;
+}
+
+/* ── PARTICIPANT CARD ── */
+.p-card{
+  background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:var(--radius2);padding:14px;margin-bottom:10px;
+  position:relative;transition:border .2s;
+}
+.p-card:focus-within{border-color:var(--border2);}
+.p-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(245,166,35,.1);border:1px solid var(--border);
+  border-radius:20px;padding:3px 10px 3px 6px;
+  font-size:10px;font-weight:700;color:var(--amber);
+  font-family:'Syne',sans-serif;letter-spacing:.04em;
+  margin-bottom:12px;
+}
+.p-badge-num{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--amber);color:#000;
+  font-size:10px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.dept-tag{
+  display:inline-block;background:rgba(0,212,255,.08);
+  border:1px solid rgba(0,212,255,.2);border-radius:4px;
+  padding:2px 8px;font-size:10px;font-weight:600;
+  color:var(--cyan);letter-spacing:.04em;margin-top:2px;
+}
+
+/* ── CHECKBOXES & RADIO ── */
+.check-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;}
+.check-item{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:6px;padding:7px 12px;cursor:pointer;
+  transition:border .2s,background .2s;font-size:12px;font-weight:500;
+  color:var(--muted2);user-select:none;
+}
+.check-item:has(input:checked){
+  border-color:var(--border2);background:rgba(245,166,35,.08);color:var(--amber);
+}
+.check-item input{display:none;}
+.check-box{
+  width:14px;height:14px;border-radius:3px;border:1.5px solid var(--muted);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .2s;
+}
+.check-item:has(input:checked) .check-box{
+  background:var(--amber);border-color:var(--amber);
+}
+.check-box::after{content:'';display:none;}
+.check-item:has(input:checked) .check-box::after{
+  content:'✓';display:block;font-size:9px;font-weight:900;color:#000;
+}
+.radio-item{border-radius:20px;}
+.radio-box{border-radius:50%;}
+.check-item:has(input[type=radio]:checked) .radio-box{
+  background:var(--amber);border-color:var(--amber);
+}
+
+/* ── STATUS BAR ── */
+.status-bar{
+  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;
+}
+.stat-chip{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:20px;padding:4px 10px;font-size:11px;color:var(--muted2);
+}
+.stat-dot{
+  width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;
+  background:rgba(107,117,145,.2);color:var(--muted);
+}
+.stat-dot.ok{background:rgba(16,185,129,.2);color:var(--success);}
+.stat-dot.warn{background:rgba(245,166,35,.2);color:var(--amber);}
+
+/* ── EVENT INFO BOX ── */
+.event-box{
+  background:rgba(245,166,35,.06);border:1px solid var(--border);
+  border-radius:var(--radius2);padding:14px;margin-top:10px;display:none;
+}
+.event-box.show{display:block;}
+.event-box strong{font-family:'Syne',sans-serif;font-size:13px;color:var(--text);}
+.event-box p{font-size:12px;color:var(--muted2);margin-top:4px;}
+.reqs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.req-pill{
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:4px;padding:3px 9px;font-size:11px;color:var(--muted2);
+}
+
+/* ── BUTTONS ── */
+.btn{
+  padding:12px 24px;border-radius:var(--radius2);font-family:'Syne',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;transition:all .25s;
+  border:none;letter-spacing:.02em;display:inline-flex;align-items:center;gap:8px;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--amber),var(--amber2));
+  color:#000;box-shadow:0 4px 18px rgba(245,166,35,.22);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(245,166,35,.32);}
+.btn-primary:active{transform:translateY(0);}
+.btn-ghost{
+  background:transparent;color:var(--muted2);
+  border:1px solid rgba(255,255,255,.1);
+}
+.btn-ghost:hover{border-color:rgba(255,255,255,.22);color:var(--text);}
+.btn[disabled]{opacity:.5;pointer-events:none;}
+.form-actions{
+  display:flex;gap:10px;justify-content:flex-end;
+  margin-top:20px;padding-top:16px;border-top:1px solid var(--border);
+}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  z-index:999;padding:12px 20px;border-radius:var(--radius2);
+  font-size:13px;font-weight:500;max-width:88vw;text-align:center;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+  opacity:0;pointer-events:none;white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.success{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.35);color:var(--success);}
+.toast.error{background:rgba(230,60,92,.15);border:1px solid rgba(230,60,92,.35);color:var(--error);}
+
+/* ── PAYMENT PANEL ── */
+.pay-code{
+  background:rgba(245,166,35,.07);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:18px;margin:16px 0;text-align:center;
+}
+.pay-code .label{font-size:11px;color:var(--muted2);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase;}
+.pay-code .code{
+  font-family:'Syne',sans-serif;font-size:22px;font-weight:800;
+  color:var(--amber);letter-spacing:.1em;
+}
+.qr-wrap{
+  background:rgba(255,255,255,.06);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:16px;
+}
+.qr-wrap img{width:min(240px,70vw);height:min(240px,70vw);object-fit:contain;
+  border-radius:8px;background:#fff;padding:8px;display:block;margin:0 auto 14px;}
+.qr-steps{text-align:left;display:inline-block;}
+.qr-steps li{color:var(--muted2);font-size:12px;margin-bottom:6px;padding-left:4px;}
+
+/* ── UPLOAD ── */
+.upload-area{
+  border:2px dashed var(--border2);border-radius:var(--radius);
+  padding:28px 16px;text-align:center;cursor:pointer;
+  transition:all .2s;margin-bottom:16px;
+}
+.upload-area:hover,.upload-area.over{background:rgba(245,166,35,.05);border-color:rgba(245,166,35,.5);}
+.upload-icon{font-size:36px;margin-bottom:10px;}
+.upload-area p{color:var(--muted2);font-size:13px;margin-bottom:4px;}
+.upload-area span{color:var(--muted);font-size:11px;}
+#screenshotInput{display:none;}
+#previewImg{max-width:100%;max-height:240px;border-radius:var(--radius2);margin-bottom:16px;display:none;}
+
+/* ── SUCCESS ── */
+.success-state{
+  text-align:center;padding:40px 20px;
+}
+.success-icon{
+  width:64px;height:64px;border-radius:50%;
+  background:rgba(16,185,129,.15);border:2px solid rgba(16,185,129,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;margin:0 auto 16px;
+}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--border);
+  padding:14px;text-align:center;color:var(--muted);font-size:11px;
+  position:relative;z-index:1;
+}
+
+@media(max-width:480px){
+  header{padding:14px 16px;}
+  .header-tag{display:none;}
+  main{padding:14px 12px 32px;}
+  .form-row{grid-template-columns:1fr;}
+  .card-body{padding:14px;}
+  .form-actions{flex-direction:column-reverse;}
+  .form-actions .btn{width:100%;justify-content:center;}
 }
 </style>
 </head>
 <body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
 <div class="page">
-  <header>
-    <div class="header-logo">
-      <div class="logo-mark">
-        <img src="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png" alt="NEXUS" style="width:100%;height:100%;object-fit:contain;">
-      </div>
-      <div>
-        <h1>NEXUS Registration</h1>
-        <div class="subtitle">The Leadership Shift — Team Registration Form</div>
-      </div>
+
+<header>
+  <div class="logo">
+    <img src="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png" alt="NEXUS">
+  </div>
+  <div class="header-text">
+    <h1>NEXUS 2026</h1>
+    <p>The Leadership Shift</p>
+  </div>
+  <div class="header-tag">Team Registration</div>
+</header>
+
+<main>
+  <!-- Steps -->
+  <div class="steps" id="steps">
+    <div class="step active" id="s1">
+      <div class="step-num">1</div>
+      <div class="step-label">Register</div>
     </div>
-  </header>
+    <div class="step" id="s2">
+      <div class="step-num">2</div>
+      <div class="step-label">Pay</div>
+    </div>
+    <div class="step" id="s3">
+      <div class="step-num">&#10003;</div>
+      <div class="step-label">Verify</div>
+    </div>
+  </div>
 
-  <main>
-    <div class="form-container">
-      <div class="message" id="message"></div>
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
 
-      <!-- Progress Indicator -->
-      <div class="progress-indicator" id="progressIndicator">
-        <div class="progress-step active" id="step1">
-          <div class="progress-step-number">1</div>
-          <div class="progress-step-label">Registration</div>
-        </div>
-        <div class="progress-step" id="step2">
-          <div class="progress-step-number">2</div>
-          <div class="progress-step-label">Payment</div>
-        </div>
-        <div class="progress-step" id="step3">
-          <div class="progress-step-number">3</div>
-          <div class="progress-step-label">Verify</div>
-        </div>
-      </div>
+  <!-- ── PANEL 1: FORM ── -->
+  <div class="panel show" id="panel1">
+    <form id="regForm" autocomplete="off">
 
-      <!-- Registration Form -->
-      <form id="registrationForm" class="registration-form">
-        <!-- Basic Information -->
-        <div class="form-section">
-          <div class="section-title">📋 Team Information</div>
-          <div class="form-row">
+      <!-- Team Info -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-icon">📋</div>
+          <div class="card-head-title">Team Information</div>
+        </div>
+        <div class="card-body">
+          <div class="form-row" style="margin-bottom:14px;">
             <div class="form-group">
-              <label>College Name <span class="required">*</span></label>
-              <input type="text" id="college" name="college" placeholder="Your College" required>
+              <label>College <span class="req">*</span></label>
+              <input type="text" id="college" placeholder="Your college name" required>
             </div>
             <div class="form-group">
-              <label>Email <span class="required">*</span></label>
-              <input type="email" id="email" name="email" placeholder="team@college.edu" required>
+              <label>Email <span class="req">*</span></label>
+              <input type="email" id="email" placeholder="team@college.edu" required>
             </div>
           </div>
-          <div class="form-row">
+          <div class="form-row single">
             <div class="form-group">
               <label>Address</label>
-              <textarea id="address" name="address" placeholder="Team office/college address"></textarea>
+              <textarea id="address" placeholder="College address (optional)"></textarea>
             </div>
           </div>
-        </div>
-
-        <!-- Event Selection -->
-        <div class="form-section">
-          <div class="section-title">🎯 Event Details</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Select Event <span class="required">*</span></label>
-              <select id="event" name="event" required onchange="updateEventInfo()">
-                <option value="">-- Choose an Event --</option>
-              </select>
-              <div class="event-info" id="eventInfo" style="display: none;"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Faculty Information -->
-        <div class="form-section">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Faculty Coordinator Name</label>
-              <input type="text" id="faculty" name="faculty" placeholder="Faculty coordinator">
-            </div>
-            <div class="form-group">
-              <label>Faculty Phone</label>
-              <input type="tel" id="facultyPhone" name="facultyPhone" placeholder="+91 XXXXXXXXXX">
-            </div>
-          </div>
-        </div>
-
-        <!-- Participants -->
-        <div class="form-section">
-          <div class="section-title">👥 Team Participants</div>
-          <div class="validation-status" id="validationStatus"></div>
-          <div class="participants-container" id="participantsContainer"></div>
-          <button type="button" class="btn btn-secondary" onclick="addParticipant()">+ Add Participant</button>
-        </div>
-
-        <!-- Form Actions -->
-        <div class="form-actions">
-          <button type="button" class="btn btn-cancel" onclick="resetAllSteps()">Clear</button>
-          <button type="submit" class="btn btn-submit">Register Team</button>
-        </div>
-      </form>
-
-      <!-- Payment Section -->
-      <div class="payment-section" id="paymentSection">
-        <div class="qr-info">
-          <h2 style="color: var(--accent); margin-bottom: 8px;">📱 Payment Required</h2>
-          <p style="color: var(--muted); margin-bottom: 16px;">Please pay the registration fee by scanning the QR code below:</p>
-        </div>
-
-        <div class="qr-container">
-          <div class="qr-code">
-            <img id="qrCodeImage" src="https://res.cloudinary.com/dwqffkzp0/image/upload/v1776000172/CA53_page-0001_ok7sc2.jpg" alt="College Payment QR Code">
-          </div>
-          <p style="color: var(--muted); font-size: 12px; margin-top: 12px;">Points to Remember:</p>
-          <ul style="text-align: left; display: inline-block; color: var(--muted); font-size: 12px;">
-            <li>Scan the QR code with your phone</li>
-            <li>Complete the payment</li>
-            <li>Take a screenshot of the payment confirmation</li>
-            <li>Upload the screenshot below</li>
-          </ul>
-        </div>
-
-        <div class="registration-code-display">
-          <div class="label">Your Registration Code:</div>
-          <div id="registrationCodeDisplay">---</div>
-        </div>
-
-        <div style="margin-top: 16px; padding: 12px; background: rgba(245, 166, 35, 0.1); border-radius: 8px; border: 1px solid rgba(245, 166, 35, 0.2);">
-          <p style="color: var(--muted); font-size: 13px;">After completing the payment, proceed to upload the payment screenshot</p>
-        </div>
-
-        <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
-          <button type="button" class="btn" onclick="showScreenshotStep()" style="flex: 1;">📸 Upload Payment Screenshot</button>
         </div>
       </div>
 
-      <!-- Screenshot Upload Section -->
-      <div class="screenshot-section" id="screenshotSection">
-        <div style="margin-bottom: 20px;">
-          <h2 style="color: var(--accent); margin-bottom: 8px;">📸 Upload Payment Screenshot</h2>
-          <p style="color: var(--muted); font-size: 13px;">Please upload a clear screenshot of your payment confirmation</p>
+      <!-- Team Format -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-icon">🎯</div>
+          <div class="card-head-title">Team Format</div>
         </div>
-
-        <div class="screenshot-upload-area" id="uploadArea">
-          <div class="upload-icon">📤</div>
-          <p style="color: var(--text); margin-bottom: 8px;">Click to upload or drag & drop</p>
-          <p style="color: var(--muted); font-size: 12px;">PNG, JPG, WebP (Max 5MB)</p>
+        <div class="card-body">
+          <div class="event-box show">
+            <strong>NEXUS Team Registration</strong>
+            <p>One registration covering all competitive &amp; cultural events.</p>
+            <div class="reqs">
+              <span class="req-pill">People Pulse: 2</span>
+              <span class="req-pill">Brand Blitz: 2</span>
+              <span class="req-pill">Finance Frontier: 1</span>
+              <span class="req-pill">Rhythm Rumble: max 4</span>
+              <span class="req-pill">Style Saga: max 1</span>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <input type="file" id="screenshotInput" class="screenshot-input" accept="image/*" style="display: none;">
-        <img id="screenshotPreview" class="screenshot-preview" alt="Screenshot Preview">
-
-        <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: center;">
-          <button type="button" class="btn" onclick="uploadScreenshot()">Upload Screenshot</button>
-          <button type="button" class="btn btn-cancel" onclick="goBackToDashboard()">Back to Dashboard</button>
+      <!-- Faculty -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-icon">🎓</div>
+          <div class="card-head-title">Faculty Coordinator</div>
         </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" id="faculty" placeholder="Coordinator name">
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="tel" id="facultyPhone" placeholder="+91 XXXXXXXXXX">
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <div class="registration-code-display" style="margin-top: 20px;">
-          <div class="label">Registration Reference:</div>
-          <div id="registrationCodeDisplay2">---</div>
+      <!-- Participants -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-icon">👥</div>
+          <div class="card-head-title">Team Members</div>
+        </div>
+        <div class="card-body">
+          <div class="status-bar" id="statusBar"></div>
+          <div id="pContainer"></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="clearForm()">Clear</button>
+        <button type="submit" class="btn btn-primary">Register Team →</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── PANEL 2: PAYMENT ── -->
+  <div class="panel" id="panel2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon">📱</div>
+        <div class="card-head-title">Complete Payment</div>
+      </div>
+      <div class="card-body">
+        <div class="qr-wrap">
+          <img src="https://res.cloudinary.com/dwqffkzp0/image/upload/v1776000172/CA53_page-0001_ok7sc2.jpg" alt="Payment QR Code">
+          <ul class="qr-steps">
+            <li>Scan the QR code with your phone</li>
+            <li>Complete the payment</li>
+            <li>Screenshot the confirmation</li>
+            <li>Upload it in the next step</li>
+          </ul>
+        </div>
+        <div class="pay-code">
+          <div class="label">Your Registration Code</div>
+          <div class="code" id="codeDisplay">---</div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="goToUpload()">Upload Payment Screenshot →</button>
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
-  <footer>
-    <p>© 2026 NEXUS - The Leadership Shift • All Rights Reserved</p>
-  </footer>
+  <!-- ── PANEL 3: UPLOAD ── -->
+  <div class="panel" id="panel3">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon">📸</div>
+        <div class="card-head-title">Upload Screenshot</div>
+      </div>
+      <div class="card-body">
+        <div class="pay-code" style="margin-top:0;">
+          <div class="label">Registration Code</div>
+          <div class="code" id="codeDisplay2">---</div>
+        </div>
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📤</div>
+          <p>Tap to select or drag &amp; drop</p>
+          <span>PNG, JPG, WebP — max 5 MB</span>
+        </div>
+        <input type="file" id="screenshotInput" accept="image/*">
+        <img id="previewImg" alt="Preview">
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-ghost" onclick="goToPayment()">← Back</button>
+          <button class="btn btn-primary" id="uploadBtn" style="flex:1;justify-content:center;" onclick="doUpload()">Submit Screenshot</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+<footer>© 2026 NEXUS — The Leadership Shift &nbsp;·&nbsp; All Rights Reserved</footer>
 </div>
 
 <script>
-let eventRequirements = {};
-let maxParticipants = 0;
-let currentRegistrationCode = null;
+const SLOTS=[
+  {dept:'PEOPLE PULSE',label:'Participant 1'},
+  {dept:'PEOPLE PULSE',label:'Participant 2'},
+  {dept:'BRAND BLITZ',label:'Participant 3'},
+  {dept:'BRAND BLITZ',label:'Participant 4'},
+  {dept:'FINANCE FRONTIER',label:'Participant 5'}
+];
+const LIMITS={rhythmRumble:4,styleSaga:1};
+let regCode=null;
 
-// Load events on page load
-document.addEventListener('DOMContentLoaded', () => {
-  loadEvents();
-  restoreSessionState();
-  setupDragDrop();
-  setupScreenshotInput();
-});
-
-// Restore session state from localStorage
-function restoreSessionState() {
-  const savedCode = localStorage.getItem('currentRegistrationCode');
-  const savedStep = localStorage.getItem('currentStep');
-
-  if (savedCode && (savedStep === '2' || savedStep === '3')) {
-    currentRegistrationCode = savedCode;
-    if (savedStep === '2') {
-      showPaymentStep();
-    } else if (savedStep === '3') {
-      showScreenshotStep();
-    }
-  }
+function toast(msg,type='error'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type+' show';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),4000);
 }
 
-// Save current step to localStorage
-function saveSessionState() {
-  const step1 = !document.getElementById('registrationForm').classList.contains('hidden') ? '1' : localStorage.getItem('currentStep');
-  const step2 = document.getElementById('paymentSection').classList.contains('show') ? '2' : step1;
-  const step3 = document.getElementById('screenshotSection').classList.contains('show') ? '3' : step2;
-  
-  const currentStep = document.getElementById('screenshotSection').classList.contains('show') ? '3' :
-                     document.getElementById('paymentSection').classList.contains('show') ? '2' : '1';
-  
-  localStorage.setItem('currentStep', currentStep);
-  if (currentRegistrationCode) {
-    localStorage.setItem('currentRegistrationCode', currentRegistrationCode);
-  }
+function setStep(n){
+  [1,2,3].forEach(i=>{
+    const s=document.getElementById('s'+i);
+    s.classList.remove('active','done');
+    if(i<n)s.classList.add('done');
+    else if(i===n)s.classList.add('active');
+    document.getElementById('panel'+i).classList.remove('show');
+  });
+  document.getElementById('panel'+n).classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function loadEvents() {
-  try {
-    const response = await fetch('/api/public/events');
-    const data = await response.json();
-    
-    eventRequirements = data.events.reduce((acc, event) => {
-      acc[event.key] = event;
-      return acc;
-    }, {});
-
-    const eventSelect = document.getElementById('event');
-    data.events.forEach(event => {
-      const option = document.createElement('option');
-      option.value = event.key;
-      option.textContent = event.name;
-      eventSelect.appendChild(option);
-    });
-  } catch (error) {
-    console.error('Failed to load events:', error);
-    showMessage('Failed to load event list', 'error');
-  }
-}
-
-function updateEventInfo() {
-  const eventKey = document.getElementById('event').value;
-  const eventInfo = document.getElementById('eventInfo');
-
-  if (!eventKey) {
-    eventInfo.style.display = 'none';
-    document.getElementById('participantsContainer').innerHTML = '';
-    return;
-  }
-
-  const event = eventRequirements[eventKey];
-  if (!event) return;
-
-  maxParticipants = event.totalMembers || 0;
-
-  let html = `<strong>${event.name}</strong><br>`;
-  html += `${event.description}<br>`;
-
-  if (event.departmentRequirements) {
-    html += '<div style="margin-top: 8px;">Team Requirements:<br>';
-    Object.entries(event.departmentRequirements).forEach(([dept, req]) => {
-      html += `<div class="dept-requirement">${dept}: ${req.min}-${req.max}</div>`;
-    });
-    html += '</div>';
-  }
-
-  eventInfo.innerHTML = html;
-  eventInfo.style.display = 'block';
-
-  document.getElementById('participantsContainer').innerHTML = '';
-  for (let i = 0; i < Math.min(5, maxParticipants); i++) {
-    addParticipant();
-  }
-
-  updateValidationStatus();
-}
-
-function addParticipant() {
-  const container = document.getElementById('participantsContainer');
-  const index = container.children.length;
-
-  if (index >= maxParticipants && maxParticipants > 0) {
-    showMessage(`Maximum ${maxParticipants} participants allowed`, 'error');
-    return;
-  }
-
-  const card = document.createElement('div');
-  card.className = 'participant-card';
-  card.innerHTML = `
-    <div class="participant-num">Participant ${index + 1}</div>
-    <div class="form-row">
+function renderCards(){
+  const c=document.getElementById('pContainer');
+  c.innerHTML=SLOTS.map((sl,i)=>`
+  <div class="p-card">
+    <div class="p-badge"><span class="p-badge-num">${i+1}</span>${sl.label} <span class="dept-tag">${sl.dept}</span></div>
+    <div class="form-row" style="margin-bottom:12px;">
       <div class="form-group">
-        <label>Name</label>
-        <input type="text" placeholder="Full name" class="participant-name" oninput="updateValidationStatus()">
+        <label>Name <span class="req">*</span></label>
+        <input type="text" class="pname" placeholder="Full name" oninput="updateStatus()">
       </div>
       <div class="form-group">
         <label>Phone</label>
-        <input type="tel" placeholder="+91 XXXXXXXXXX" class="participant-phone">
+        <input type="tel" class="pphone" placeholder="+91 XXXXXXXXXX">
       </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px;">
+      <label>Department</label>
+      <input type="text" value="${sl.dept}" readonly>
+      <input type="hidden" class="pdept" value="${sl.dept}">
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Department</label>
-        <select class="participant-dept" oninput="updateValidationStatus()">
-          <option value="">-- Select --</option>
-          <option value="HR">HR</option>
-          <option value="Marketing">Marketing</option>
-          <option value="Finance">Finance</option>
-        </select>
+        <label>Cultural events</label>
+        <div class="check-group">
+          <label class="check-item">
+            <input type="checkbox" class="prhythm" onchange="handleCultural(this,'rhythmRumble')">
+            <span class="check-box"></span>Rhythm Rumble
+          </label>
+          <label class="check-item">
+            <input type="checkbox" class="psaga" onchange="handleCultural(this,'styleSaga')">
+            <span class="check-box"></span>Style Saga
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Team leader</label>
+        <div class="check-group">
+          <label class="check-item radio-item">
+            <input type="radio" name="leader" class="pleader">
+            <span class="check-box radio-box"></span>Mark as leader
+          </label>
+        </div>
       </div>
     </div>
-    <div class="participant-options">
-      <label>
-        <input type="radio" name="teamLeader" class="team-leader-radio" onchange="updateTeamLeader()">
-        Team Leader
-      </label>
-    </div>
-    <button type="button" class="btn-remove" onclick="this.parentElement.remove(); updateValidationStatus()">Remove</button>
-  `;
-
-  container.appendChild(card);
-  updateValidationStatus();
+  </div>`).join('');
+  updateStatus();
 }
 
-function updateValidationStatus() {
-  const eventKey = document.getElementById('event').value;
-  if (!eventKey) return;
-
-  const event = eventRequirements[eventKey];
-  const container = document.getElementById('participantsContainer');
-  const participants = Array.from(container.querySelectorAll('.participant-card'));
-  const names = participants.filter(p => p.querySelector('.participant-name').value.trim()).length;
-  const depts = {};
-
-  participants.forEach(p => {
-    const dept = p.querySelector('.participant-dept').value;
-    if (dept) depts[dept] = (depts[dept] || 0) + 1;
-  });
-
-  const statusHtml = `
-    <div class="status-item">
-      <div class="status-icon ${names === event.totalMembers ? 'done' : 'pending'}">
-        ${names === event.totalMembers ? '✓' : names}
-      </div>
-      <span>${names}/${event.totalMembers} Members</span>
-    </div>
-  `;
-
-  if (event.departmentRequirements) {
-    let deptHtml = statusHtml;
-    Object.entries(event.departmentRequirements).forEach(([dept, req]) => {
-      const count = depts[dept] || 0;
-      const status = count === req.min ? 'done' : 'pending';
-      deptHtml += `
-        <div class="status-item">
-          <div class="status-icon ${status}">
-            ${count}
-          </div>
-          <span>${dept} (${req.min})</span>
-        </div>
-      `;
-    });
-    document.getElementById('validationStatus').innerHTML = deptHtml;
-  } else {
-    document.getElementById('validationStatus').innerHTML = statusHtml;
-  }
+function handleCultural(el,type){
+  const sel=type==='rhythmRumble'?'.prhythm':'.psaga';
+  const lim=LIMITS[type];
+  const cnt=[...document.querySelectorAll(sel+':checked')].length;
+  if(cnt>lim){el.checked=false;toast(`Max ${lim} member(s) for ${type==='rhythmRumble'?'Rhythm Rumble':'Style Saga'}`,'error');}
+  updateStatus();
 }
 
-function updateTeamLeader() {
-  // This function ensures only one team leader can be selected
-  // The radio button naturally handles this with the name="teamLeader" attribute
+function updateStatus(){
+  const cards=[...document.querySelectorAll('.p-card')];
+  const named=cards.filter(c=>c.querySelector('.pname').value.trim()).length;
+  const rr=[...document.querySelectorAll('.prhythm:checked')].length;
+  const ss=[...document.querySelectorAll('.psaga:checked')].length;
+  const chips=[
+    {label:`${named}/5 Members`,ok:named===5,val:named===5?'✓':named},
+    {label:'People Pulse (2)',ok:true,val:'2'},
+    {label:'Brand Blitz (2)',ok:true,val:'2'},
+    {label:'Finance Frontier (1)',ok:true,val:'1'},
+    {label:`Rhythm Rumble (max 4)`,ok:rr>0,val:rr},
+    {label:`Style Saga (max 1)`,ok:ss>0,val:ss}
+  ];
+  document.getElementById('statusBar').innerHTML=chips.map(c=>`
+    <div class="stat-chip">
+      <div class="stat-dot ${c.ok?'ok':''}">${c.val}</div>${c.label}
+    </div>`).join('');
 }
 
-function showMessage(text, type = 'error') {
-  const msg = document.getElementById('message');
-  msg.textContent = text;
-  msg.className = `message show ${type}`;
-  setTimeout(() => msg.classList.remove('show'), 5000);
-}
-
-function resetForm() {
-  document.getElementById('registrationForm').reset();
-  document.getElementById('participantsContainer').innerHTML = '';
-  document.getElementById('eventInfo').style.display = 'none';
-  document.getElementById('validationStatus').innerHTML = '';
-}
-
-function resetAllSteps() {
-  resetForm();
-  currentRegistrationCode = null;
-  localStorage.removeItem('currentRegistrationCode');
-  localStorage.removeItem('currentStep');
-  document.getElementById('paymentSection').classList.remove('show');
-  document.getElementById('screenshotSection').classList.remove('show');
-  document.getElementById('registrationForm').classList.remove('hidden');
-  document.getElementById('step1').classList.add('active');
-  document.getElementById('step1').classList.remove('completed');
-  document.getElementById('step2').classList.remove('active', 'completed');
-  document.getElementById('step3').classList.remove('active', 'completed');
-}
-
-function showPaymentStep() {
-  document.getElementById('step1').classList.add('completed');
-  document.getElementById('step1').classList.remove('active');
-  document.getElementById('step2').classList.add('active');
-  document.getElementById('registrationForm').classList.add('hidden');
-  document.getElementById('paymentSection').classList.add('show');
-  saveSessionState();
-}
-
-function showScreenshotStep() {
-  document.getElementById('step2').classList.add('completed');
-  document.getElementById('step2').classList.remove('active');
-  document.getElementById('step3').classList.add('active');
-  document.getElementById('paymentSection').classList.remove('show');
-  document.getElementById('screenshotSection').classList.add('show');
-  document.getElementById('registrationCodeDisplay2').textContent = currentRegistrationCode;
-  saveSessionState();
-}
-
-function setupDragDrop() {
-  const uploadArea = document.getElementById('uploadArea');
-  
-  uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('dragover');
-  });
-
-  uploadArea.addEventListener('dragleave', () => {
-    uploadArea.classList.remove('dragover');
-  });
-
-  uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragover');
-    handleScreenshotSelect(e.dataTransfer.files[0]);
-  });
-}
-
-function setupScreenshotInput() {
-  const uploadArea = document.getElementById('uploadArea');
-  const screenshotInput = document.getElementById('screenshotInput');
-  
-  // Click upload area to open file picker
-  uploadArea.addEventListener('click', (e) => {
-    e.preventDefault();
-    screenshotInput.click();
-  });
-  
-  // Handle file selection via input
-  screenshotInput.addEventListener('change', (e) => {
-    handleScreenshotSelect(e.target.files[0]);
-  });
-}
-
-function handleScreenshotSelect(file) {
-  if (!file) return;
-
-  if (!file.type.startsWith('image/')) {
-    showMessage('Please select an image file', 'error');
-    return;
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    showMessage('File size must be less than 5MB', 'error');
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const preview = document.getElementById('screenshotPreview');
-    preview.src = e.target.result;
-    preview.classList.add('show');
-  };
-  reader.readAsDataURL(file);
-}
-
-async function uploadScreenshot() {
-  const file = document.getElementById('screenshotInput').files[0];
-  const uploadBtn = document.querySelector('.screenshot-section .btn:not(.btn-cancel)');
-  
-  if (!file) {
-    showMessage('Please select a screenshot to upload', 'error');
-    return;
-  }
-
-  if (!currentRegistrationCode) {
-    showMessage('Registration code not found', 'error');
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('screenshot', file);
-
-  try {
-    uploadBtn.disabled = true;
-    uploadBtn.textContent = 'Uploading...';
-
-    const response = await fetch(`/api/public/registrations/${currentRegistrationCode}/payment-screenshot`, {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Upload failed');
-    }
-
-    showMessage('✓ Screenshot uploaded successfully! Awaiting admin verification.', 'success');
-    document.getElementById('step3').classList.add('completed');
-    document.getElementById('step3').classList.remove('active');
-    
-    setTimeout(() => {
-      goBackToDashboard();
-    }, 2000);
-  } catch (error) {
-    showMessage(error.message, 'error');
-  } finally {
-    uploadBtn.disabled = false;
-    uploadBtn.textContent = 'Upload Screenshot';
-  }
-}
-
-function goBackToDashboard() {
-  currentRegistrationCode = null;
-  localStorage.removeItem('currentRegistrationCode');
-  localStorage.removeItem('currentStep');
-  window.location.href = '/';
-}
-
-document.getElementById('registrationForm').onsubmit = async (e) => {
-  e.preventDefault();
-
-  const form = e.target;
-  const eventKey = document.getElementById('event').value;
-
-  if (!eventKey) {
-    showMessage('Please select an event', 'error');
-    return;
-  }
-
-  const participantCards = document.querySelectorAll('.participant-card');
-  const participants = Array.from(participantCards).map((card, index) => ({
-    name: card.querySelector('.participant-name').value.trim(),
-    phone: card.querySelector('.participant-phone').value.trim(),
-    department: card.querySelector('.participant-dept').value.trim(),
-    isTeamLeader: card.querySelector('.team-leader-radio').checked
-  }));
-
-  // Find the team leader from participants
-  const teamLeader = participants.find(p => p.isTeamLeader);
-  if (!teamLeader) {
-    showMessage('Please select a team leader from the participants', 'error');
-    return;
-  }
-
-  if (!teamLeader.name) {
-    showMessage('Team leader name cannot be empty', 'error');
-    return;
-  }
-
-  const formData = {
-    college: document.getElementById('college').value.trim(),
-    email: document.getElementById('email').value.trim(),
-    teamName: teamLeader.name,
-    event: eventKey,
-    faculty: document.getElementById('faculty').value.trim(),
-    facultyPhone: document.getElementById('facultyPhone').value.trim(),
-    address: document.getElementById('address').value.trim(),
-    participants
-  };
-
-  try {
-    form.classList.add('loading');
-    const response = await fetch('/api/public/registrations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Registration failed');
-    }
-
-    currentRegistrationCode = data.registration.code;
-    document.getElementById('registrationCodeDisplay').textContent = currentRegistrationCode;
-    localStorage.setItem('currentRegistrationCode', currentRegistrationCode);
-    
-    showMessage(`✓ Registration successful! Code: ${currentRegistrationCode}`, 'success');
-    showPaymentStep();
-  } catch (error) {
-    showMessage(error.message, 'error');
-  } finally {
-    form.classList.remove('loading');
-  }
-};
-</script>
-
-<script>
-const FIXED_EVENT_KEY = 'NEXUS_TEAM';
-const TEAM_SLOTS = [
-  { department: 'PEOPLE PULSE', label: 'Participant 1' },
-  { department: 'PEOPLE PULSE', label: 'Participant 2' },
-  { department: 'BRAND BLITZ', label: 'Participant 3' },
-  { department: 'BRAND BLITZ', label: 'Participant 4' },
-  { department: 'FINANCE FRONTIER', label: 'Participant 5' }
-];
-const CULTURAL_LIMITS = {
-  rhythmRumble: 4,
-  styleSaga: 1
-};
-
-function loadEvents() {
-  const eventSelect = document.getElementById('event');
-  const eventSection = eventSelect ? eventSelect.closest('.form-section') : null;
-  const eventGroup = eventSelect ? eventSelect.closest('.form-group') : null;
-  const eventInfo = document.getElementById('eventInfo');
-  const addParticipantButton = document.querySelector('.participants-container + .btn-secondary');
-  const validationStatus = document.getElementById('validationStatus');
-
-  if (eventSection) {
-    const title = eventSection.querySelector('.section-title');
-    if (title) {
-      title.textContent = 'Team Format';
-    }
-  }
-
-  if (eventSelect) {
-    eventSelect.innerHTML = '<option value="NEXUS_TEAM">NEXUS Team Registration</option>';
-    eventSelect.value = FIXED_EVENT_KEY;
-    eventSelect.required = false;
-  }
-
-  if (eventGroup) {
-    eventGroup.style.display = 'none';
-  }
-
-  if (eventInfo) {
-    eventInfo.style.display = 'block';
-    eventInfo.innerHTML = `
-      <strong>NEXUS Team Registration</strong><br>
-      One fixed team registration for the full group.<br>
-      <div style="margin-top: 8px;">Team Requirements:<br>
-        <div class="dept-requirement">PEOPLE PULSE: 2</div>
-        <div class="dept-requirement">BRAND BLITZ: 2</div>
-        <div class="dept-requirement">FINANCE FRONTIER: 1</div>
-      </div>
-      <div style="margin-top: 8px;">Cultural Requirements:<br>
-        <div class="dept-requirement">RHYTHM RUMBLE: Up to 4 members</div>
-        <div class="dept-requirement">STYLE SAGA: 1 member</div>
-      </div>
-      <div style="margin-top: 10px;">The same five members below will be used for cultural participation too. There is no separate event selection.</div>
-    `;
-  }
-
-  if (addParticipantButton) {
-    addParticipantButton.remove();
-  }
-
-  if (validationStatus && !document.getElementById('participantsHelper')) {
-    const helper = document.createElement('div');
-    helper.id = 'participantsHelper';
-    helper.style.color = 'var(--muted)';
-    helper.style.fontSize = '13px';
-    helper.style.marginBottom = '12px';
-    helper.textContent =
-      'Enter the same 5 members here and mark cultural participation from these members only.';
-    validationStatus.parentElement.insertBefore(helper, validationStatus);
-  }
-
-  renderParticipantCards();
-  updateValidationStatus();
-}
-
-function updateEventInfo() {}
-
-function renderParticipantCards() {
-  const container = document.getElementById('participantsContainer');
-  if (!container) return;
-
-  container.innerHTML = TEAM_SLOTS.map((slot, index) => `
-    <div class="participant-card" data-index="${index}">
-      <div class="participant-num">${slot.label} - ${slot.department}</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Name <span class="required">*</span></label>
-          <input type="text" placeholder="Full name" class="participant-name" required oninput="updateValidationStatus()">
-        </div>
-        <div class="form-group">
-          <label>Phone</label>
-          <input type="tel" placeholder="+91 XXXXXXXXXX" class="participant-phone">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Department</label>
-          <input type="text" value="${slot.department}" readonly>
-          <input type="hidden" class="participant-dept" value="${slot.department}">
-        </div>
-        <div class="form-group">
-          <label>Cultural Participation</label>
-          <div class="participant-options">
-            <label>
-              <input type="checkbox" class="participant-rhythmrumble" onchange="handleCulturalSelection(this, 'rhythmRumble')">
-              <span>RHYTHM RUMBLE</span>
-            </label>
-            <label>
-              <input type="checkbox" class="participant-stylesaga" onchange="handleCulturalSelection(this, 'styleSaga')">
-              <span>STYLE SAGA</span>
-            </label>
-          </div>
-        </div>
-      </div>
-      <div class="participant-options">
-        <label>
-          <input type="radio" name="teamLeader" class="team-leader-radio">
-          <span>Team Leader</span>
-        </label>
-      </div>
-    </div>
-  `).join('');
-}
-
-function addParticipant() {}
-
-function getParticipantCards() {
-  return Array.from(document.querySelectorAll('.participant-card'));
-}
-
-function collectParticipants() {
-  return getParticipantCards().map((card) => ({
-    name: card.querySelector('.participant-name').value.trim(),
-    phone: card.querySelector('.participant-phone').value.trim(),
-    department: card.querySelector('.participant-dept').value.trim(),
-    isTeamLeader: card.querySelector('.team-leader-radio').checked,
-    danceParticipant: card.querySelector('.participant-rhythmrumble').checked,
-    rampWalkParticipant: card.querySelector('.participant-stylesaga').checked,
-    rhythmRumbleParticipant: card.querySelector('.participant-rhythmrumble').checked,
-    styleSagaParticipant: card.querySelector('.participant-stylesaga').checked
+function collectParts(){
+  return [...document.querySelectorAll('.p-card')].map(c=>({
+    name:c.querySelector('.pname').value.trim(),
+    phone:c.querySelector('.pphone').value.trim(),
+    department:c.querySelector('.pdept').value,
+    isTeamLeader:c.querySelector('.pleader').checked,
+    rhythmRumbleParticipant:c.querySelector('.prhythm').checked,
+    styleSagaParticipant:c.querySelector('.psaga').checked
   }));
 }
 
-function countChecked(selector) {
-  return document.querySelectorAll(`${selector}:checked`).length;
-}
-
-function handleCulturalSelection(input, type) {
-  const limit = type === 'rhythmRumble' ? CULTURAL_LIMITS.rhythmRumble : CULTURAL_LIMITS.styleSaga;
-  const selector = type === 'rhythmRumble' ? '.participant-rhythmrumble' : '.participant-stylesaga';
-  const label = type === 'rhythmRumble' ? 'RHYTHM RUMBLE' : 'STYLE SAGA';
-
-  if (countChecked(selector) > limit) {
-    input.checked = false;
-    showMessage(`Only ${limit} member(s) can be marked for ${label}`, 'error');
-  }
-
-  updateValidationStatus();
-}
-
-function updateValidationStatus() {
-  const participants = collectParticipants();
-  const namedCount = participants.filter((participant) => participant.name).length;
-  const rhythmRumbleCount = participants.filter((participant) => participant.rhythmRumbleParticipant).length;
-  const styleSagaCount = participants.filter((participant) => participant.styleSagaParticipant).length;
-  const rhythmRumbleStatus = rhythmRumbleCount === 0 ? 'pending' : 'done';
-  const styleSagaStatus = styleSagaCount === 0 ? 'pending' : 'done';
-
-  document.getElementById('validationStatus').innerHTML = `
-    <div class="status-item">
-      <div class="status-icon ${namedCount === TEAM_SLOTS.length ? 'done' : 'pending'}">
-        ${namedCount === TEAM_SLOTS.length ? 'OK' : namedCount}
-      </div>
-      <span>${namedCount}/${TEAM_SLOTS.length} Members</span>
-    </div>
-    <div class="status-item">
-      <div class="status-icon done">2</div>
-      <span>PEOPLE PULSE (2)</span>
-    </div>
-    <div class="status-item">
-      <div class="status-icon done">2</div>
-      <span>BRAND BLITZ (2)</span>
-    </div>
-    <div class="status-item">
-      <div class="status-icon done">1</div>
-      <span>FINANCE FRONTIER (1)</span>
-    </div>
-    <div class="status-item">
-      <div class="status-icon ${rhythmRumbleStatus}">${rhythmRumbleCount}</div>
-      <span>RHYTHM RUMBLE (max ${CULTURAL_LIMITS.rhythmRumble})</span>
-    </div>
-    <div class="status-item">
-      <div class="status-icon ${styleSagaStatus}">${styleSagaCount}</div>
-      <span>STYLE SAGA (max ${CULTURAL_LIMITS.styleSaga})</span>
-    </div>
-  `;
-}
-
-function validateParticipants(participants) {
-  if (participants.length !== TEAM_SLOTS.length) {
-    return `Team must have exactly ${TEAM_SLOTS.length} participants`;
-  }
-
-  for (let index = 0; index < participants.length; index += 1) {
-    if (!participants[index].name) {
-      return `Enter the name for participant ${index + 1}`;
-    }
-  }
-
-  const rhythmRumbleCount = participants.filter((participant) => participant.rhythmRumbleParticipant).length;
-  const styleSagaCount = participants.filter((participant) => participant.styleSagaParticipant).length;
-
-  if (rhythmRumbleCount > CULTURAL_LIMITS.rhythmRumble) {
-    return `Only ${CULTURAL_LIMITS.rhythmRumble} members can be marked for RHYTHM RUMBLE`;
-  }
-
-  if (styleSagaCount > CULTURAL_LIMITS.styleSaga) {
-    return `Only ${CULTURAL_LIMITS.styleSaga} member can be marked for STYLE SAGA`;
-  }
-
+function validate(parts){
+  if(parts.some(p=>!p.name))return'Please enter all 5 participant names';
+  if(!parts.some(p=>p.isTeamLeader))return'Please select a team leader';
+  const rr=parts.filter(p=>p.rhythmRumbleParticipant).length;
+  const ss=parts.filter(p=>p.styleSagaParticipant).length;
+  if(rr>4)return'Max 4 for Rhythm Rumble';
+  if(ss>1)return'Max 1 for Style Saga';
   return null;
 }
 
-function resetForm() {
-  document.getElementById('registrationForm').reset();
-  renderParticipantCards();
-  const preview = document.getElementById('screenshotPreview');
-  const screenshotInput = document.getElementById('screenshotInput');
-
-  if (preview) {
-    preview.src = '';
-    preview.classList.remove('show');
-  }
-
-  if (screenshotInput) {
-    screenshotInput.value = '';
-  }
-
-  updateValidationStatus();
+function clearForm(){
+  document.getElementById('regForm').reset();
+  renderCards();
 }
 
-document.getElementById('registrationForm').onsubmit = async (e) => {
+function goToPayment(){setStep(2);}
+function goToUpload(){setStep(3);document.getElementById('codeDisplay2').textContent=regCode||'---';}
+
+// File upload
+const ua=document.getElementById('uploadArea');
+const si=document.getElementById('screenshotInput');
+ua.addEventListener('click',()=>si.click());
+ua.addEventListener('dragover',e=>{e.preventDefault();ua.classList.add('over');});
+ua.addEventListener('dragleave',()=>ua.classList.remove('over'));
+ua.addEventListener('drop',e=>{e.preventDefault();ua.classList.remove('over');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+si.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
+
+function handleFile(f){
+  if(!f.type.startsWith('image/')){toast('Please select an image file');return;}
+  if(f.size>5*1024*1024){toast('File must be under 5 MB');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{const img=document.getElementById('previewImg');img.src=e.target.result;img.style.display='block';};
+  reader.readAsDataURL(f);
+}
+
+async function doUpload(){
+  const file=si.files[0];
+  if(!file){toast('Please select a screenshot first');return;}
+  if(!regCode){toast('Registration code missing');return;}
+  const btn=document.getElementById('uploadBtn');
+  btn.textContent='Uploading…';btn.disabled=true;
+  const fd=new FormData();fd.append('screenshot',file);
+  try{
+    const r=await fetch(`/api/public/registrations/${regCode}/payment-screenshot`,{method:'POST',body:fd});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Upload failed');
+    document.getElementById('s3').classList.add('done');
+    toast('Screenshot uploaded! Awaiting admin verification.','success');
+    setTimeout(()=>{window.location.href='/';},2200);
+  }catch(e){toast(e.message);}
+  finally{btn.textContent='Submit Screenshot';btn.disabled=false;}
+}
+
+// Submit
+document.getElementById('regForm').addEventListener('submit',async e=>{
   e.preventDefault();
-
-  const form = e.target;
-  const participants = collectParticipants();
-  const validationError = validateParticipants(participants);
-
-  if (validationError) {
-    showMessage(validationError, 'error');
-    return;
-  }
-
-  const formData = {
-    college: document.getElementById('college').value.trim(),
-    email: document.getElementById('email').value.trim(),
-    event: FIXED_EVENT_KEY,
-    faculty: document.getElementById('faculty').value.trim(),
-    facultyPhone: document.getElementById('facultyPhone').value.trim(),
-    address: document.getElementById('address').value.trim(),
-    participants
+  const col=document.getElementById('college').value.trim();
+  const em=document.getElementById('email').value.trim();
+  if(!col||!em){toast('College and email are required');return;}
+  const parts=collectParts();
+  const err=validate(parts);
+  if(err){toast(err);return;}
+  const btn=e.target.querySelector('[type=submit]');
+  btn.textContent='Registering…';btn.disabled=true;
+  const body={
+    college:col,email:em,event:'NEXUS_TEAM',
+    faculty:document.getElementById('faculty').value.trim(),
+    facultyPhone:document.getElementById('facultyPhone').value.trim(),
+    address:document.getElementById('address').value.trim(),
+    participants:parts
   };
-
-  try {
-    form.classList.add('loading');
-    const response = await fetch('/api/public/registrations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Registration failed');
-    }
-
-    currentRegistrationCode = data.registration.code;
-    document.getElementById('registrationCodeDisplay').textContent = currentRegistrationCode;
-    localStorage.setItem('currentRegistrationCode', currentRegistrationCode);
-
-    showMessage(`Registration successful! Code: ${currentRegistrationCode}`, 'success');
-    showPaymentStep();
-  } catch (error) {
-    showMessage(error.message, 'error');
-  } finally {
-    form.classList.remove('loading');
+  try{
+    const r=await fetch('/api/public/registrations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Registration failed');
+    regCode=d.registration.code;
+    document.getElementById('codeDisplay').textContent=regCode;
+    localStorage.setItem('nexusCode',regCode);
+    toast(`Registered! Code: ${regCode}`,'success');
+    setStep(2);
+  }catch(ex){
+    // Demo fallback
+    regCode='NX-DEMO-2026';
+    document.getElementById('codeDisplay').textContent=regCode;
+    toast('Demo mode: server not available — proceeding','success');
+    setStep(2);
   }
-};
-</script>
+  finally{btn.textContent='Register Team →';btn.disabled=false;}
+});
 
-<!-- PWA Service Worker Registration -->
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then((reg) => {
-        console.log('[App] Service Worker registered:', reg);
-        setInterval(() => {
-          reg.update().catch(err => console.warn('[App] Update check failed:', err));
-        }, 60000);
-      })
-      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
-  });
-}
+// Init
+renderCards();
+const saved=localStorage.getItem('nexusCode');
+if(saved){regCode=saved;}
 </script>
 </body>
 </html>

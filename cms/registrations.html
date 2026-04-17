@@ -64,12 +64,13 @@
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-  /* Main Layout */
+  /* Page-level override for .cms-main
+     margin-left:240px is also in cms-core.js injected CSS, but we add it here
+     too so it applies immediately (before the async initPage() fills cmsStyle). */
   .cms-main {
-    padding: 24px;
-    max-width: 1400px;
-    margin: 0 auto;
-    min-height: 100vh;
+    margin-left: 240px !important;
+    padding: 28px 32px !important;
+    max-width: none !important;
   }
 
   /* Header Section */
@@ -118,11 +119,17 @@
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: 18px 20px;
+    padding: 18px 20px 18px 22px;
     position: relative;
     overflow: hidden;
     transition: var(--transition);
+    border-left: 3px solid transparent;
   }
+
+  .stat-card.s-total  { border-left-color: var(--accent); }
+  .stat-card.s-verify { border-left-color: var(--green); }
+  .stat-card.s-pend   { border-left-color: var(--yellow); }
+  .stat-card.s-people { border-left-color: var(--blue); }
 
   .stat-card::before {
     content: '';
@@ -168,10 +175,12 @@
 
   /* Filter Bar */
   .filter-bar {
-    background: var(--bg-card);
+    background: rgba(17,24,39,0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 16px 20px;
+    padding: 14px 18px;
     margin-bottom: 20px;
     display: flex;
     gap: 12px;
@@ -1162,14 +1171,13 @@
 
   /* Responsive: Tablet */
   @media (max-width: 1024px) {
-    .cms-main { padding: 16px; }
+    .cms-main { padding: 16px !important; }
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .detail-grid { gap: 8px; }
   }
 
-  /* Responsive: Mobile */
   @media (max-width: 768px) {
-    .cms-main { padding: 12px; }
+    .cms-main { padding: 12px !important; }
     
     .page-header {
       flex-direction: column;
@@ -1389,22 +1397,22 @@
 
   <!-- Stats -->
   <div class="stats-row" id="statsRow">
-    <div class="stat-card">
+    <div class="stat-card s-total">
       <div class="stat-icon" style="background:var(--accent-dim);color:var(--accent)">📋</div>
       <div class="stat-value" id="statTotal">—</div>
       <div class="stat-label">Total Registrations</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card s-verify">
       <div class="stat-icon" style="background:var(--green-dim);color:var(--green)">✓</div>
       <div class="stat-value" id="statVerified">—</div>
       <div class="stat-label">Verified Payments</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card s-pend">
       <div class="stat-icon" style="background:var(--yellow-dim);color:var(--yellow)">⏳</div>
       <div class="stat-value" id="statPending">—</div>
       <div class="stat-label">Pending Payments</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card s-people">
       <div class="stat-icon" style="background:var(--blue-dim);color:var(--blue)">👥</div>
       <div class="stat-value" id="statParticipants">—</div>
       <div class="stat-label">Total Participants</div>

@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const { randomInt } = require("crypto");
 const multer = require("multer");
 
 const Registration = require("../models/Registration");
@@ -10,7 +11,6 @@ const { writeAuditLog } = require("../audit");
 const { clientIp, makeError, serializeRegistration } = require("../utils");
 const {
   validateTeamComposition,
-  getEventRequirements,
   getAllEventRequirements,
   formatValidationErrors,
   normalizeDepartment
@@ -48,16 +48,18 @@ const upload = multer({
   }
 });
 
+// Use crypto.randomInt - cryptographically secure, prevents code enumeration attacks
 async function generateRegistrationCode() {
   for (let attempt = 0; attempt < 10; attempt += 1) {
-    const code = String(Math.floor(10000 + Math.random() * 90000));
+    const code = String(randomInt(10000, 100000));
     const existing = await Registration.exists({ code });
     if (!existing) {
       return code;
     }
   }
 
-  return String(Date.now()).slice(-5);
+  // Fallback: timestamp slice + secure random suffix (6 chars total)
+  return String(Date.now()).slice(-4) + String(randomInt(10, 100));
 }
 
 router.get("/site", async (req, res, next) => {
@@ -99,8 +101,8 @@ router.get("/events", async (req, res) => {
 router.post("/registrations", async (req, res, next) => {
   try {
     const college = String(req.body.college || "").trim();
-    const email = String(req.body.email || "").trim();
-    const teamName = String(req.body.teamName || college || "").trim(); // Use college name as default
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const teamName = String(req.body.teamName || college || "").trim();
     const requestedLeader = String(req.body.leader || "").trim();
     const event = String(req.body.event || "NEXUS_TEAM").trim();
     const category = String(req.body.category || "").trim();
@@ -109,7 +111,6 @@ router.post("/registrations", async (req, res, next) => {
       throw makeError("College and email are required", 400);
     }
 
-    // Ensure teamName has a value
     if (!teamName) {
       throw makeError("College name is required to generate team name", 400);
     }
@@ -163,7 +164,7 @@ router.post("/registrations", async (req, res, next) => {
 
     // Validate team composition against event requirements
     const validation = validateTeamComposition(registrationData, event);
-    
+
     if (!validation.valid) {
       throw makeError(
         `Invalid team composition: ${formatValidationErrors(validation)}`,
@@ -175,6 +176,23 @@ router.post("/registrations", async (req, res, next) => {
     registrationData.registeredEvents = Array.isArray(validation.requirements?.registeredEvents)
       ? validation.requirements.registeredEvents
       : [];
+
+    // Duplicate check: block the same contact email from registering twice for the
+    // SAME event. Multiple different teams from the same college are allowed.
+    // Faculty email is NOT part of this check — only the team contact email.
+    const resolvedEventName = registrationData.event;
+    const emailConflict = await Registration.findOne({
+      email,
+      event: resolvedEventName
+    }).lean();
+
+    if (emailConflict) {
+      throw makeError(
+        `A registration with contact email "${email}" already exists for this event. ` +
+        `If you are registering a different team, please use a different contact email.`,
+        409
+      );
+    }
 
     // Save registration with validated data
     registrationData.code = await generateRegistrationCode();
@@ -197,7 +215,7 @@ router.post("/registrations", async (req, res, next) => {
 router.get("/registrations/:code/payment-status", async (req, res, next) => {
   try {
     const registration = await Registration.findOne({ code: req.params.code }).lean();
-    
+
     if (!registration) {
       throw makeError("Registration not found", 404);
     }
@@ -227,38 +245,28 @@ router.post(
         throw makeError("No image file provided", 400);
       }
 
-      console.log("Screenshot upload request for code:", req.params.code);
-      console.log("File info:", {
-        filename: req.file.filename,
-        path: req.file.path,
-        mimetype: req.file.mimetype,
-        size: req.file.size
-      });
-
       const registration = await Registration.findOne({ code: req.params.code });
-      
+
       if (!registration) {
         // Clean up uploaded file if registration not found
-        fs.unlinkSync(req.file.path);
+        try { fs.unlinkSync(req.file.path); } catch (_) {}
         throw makeError("Registration not found", 404);
       }
 
-      // Delete old screenshot if exists
-      if (registration.paymentScreenshotPath && fs.existsSync(registration.paymentScreenshotPath)) {
-        fs.unlinkSync(registration.paymentScreenshotPath);
+      // Delete old screenshot by filename (not stored absolute path — env-independent)
+      if (registration.paymentScreenshot) {
+        const oldPath = path.join(uploadsDir, registration.paymentScreenshot);
+        if (fs.existsSync(oldPath)) {
+          try { fs.unlinkSync(oldPath); } catch (_) {}
+        }
       }
 
-      // Update registration with screenshot info
+      // Store only the filename — never an absolute path — so it works across environments
       registration.paymentScreenshot = req.file.filename;
-      registration.paymentScreenshotPath = req.file.path;
       registration.paymentStatus = "pending"; // Awaiting admin verification
       await registration.save();
 
-      console.log("Screenshot saved successfully for code:", req.params.code);
-      console.log("Saved to database:", {
-        paymentScreenshot: registration.paymentScreenshot,
-        paymentScreenshotPath: registration.paymentScreenshotPath
-      });
+      console.log(`[Screenshot] Saved for code: ${req.params.code} → ${req.file.filename}`);
 
       await writeAuditLog({
         action: `Payment screenshot uploaded for registration: ${registration.code}`,
@@ -273,7 +281,7 @@ router.post(
     } catch (error) {
       // Clean up uploaded file on error
       if (req.file) {
-        fs.unlinkSync(req.file.path);
+        try { fs.unlinkSync(req.file.path); } catch (_) {}
       }
       console.error("Upload error:", error);
       next(error);
