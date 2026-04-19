@@ -1,6 +1,8 @@
 // Registration validation utilities
 const { EVENT_REQUIREMENTS } = require("./defaults");
 
+const IS_PROD = process.env.NODE_ENV === "production";
+
 const DEPARTMENT_ALIASES = {
   "HR": "HR",
   "PEOPLE PULSE": "HR",
@@ -50,15 +52,19 @@ function validateTeamComposition(registration, eventName) {
     // Count participants by department
     registration.participants.forEach((p) => {
       const normalizedDepartment = normalizeDepartment(p.department);
-      console.log(
-        `[Validator] Participant "${p.name}" department: "${p.department}" → normalized: "${normalizedDepartment}"`
-      );
+      if (!IS_PROD) {
+        console.log(
+          `[Validator] Participant "${p.name}" department: "${p.department}" → normalized: "${normalizedDepartment}"`
+        );
+      }
       if (departmentCounts.hasOwnProperty(normalizedDepartment)) {
         departmentCounts[normalizedDepartment]++;
       }
     });
 
-    console.log("[Validator] Department counts:", departmentCounts);
+    if (!IS_PROD) {
+      console.log("[Validator] Department counts:", departmentCounts);
+    }
 
     // Validate each department requirement
     Object.entries(requirements.departmentRequirements).forEach(

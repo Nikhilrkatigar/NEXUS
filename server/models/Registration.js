@@ -65,6 +65,15 @@ const registrationSchema = new mongoose.Schema(
       trim: true,
       default: ""
     },
+    teamNameBackup: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    teamNameRandomized: {
+      type: Boolean,
+      default: false
+    },
     faculty: {
       type: String,
       trim: true,

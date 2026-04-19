@@ -43,8 +43,7 @@ function serializeRegistration(doc) {
     ip: normalizeIp(doc.sourceIp) || "-",
     timestamp: doc.createdAt,
     paymentStatus: doc.paymentStatus || "pending",
-    paymentScreenshot: doc.paymentScreenshot || "",
-    paymentScreenshotPath: doc.paymentScreenshotPath || "",
+    hasScreenshot: !!doc.paymentScreenshot,
     paymentVerifiedAt: doc.paymentVerifiedAt,
     checkedIn: !!doc.checkedIn,
     checkedInAt: doc.checkedInAt || null

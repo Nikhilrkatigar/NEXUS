@@ -59,7 +59,7 @@ input:focus{border-color:rgba(245,166,35,0.4);background:rgba(245,166,35,0.04)}
     <label>Password</label>
     <div class="password-container">
       <input type="password" id="password" placeholder="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
-      <button type="button" class="password-toggle" onclick="togglePasswordVisibility('password')">👁️</button>
+      <button type="button" class="password-toggle" onclick="togglePasswordVisibility('password', event)">👁️</button>
     </div>
   </div>
   <button class="btn" onclick="login()">Sign In</button>
@@ -73,9 +73,9 @@ function getLandingPage(user) {
   return 'dashboard.html';
 }
 
-function togglePasswordVisibility(fieldId) {
+function togglePasswordVisibility(fieldId, evt) {
   const field = document.getElementById(fieldId);
-  const btn = event.target.closest('.password-toggle');
+  const btn = evt.target.closest('.password-toggle');
   if (field.type === 'password') {
     field.type = 'text';
     btn.textContent = '🙈';
@@ -87,7 +87,7 @@ function togglePasswordVisibility(fieldId) {
 
 async function login() {
   const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
+  const password = document.getElementById('password').value; // Don't trim — passwords can have spaces
   const errorBox = document.getElementById('errMsg');
 
   errorBox.style.display = 'none';

@@ -2,13 +2,21 @@ const DEFAULT_USERS = [
   {
     name: "Admin",
     username: "admin",
-    password: "nexus2026",
+    get password() {
+      const pw = process.env.SEED_ADMIN_PASSWORD;
+      if (!pw) console.warn("[SECURITY] SEED_ADMIN_PASSWORD not set — using fallback. Set it in .env!");
+      return pw || "changeme_admin_" + Date.now();
+    },
     role: "superadmin"
   },
   {
     name: "Event Organiser",
     username: "organiser",
-    password: "nexus123",
+    get password() {
+      const pw = process.env.SEED_ORGANISER_PASSWORD;
+      if (!pw) console.warn("[SECURITY] SEED_ORGANISER_PASSWORD not set — using fallback. Set it in .env!");
+      return pw || "changeme_org_" + Date.now();
+    },
     role: "organiser"
   }
 ];

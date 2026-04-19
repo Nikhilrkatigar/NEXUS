@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
+const mongoose = require("mongoose");
 
 const { requireAuth, requireRole } = require("../auth");
 const { writeAuditLog } = require("../audit");
@@ -17,6 +18,30 @@ const {
   serializeRegistration,
   serializeUser
 } = require("../utils");
+const { normalizeDepartment } = require("../registrationValidator");
+
+// ── Magic byte validation for image uploads ──────────────────
+const IMAGE_SIGNATURES = [
+  { mime: "image/jpeg", bytes: [0xFF, 0xD8, 0xFF] },
+  { mime: "image/png",  bytes: [0x89, 0x50, 0x4E, 0x47] },
+  { mime: "image/webp", bytes: [0x52, 0x49, 0x46, 0x46] }, // RIFF header
+  { mime: "image/gif",  bytes: [0x47, 0x49, 0x46] }
+];
+
+function validateImageMagicBytes(filePath) {
+  try {
+    const fd = fs.openSync(filePath, "r");
+    const buf = Buffer.alloc(12);
+    fs.readSync(fd, buf, 0, 12, 0);
+    fs.closeSync(fd);
+
+    return IMAGE_SIGNATURES.some((sig) =>
+      sig.bytes.every((b, i) => buf[i] === b)
+    );
+  } catch {
+    return false;
+  }
+}
 
 const router = express.Router();
 const uploadDir = path.join(__dirname, "..", "..", "uploads", "team-members");
@@ -50,7 +75,26 @@ const upload = multer({
     }
     cb(makeError("Only image uploads are allowed", 400));
   }
-});
+});  // <-- Intentionally close here to add magic-byte post-processing middleware
+
+// Post-upload magic byte validation middleware
+function validateUploadedImage(req, res, next) {
+  if (!req.file) return next();
+  if (!validateImageMagicBytes(req.file.path)) {
+    try { fs.unlinkSync(req.file.path); } catch (_) {}
+    return next(makeError("Invalid image file — content does not match an image format", 400));
+  }
+  next();
+}
+
+const teamImageUpload = upload.single("image");
+// Wrapper: multer upload + magic byte check
+function secureTeamUpload(req, res, next) {
+  teamImageUpload(req, res, (err) => {
+    if (err) return next(err);
+    validateUploadedImage(req, res, next);
+  });
+}
 
 const siteAssetUpload = multer({
   storage: multer.diskStorage({
@@ -85,7 +129,7 @@ router.get("/bootstrap", async (req, res) => {
   res.json({ user: req.userView });
 });
 
-router.post("/uploads/team-image", requireRole("superadmin"), upload.single("image"), async (req, res, next) => {
+router.post("/uploads/team-image", requireRole("superadmin"), secureTeamUpload, async (req, res, next) => {
   try {
     if (!req.file) {
       throw makeError("Image file is required", 400);
@@ -125,7 +169,7 @@ router.post("/uploads/site-image", requireRole("superadmin"), siteAssetUpload.si
   }
 });
 
-router.post("/audit", async (req, res, next) => {
+router.post("/audit", requireRole("superadmin", "organiser"), async (req, res, next) => {
   try {
     const action = String(req.body.action || "").trim();
     if (!action) {
@@ -445,24 +489,7 @@ router.delete("/users/:id", requireRole("superadmin"), async (req, res, next) =>
   }
 });
 
-// Debug endpoint - list all uploaded screenshots
-router.get("/debug/screenshots", requireRole("superadmin"), async (req, res, next) => {
-  try {
-    const uploadsDir = path.join(__dirname, "../../uploads/payment-screenshots");
-    const files = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [];
-    
-    const registrations = await Registration.find({}, { code: 1, paymentScreenshot: 1, paymentScreenshotPath: 1 }).lean();
-    
-    res.json({
-      uploadsDir,
-      dirExists: fs.existsSync(uploadsDir),
-      filesInDir: files,
-      registrationsWithScreenshots: registrations.filter(r => r.paymentScreenshot)
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// Debug endpoint removed for security — it exposed absolute server paths
 
 // Get payment screenshot — auth required to prevent IDOR enumeration
 router.get("/payment-screenshot/:code", requireRole("superadmin", "organiser"), async (req, res, next) => {
@@ -470,33 +497,36 @@ router.get("/payment-screenshot/:code", requireRole("superadmin", "organiser"), 
     const registration = await Registration.findOne({ code: req.params.code }).lean();
 
     if (!registration) {
-      console.log("Screenshot request: Registration not found for code:", req.params.code);
       throw makeError("Registration not found", 404);
     }
 
     if (!registration.paymentScreenshot) {
-      console.log("Screenshot request: No screenshot for code:", req.params.code);
       throw makeError("No payment screenshot uploaded", 404);
     }
 
     // Always construct path from filename - avoid stored absolute path issues
-    const screenshotPath = path.join(__dirname, "../../uploads/payment-screenshots", registration.paymentScreenshot);
+    const screenshotDir = path.join(__dirname, "../../uploads/payment-screenshots");
+    const screenshotPath = path.join(screenshotDir, registration.paymentScreenshot);
 
-    console.log("Serving screenshot:", {
-      code: req.params.code,
-      filename: registration.paymentScreenshot,
-      resolvedPath: screenshotPath,
-      fileExists: fs.existsSync(screenshotPath)
-    });
+    // Log the lookup for debugging
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[Payment Screenshot] Retrieving: ${registration.paymentScreenshot}`);
+      console.log(`[Payment Screenshot] Expected path: ${screenshotPath}`);
+      console.log(`[Payment Screenshot] Directory exists: ${fs.existsSync(screenshotDir)}`);
+    }
 
     if (!fs.existsSync(screenshotPath)) {
-      console.error("Screenshot file not found at:", screenshotPath);
+      const dirContents = fs.existsSync(screenshotDir) ? fs.readdirSync(screenshotDir) : [];
+      console.error(`[Payment Screenshot] File not found: ${screenshotPath}`);
+      console.error(`[Payment Screenshot] Directory ${screenshotDir} contains: ${dirContents.length} files`);
+      if (dirContents.length > 0 && process.env.NODE_ENV !== "production") {
+        console.error(`[Payment Screenshot] Sample files: ${dirContents.slice(0, 5).join(", ")}`);
+      }
       throw makeError("Screenshot file not found", 404);
     }
 
     res.sendFile(screenshotPath);
   } catch (error) {
-    console.error("Error serving screenshot:", error.message);
     next(error);
   }
 });
@@ -593,7 +623,6 @@ router.put("/registrations/:code", requireRole("superadmin", "organiser"), async
 
     // Allow organisers to update the participants roster directly
     if (Array.isArray(req.body.participants)) {
-      const { normalizeDepartment } = require("../registrationValidator");
       registration.participants = req.body.participants.map((p) => ({
         name: String(p.name || "").trim(),
         phone: String(p.phone || "").trim(),
@@ -695,13 +724,16 @@ router.post("/team-randomizer/setup", requireRole("superadmin", "organiser"), as
     const teamNames = Array.isArray(req.body.teamNames) 
       ? req.body.teamNames.map(n => String(n).trim()).filter(n => n.length > 0)
       : [];
+    const existingSettings = await Settings.findOne({ key: "team-randomizer" }).lean();
+    const existingValues = existingSettings?.values || {};
+    const preserveAppliedAssignments = Boolean(
+      existingValues.applied &&
+      Array.isArray(existingValues.assignments) &&
+      existingValues.assignments.length
+    );
 
     if (teamNames.length === 0) {
       throw makeError("At least one team name is required", 400);
-    }
-
-    if (teamNames.length > 20) {
-      throw makeError("Maximum 20 team names allowed", 400);
     }
 
     await Settings.findOneAndUpdate(
@@ -710,8 +742,9 @@ router.post("/team-randomizer/setup", requireRole("superadmin", "organiser"), as
         key: "team-randomizer", 
         values: {
           teamNames,
-          assignments: [],
-          applied: false
+          assignments: preserveAppliedAssignments ? existingValues.assignments : [],
+          applied: preserveAppliedAssignments,
+          appliedAt: preserveAppliedAssignments ? existingValues.appliedAt || null : null
         }
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -756,12 +789,19 @@ router.post("/team-randomizer/randomize", requireRole("superadmin", "organiser")
     }
 
     // Create assignments
-    const assignments = registrations.map((reg, idx) => ({
-      registrationId: String(reg._id),
-      originalName: reg.teamName || reg.college || `Team ${idx + 1}`,
-      randomName: shuffled[idx],
-      code: reg.code
-    }));
+    const assignments = registrations.map((reg, idx) => {
+      const previousTeamName = reg.teamNameRandomized
+        ? reg.teamNameBackup || ""
+        : reg.teamName || "";
+
+      return {
+        registrationId: String(reg._id),
+        originalName: previousTeamName || reg.college || `Team ${idx + 1}`,
+        previousTeamName,
+        randomName: shuffled[idx],
+        code: reg.code
+      };
+    });
 
     // Store assignments (not yet applied)
     settings.values.assignments = assignments;
@@ -795,15 +835,21 @@ router.post("/team-randomizer/apply", requireRole("superadmin", "organiser"), as
       throw makeError("No assignments to apply", 400);
     }
 
-    let appliedCount = 0;
-    for (const assignment of assignments) {
-      const registration = await Registration.findById(assignment.registrationId);
-      if (registration) {
-        registration.teamName = assignment.randomName;
-        await registration.save();
-        appliedCount++;
+    // Bulk update — much faster than N individual finds + saves
+    const bulkOps = assignments.map((a) => ({
+      updateOne: {
+        filter: { _id: a.registrationId },
+        update: {
+          $set: {
+            teamName: String(a.randomName || "").trim(),
+            teamNameBackup: String(a.previousTeamName || "").trim(),
+            teamNameRandomized: true
+          }
+        }
       }
-    }
+    }));
+    const bulkResult = await Registration.bulkWrite(bulkOps);
+    const appliedCount = bulkResult.modifiedCount || 0;
 
     // Mark as applied in settings
     const settings = await Settings.findOne({ key: "team-randomizer" });
@@ -831,8 +877,82 @@ router.post("/team-randomizer/apply", requireRole("superadmin", "organiser"), as
   }
 });
 
+router.post("/team-randomizer/remove", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const settings = await Settings.findOne({ key: "team-randomizer" });
+    const savedAssignments = Array.isArray(settings?.values?.assignments)
+      ? settings.values.assignments
+      : [];
+
+    const randomizedRegistrations = await Registration.find({ teamNameRandomized: true })
+      .select("_id teamNameBackup")
+      .lean();
+
+    const restoreMap = new Map();
+
+    randomizedRegistrations.forEach((registration) => {
+      restoreMap.set(String(registration._id), registration.teamNameBackup || "");
+    });
+
+    savedAssignments.forEach((assignment) => {
+      const registrationId = String(assignment.registrationId || "").trim();
+      if (!registrationId || restoreMap.has(registrationId)) {
+        return;
+      }
+
+      const restoredName = assignment.previousTeamName !== undefined
+        ? assignment.previousTeamName
+        : assignment.originalName || "";
+
+      restoreMap.set(registrationId, String(restoredName).trim());
+    });
+
+    if (!restoreMap.size) {
+      throw makeError("No assigned random team names found to remove", 400);
+    }
+
+    const bulkOps = Array.from(restoreMap.entries()).map(([registrationId, teamName]) => ({
+      updateOne: {
+        filter: { _id: registrationId },
+        update: {
+          $set: {
+            teamName,
+            teamNameBackup: "",
+            teamNameRandomized: false
+          }
+        }
+      }
+    }));
+
+    const bulkResult = await Registration.bulkWrite(bulkOps);
+    const restoredCount = bulkResult.modifiedCount || 0;
+
+    if (settings) {
+      settings.values.applied = false;
+      settings.values.appliedAt = null;
+      settings.values.assignments = [];
+      settings.markModified("values");
+      await settings.save();
+    }
+
+    await writeAuditLog({
+      action: `Removed random team names from ${restoredCount} registrations`,
+      req,
+      user: req.user
+    });
+
+    res.json({
+      ok: true,
+      restoredCount,
+      message: `Successfully restored ${restoredCount} registrations`
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ──── Check-In Management ────────────────────────────────────
-router.get("/checkins", requireRole("checkin"), async (req, res, next) => {
+router.get("/checkins", requireRole("checkin", "superadmin", "organiser"), async (req, res, next) => {
   try {
     const registrations = await Registration.find({}, { id: 1, checkedIn: 1, checkedInAt: 1 }).lean();
     const checkins = {};
@@ -845,8 +965,12 @@ router.get("/checkins", requireRole("checkin"), async (req, res, next) => {
   }
 });
 
-router.post("/checkin/:id", requireRole("checkin"), async (req, res, next) => {
+router.post("/checkin/:id", requireRole("checkin", "superadmin", "organiser"), async (req, res, next) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      throw makeError("Invalid registration ID", 400);
+    }
+
     const registration = await Registration.findById(req.params.id);
     if (!registration) {
       throw makeError("Registration not found", 404);
@@ -868,6 +992,66 @@ router.post("/checkin/:id", requireRole("checkin"), async (req, res, next) => {
       checkedIn,
       checkedInAt: registration.checkedInAt
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Diagnostic endpoint: Check screenshot integrity
+router.get("/diagnostics/payment-screenshots", requireRole("superadmin"), async (req, res, next) => {
+  try {
+    const screenshotDir = path.join(__dirname, "../../uploads/payment-screenshots");
+    const results = {
+      uploadDir: screenshotDir,
+      dirExists: fs.existsSync(screenshotDir),
+      dirWritable: false,
+      registrationsWithScreenshots: 0,
+      missingFiles: [],
+      validFiles: [],
+      errors: []
+    };
+
+    // Check if directory is writable
+    if (results.dirExists) {
+      try {
+        fs.accessSync(screenshotDir, fs.constants.W_OK);
+        results.dirWritable = true;
+      } catch {
+        results.errors.push("Directory exists but is not writable");
+      }
+    } else {
+      results.errors.push("Screenshots directory does not exist");
+    }
+
+    // Find all registrations with payment screenshots
+    const registrations = await Registration.find(
+      { paymentScreenshot: { $exists: true, $ne: "" } },
+      "code paymentScreenshot"
+    ).lean();
+
+    results.registrationsWithScreenshots = registrations.length;
+
+    // Check each file
+    for (const reg of registrations) {
+      const filePath = path.join(screenshotDir, reg.paymentScreenshot);
+      if (fs.existsSync(filePath)) {
+        const stat = fs.statSync(filePath);
+        results.validFiles.push({
+          code: reg.code,
+          filename: reg.paymentScreenshot,
+          size: stat.size,
+          modifiedAt: stat.mtime
+        });
+      } else {
+        results.missingFiles.push({
+          code: reg.code,
+          filename: reg.paymentScreenshot,
+          expectedPath: filePath
+        });
+      }
+    }
+
+    res.json(results);
   } catch (error) {
     next(error);
   }

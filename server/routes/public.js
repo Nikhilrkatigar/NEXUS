@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { randomInt } = require("crypto");
 const multer = require("multer");
+const rateLimit = require("express-rate-limit");
 
 const Registration = require("../models/Registration");
 const Settings = require("../models/Settings");
@@ -17,21 +18,69 @@ const {
 } = require("../registrationValidator");
 
 const router = express.Router();
+const IS_PROD = process.env.NODE_ENV === "production";
+
+// ── Magic byte validation ────────────────────────────────────
+const IMAGE_SIGNATURES = [
+  { mime: "image/jpeg", bytes: [0xFF, 0xD8, 0xFF] },
+  { mime: "image/png",  bytes: [0x89, 0x50, 0x4E, 0x47] },
+  { mime: "image/webp", bytes: [0x52, 0x49, 0x46, 0x46] }
+];
+
+function validateImageMagicBytes(filePath) {
+  try {
+    const fd = fs.openSync(filePath, "r");
+    const buf = Buffer.alloc(12);
+    fs.readSync(fd, buf, 0, 12, 0);
+    fs.closeSync(fd);
+
+    return IMAGE_SIGNATURES.some((sig) =>
+      sig.bytes.every((b, i) => buf[i] === b)
+    );
+  } catch {
+    return false;
+  }
+}
+
+// ── Email validation ─────────────────────────────────────────
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Multer configuration for payment screenshot uploads
 const uploadsDir = path.join(__dirname, "../../uploads/payment-screenshots");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+
+// Ensure uploads directory exists and is writable
+function ensureUploadDir() {
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    // Test if directory is writable
+    fs.accessSync(uploadsDir, fs.constants.W_OK);
+    return true;
+  } catch (err) {
+    console.error(`[Screenshot Upload] Directory not writable: ${uploadsDir}`, err.message);
+    return false;
+  }
+}
+
+// Check on startup
+if (!ensureUploadDir()) {
+  console.warn(`[Screenshot Upload] WARNING: Upload directory may not be accessible: ${uploadsDir}`);
 }
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // Ensure directory exists before each upload
+    if (!ensureUploadDir()) {
+      return cb(makeError("Upload directory not accessible", 500));
+    }
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     const timestamp = Date.now();
     const ext = path.extname(file.originalname);
-    cb(null, `${req.registrationCode}-${timestamp}${ext}`);
+    const filename = `${req.registrationCode}-${timestamp}${ext}`;
+    cb(null, filename);
   }
 });
 
@@ -46,6 +95,23 @@ const upload = multer({
       cb(makeError("Only JPEG, PNG, and WebP images are allowed", 400));
     }
   }
+});
+
+// ── Rate Limiters ────────────────────────────────────────────
+const registrationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,                    // 5 registrations per IP per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many registrations from this IP. Please try again later." }
+});
+
+const screenshotUploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many upload attempts. Please try again later." }
 });
 
 // Use crypto.randomInt - cryptographically secure, prevents code enumeration attacks
@@ -98,7 +164,7 @@ router.get("/events", async (req, res) => {
   }
 });
 
-router.post("/registrations", async (req, res, next) => {
+router.post("/registrations", registrationLimiter, async (req, res, next) => {
   try {
     const college = String(req.body.college || "").trim();
     const email = String(req.body.email || "").trim().toLowerCase();
@@ -111,6 +177,11 @@ router.post("/registrations", async (req, res, next) => {
       throw makeError("College and email are required", 400);
     }
 
+    // Validate email format
+    if (!EMAIL_REGEX.test(email)) {
+      throw makeError("Invalid email address", 400);
+    }
+
     if (!teamName) {
       throw makeError("College name is required to generate team name", 400);
     }
@@ -119,9 +190,11 @@ router.post("/registrations", async (req, res, next) => {
     const participants = Array.isArray(req.body.participants)
       ? req.body.participants.map((participant) => {
           const normalized = normalizeDepartment(participant.department);
-          console.log(
-            `[Registration] Normalizing department: "${participant.department}" → "${normalized}"`
-          );
+          if (!IS_PROD) {
+            console.log(
+              `[Registration] Normalizing department: "${participant.department}" → "${normalized}"`
+            );
+          }
           return {
             name: String(participant.name || "").trim(),
             phone: String(participant.phone || "").trim(),
@@ -137,7 +210,9 @@ router.post("/registrations", async (req, res, next) => {
         })
       : [];
 
-    console.log("[Registration] Final participants:", JSON.stringify(participants, null, 2));
+    if (!IS_PROD) {
+      console.log("[Registration] Final participants:", JSON.stringify(participants, null, 2));
+    }
 
     const derivedLeader =
       requestedLeader ||
@@ -211,7 +286,7 @@ router.post("/registrations", async (req, res, next) => {
   }
 });
 
-// Get payment status for a registration
+// Get payment status for a registration — requires email to prevent IDOR
 router.get("/registrations/:code/payment-status", async (req, res, next) => {
   try {
     const registration = await Registration.findOne({ code: req.params.code }).lean();
@@ -220,10 +295,16 @@ router.get("/registrations/:code/payment-status", async (req, res, next) => {
       throw makeError("Registration not found", 404);
     }
 
+    // Require email query param to match — prevents enumeration/IDOR
+    const emailParam = String(req.query.email || "").trim().toLowerCase();
+    if (!emailParam || emailParam !== registration.email) {
+      throw makeError("Registration not found", 404);
+    }
+
     res.json({
       code: registration.code,
       paymentStatus: registration.paymentStatus,
-      paymentScreenshot: registration.paymentScreenshot,
+      hasScreenshot: !!registration.paymentScreenshot,
       paymentVerifiedAt: registration.paymentVerifiedAt
     });
   } catch (error) {
@@ -234,6 +315,7 @@ router.get("/registrations/:code/payment-status", async (req, res, next) => {
 // Upload payment screenshot
 router.post(
   "/registrations/:code/payment-screenshot",
+  screenshotUploadLimiter,
   (req, res, next) => {
     req.registrationCode = req.params.code;
     next();
@@ -245,11 +327,25 @@ router.post(
         throw makeError("No image file provided", 400);
       }
 
+      // Log upload attempt
+      const uploadedFilePath = req.file.path;
+      if (!IS_PROD) {
+        console.log(`[Screenshot Upload] File uploaded to: ${uploadedFilePath}`);
+        console.log(`[Screenshot Upload] Expected directory: ${uploadsDir}`);
+        console.log(`[Screenshot Upload] Filename: ${req.file.filename}`);
+      }
+
+      // Validate magic bytes
+      if (!validateImageMagicBytes(uploadedFilePath)) {
+        try { fs.unlinkSync(uploadedFilePath); } catch (_) {}
+        throw makeError("Invalid image file — content does not match an image format", 400);
+      }
+
       const registration = await Registration.findOne({ code: req.params.code });
 
       if (!registration) {
         // Clean up uploaded file if registration not found
-        try { fs.unlinkSync(req.file.path); } catch (_) {}
+        try { fs.unlinkSync(uploadedFilePath); } catch (_) {}
         throw makeError("Registration not found", 404);
       }
 
@@ -266,7 +362,19 @@ router.post(
       registration.paymentStatus = "pending"; // Awaiting admin verification
       await registration.save();
 
-      console.log(`[Screenshot] Saved for code: ${req.params.code} → ${req.file.filename}`);
+      // Verify file actually exists on disk
+      const verifyPath = path.join(uploadsDir, req.file.filename);
+      if (!fs.existsSync(verifyPath)) {
+        console.error(`[Screenshot Upload] ERROR: File not found after save: ${verifyPath}`);
+        console.error(`[Screenshot Upload] File was saved to: ${uploadedFilePath}`);
+        console.error(`[Screenshot Upload] Check if paths match and directory is correct`);
+        throw makeError("File upload verification failed — file not found after save", 500);
+      }
+
+      if (!IS_PROD) {
+        console.log(`[Screenshot] Saved for code: ${req.params.code} → ${req.file.filename}`);
+        console.log(`[Screenshot] File verified at: ${verifyPath}`);
+      }
 
       await writeAuditLog({
         action: `Payment screenshot uploaded for registration: ${registration.code}`,
@@ -283,7 +391,9 @@ router.post(
       if (req.file) {
         try { fs.unlinkSync(req.file.path); } catch (_) {}
       }
-      console.error("Upload error:", error);
+      if (!IS_PROD) {
+        console.error("Upload error:", error);
+      }
       next(error);
     }
   }

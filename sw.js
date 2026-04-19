@@ -1,6 +1,6 @@
 // NEXUS CMS Service Worker
-const CACHE_NAME = "nexus-cms-v6";
-const API_CACHE_NAME = "nexus-api-v6";
+const CACHE_NAME = "nexus-cms-v7";
+const API_CACHE_NAME = "nexus-api-v7";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
@@ -65,13 +65,24 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET requests
+  // Skip non-GET requests entirely — never intercept mutations
   if (request.method !== "GET") {
     return;
   }
 
-  // Handle API calls with network-first strategy
+  // Handle API calls
   if (url.pathname.startsWith("/api/")) {
+    // Never cache auth, payment-screenshot, or check-in endpoints
+    if (
+      url.pathname.startsWith("/api/auth/") ||
+      url.pathname.includes("/payment-screenshot/") ||
+      url.pathname.includes("/checkin")
+    ) {
+      // Network-only: don't intercept, let the browser handle directly
+      return;
+    }
+
+    // Network-first for safe read-only API data (settings, registrations list, etc.)
     event.respondWith(networkFirstStrategy(request, API_CACHE_NAME));
     return;
   }
@@ -87,11 +98,9 @@ async function cacheFirstStrategy(request, cacheName) {
     const cachedResponse = await cache.match(request);
 
     if (cachedResponse) {
-      console.log("[SW] Serving from cache:", request.url);
       return cachedResponse;
     }
 
-    console.log("[SW] Fetching from network:", request.url);
     const networkResponse = await fetch(request);
 
     // Cache successful responses
@@ -115,7 +124,6 @@ async function cacheFirstStrategy(request, cacheName) {
 // Network-first strategy: try network first, fall back to cache
 async function networkFirstStrategy(request, cacheName) {
   try {
-    console.log("[SW] Trying network for:", request.url);
     const networkResponse = await fetch(request);
 
     // Cache successful API responses
@@ -133,7 +141,6 @@ async function networkFirstStrategy(request, cacheName) {
       const cachedResponse = await cache.match(request);
 
       if (cachedResponse) {
-        console.log("[SW] Serving API from cache:", request.url);
         return cachedResponse;
       }
     } catch (cacheError) {
