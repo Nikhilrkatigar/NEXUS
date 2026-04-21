@@ -24,6 +24,16 @@
 .upload-row input[type="file"]{padding:10px}
 .upload-note{font-size:11px;color:var(--muted);margin-top:6px}
 .helper{font-size:12px;color:var(--muted)}
+.helper-top{margin-top:10px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border)}
+.toggle-meta strong{display:block;font-size:14px}
+.toggle-meta span{display:block;margin-top:4px;color:var(--muted);font-size:12px}
+.switch{position:relative;display:inline-block;width:52px;height:30px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch-slider{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.15);border-radius:999px;transition:all 0.2s ease}
+.switch-slider::before{content:'';position:absolute;height:22px;width:22px;left:3px;top:3px;background:white;border-radius:50%;transition:transform 0.2s ease}
+.switch input:checked + .switch-slider{background:rgba(16,185,129,0.25);border-color:rgba(16,185,129,0.5)}
+.switch input:checked + .switch-slider::before{transform:translateX(22px)}
 @media(max-width:900px){.settings-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -113,6 +123,21 @@
       <div class="form-group"><label>Footer Description</label><textarea id="s_footerDesc" rows="3"></textarea></div>
       <div class="form-group"><label>Footer College/Dept Text</label><input type="text" id="s_footerCollege"></div>
     </div>
+
+    <div class="cms-card">
+      <div class="cms-card-title">Registration Control</div>
+      <div class="toggle-row">
+        <div class="toggle-meta">
+          <strong>Allow New Registrations</strong>
+          <span>Turn OFF to close registrations across homepage, form, and API.</span>
+        </div>
+        <label class="switch" aria-label="Allow New Registrations">
+          <input type="checkbox" id="s_registrationOpen">
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+      <p class="helper helper-top">This toggle is the source of truth for registration status across homepage, form, and API.</p>
+    </div>
   </div>
 
   <div class="cms-card editor-block">
@@ -131,7 +156,7 @@ const FORM_KEYS = [
   'eventName','eventSubtitle','collegeName','department','heroDesc','aboutTitle','aboutDesc',
   'prize1','prize2','prize3','prizesTitle','statTeams','statEvents','statColleges','statPrize',
   'festDate','principalName','honChairmanName','chairmanName','hodName','footerDesc','footerCollege',
-  'festBannerUrl', 'collegeLogoUrl'
+  'festBannerUrl', 'collegeLogoUrl', 'registrationOpen'
 ];
 
 let settings = {};
@@ -267,7 +292,11 @@ async function saveSettings() {
   FORM_KEYS.forEach((key) => {
     const element = document.getElementById(`s_${key}`);
     if (element) {
-      newSettings[key] = element.value;
+      if (element.type === 'checkbox') {
+        newSettings[key] = element.checked;
+      } else {
+        newSettings[key] = element.value;
+      }
     }
   });
 
@@ -295,7 +324,11 @@ async function saveSettings() {
   FORM_KEYS.forEach((key) => {
     const element = document.getElementById(`s_${key}`);
     if (element) {
-      element.value = settings[key] || '';
+      if (element.type === 'checkbox') {
+        element.checked = settings[key] !== false;
+      } else {
+        element.value = settings[key] || '';
+      }
     }
   });
 

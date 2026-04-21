@@ -310,6 +310,10 @@ input[type=text][readonly]{
   font-size:28px;margin:0 auto 16px;
 }
 
+.closed-note{color:var(--muted2);font-size:14px;line-height:1.8;text-align:center;}
+.closed-actions{justify-content:center;border-top:none;padding-top:8px;}
+.closed-body{text-align:center;}
+
 /* ── FOOTER ── */
 footer{
   border-top:1px solid var(--border);
@@ -526,6 +530,27 @@ const SLOTS=[
 ];
 const LIMITS={rhythmRumble:4,styleSaga:1};
 let regCode=null;
+let registrationClosed=false;
+
+function showRegistrationClosedMessage(){
+  const panel1=document.getElementById('panel1');
+  if(!panel1)return;
+  panel1.innerHTML=`
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-icon">⛔</div>
+        <div class="card-head-title">Registration Closed</div>
+      </div>
+      <div class="card-body closed-body">
+        <p class="closed-note">Registrations are currently closed by the organisers. Please contact the event team for updates.</p>
+        <div class="form-actions closed-actions">
+          <a class="btn btn-ghost" href="/">Back to Home</a>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('panel2').classList.remove('show');
+  document.getElementById('panel3').classList.remove('show');
+}
 
 function toast(msg,type='error'){
   const t=document.getElementById('toast');
@@ -687,6 +712,7 @@ async function doUpload(){
 // Submit
 document.getElementById('regForm').addEventListener('submit',async e=>{
   e.preventDefault();
+  if(registrationClosed){toast('Registrations are currently closed');return;}
   const col=document.getElementById('college').value.trim();
   const em=document.getElementById('email').value.trim();
   if(!col||!em){toast('College and email are required');return;}
@@ -712,6 +738,12 @@ document.getElementById('regForm').addEventListener('submit',async e=>{
     toast(`Registered! Code: ${regCode}`,'success');
     setStep(2);
   }catch(ex){
+    if(String(ex.message||'').toLowerCase().includes('closed')){
+      registrationClosed=true;
+      showRegistrationClosedMessage();
+      toast('Registrations are currently closed');
+      return;
+    }
     // Demo fallback
     regCode='NX-DEMO-2026';
     document.getElementById('codeDisplay').textContent=regCode;
@@ -725,6 +757,20 @@ document.getElementById('regForm').addEventListener('submit',async e=>{
 renderCards();
 const saved=localStorage.getItem('nexusCode');
 if(saved){regCode=saved;}
+
+(async function syncRegistrationStatus(){
+  try{
+    const response=await fetch('/api/public/site');
+    const data=await response.json();
+    if(!response.ok)return;
+    if(data&&data.settings&&data.settings.registrationOpen===false){
+      registrationClosed=true;
+      showRegistrationClosedMessage();
+    }
+  }catch(_){
+    // ignore: the API submit guard in backend remains source of truth
+  }
+})();
 </script>
 </body>
 </html>

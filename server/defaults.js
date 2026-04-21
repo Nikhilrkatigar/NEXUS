@@ -46,6 +46,7 @@ const DEFAULT_SETTINGS = {
   hodName: "",
   footerDesc: "The Leadership Shift - BBA Department's flagship inter-college fest. A platform for future leaders to rise.",
   footerCollege: "BBA Department",
+  registrationOpen: true,
   teamMembers: []
 };
 

@@ -20,6 +20,20 @@ const {
 const router = express.Router();
 const IS_PROD = process.env.NODE_ENV === "production";
 
+function parseBooleanFlag(value, fallback) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "yes", "on"].includes(normalized)) return true;
+    if (["false", "0", "no", "off"].includes(normalized)) return false;
+  }
+  return fallback;
+}
+
+function isRegistrationOpen(settingsValues) {
+  return parseBooleanFlag(settingsValues?.registrationOpen, true);
+}
+
 // ── Magic byte validation ────────────────────────────────────
 const IMAGE_SIGNATURES = [
   { mime: "image/jpeg", bytes: [0xFF, 0xD8, 0xFF] },
@@ -166,6 +180,11 @@ router.get("/events", async (req, res) => {
 
 router.post("/registrations", registrationLimiter, async (req, res, next) => {
   try {
+    const settings = await Settings.findOne({ key: "default" }, { values: 1 }).lean();
+    if (!isRegistrationOpen(settings?.values)) {
+      throw makeError("Registrations are currently closed", 403);
+    }
+
     const college = String(req.body.college || "").trim();
     const email = String(req.body.email || "").trim().toLowerCase();
     const teamName = String(req.body.teamName || college || "").trim();
