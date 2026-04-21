@@ -348,7 +348,7 @@ section::after{content:'';position:absolute;bottom:0;left:50%;transform:translat
 .prizes-header{text-align:center;max-width:600px;margin:0 auto 48px}
 @media(min-width:768px){.prizes-header{margin-bottom:64px}}
 .prizes-grid{display:grid;grid-template-columns:1fr;gap:20px;max-width:900px;margin:0 auto}
-@media(min-width:600px){.prizes-grid{grid-template-columns:repeat(3,1fr);gap:24px}}
+@media(min-width:600px){.prizes-grid{grid-template-columns:repeat(auto-fit,minmax(280px,340px));justify-content:center;gap:24px}}
 .prize-card{border-radius:16px;padding:32px 24px;text-align:center;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.05);transition:all 0.4s var(--ease-out-expo)}
 @media(min-width:768px){.prize-card{padding:40px 32px}}
 .prize-card:hover{transform:translateY(-6px)}
@@ -800,12 +800,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
       <div class="prize-place">Champion</div>
       <div class="prize-amount" id="prize1">₹30,000</div>
       <div class="prize-sub">+ Trophy + Certificate</div>
-    </div>
-    <div class="prize-card prize-3 reveal-scale">
-      <div class="prize-rank">🥉</div>
-      <div class="prize-place">2nd Runner Up</div>
-      <div class="prize-amount" id="prize3">₹5,000</div>
-      <div class="prize-sub">+ Medals + Certificate</div>
     </div>
   </div>
 </section>
