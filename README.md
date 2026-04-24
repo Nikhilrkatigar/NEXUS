@@ -35,6 +35,16 @@ npm start
 
 - Public site: `http://localhost:4000/`
 - CMS login: `http://localhost:4000/cms/login.html`
+- Assessment page: `http://localhost:4000/assessment.html`
+
+## Kiosk Deployment (Exam Lockdown)
+
+Use the Windows kiosk deployment package for student machines:
+
+- Guide: `KIOSK_DEPLOYMENT.md`
+- Scripts folder: `kiosk/windows/`
+
+This includes fullscreen kiosk launchers (Edge/Chrome), auto-start at logon, and stop scripts for invigilators.
 
 
 

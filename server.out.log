@@ -1,2 +1,6 @@
+
+> nexus-event-management@1.0.0 start
+> node server/app.js
+
 NEXUS backend running on http://localhost:4000
 Access from other devices: http://192.168.29.11:4000

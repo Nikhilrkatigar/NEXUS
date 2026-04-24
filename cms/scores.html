@@ -658,7 +658,7 @@ async function loadThreeRoundComparison(eventKey, scoreKey, allEntries, cols) {
     }
     
     return result;
-  }).filter(item => item.overall > 0).sort((a, b) => b.overall - a.overall);
+  }).sort((a, b) => b.overall - a.overall);
 
   // Render comparison
   const rankingsEl = document.getElementById(`liveRankings_${scoreKey}`);
@@ -934,11 +934,9 @@ function downloadPDF(scoreKey) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then((reg) => {
-        console.log('[App] Service Worker registered:', reg);
-        setInterval(() => { reg.update().catch(err => console.warn('[App] Update check failed:', err)); }, 60000);
-      })
-      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+      .then(reg => {
+        setInterval(() => reg.update().catch(() => {}), 60000);
+      }).catch(() => {});
   });
 }
 </script>

@@ -17,7 +17,8 @@
     { id: "timeline", label: "Timeline", href: "timeline.html", roles: ["superadmin"] },
     { id: "settings", label: "Page Settings", href: "settings.html", roles: ["superadmin"] },
     { id: "users", label: "Users", href: "users.html", roles: ["superadmin"] },
-    { id: "audit", label: "Audit Log", href: "audit.html", roles: ["superadmin"] }
+    { id: "audit", label: "Audit Log", href: "audit.html", roles: ["superadmin"] },
+    { id: "assessment-results", label: "📝 Assessment", href: "assessment-results.html", roles: ["superadmin", "organiser", "viewer"] }
   ];
 
   function escapeHtml(value) {
@@ -67,11 +68,14 @@
 
     const response = await fetch(`${API_ROOT}${path}`, Object.assign({}, config, { headers }));
     const raw = await response.text();
-    const data = raw ? JSON.parse(raw) : {};
+    let data = {};
+    try { data = raw && raw.trim() ? JSON.parse(raw) : {}; } catch (_) {}
 
     if (!response.ok) {
       if (response.status === 401) {
         clearSession();
+        window.location.href = "login.html";
+        return {};
       }
 
       const error = new Error(data.message || "Request failed");
@@ -335,7 +339,24 @@
   }
 
   async function uploadTeamImage(file) {
-    return uploadImage(file);
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetch(`${API_ROOT}/cms/uploads/team-image`, {
+      method: "POST",
+      headers: getToken() ? { Authorization: `Bearer ${getToken()}` } : {},
+      body: formData
+    });
+    const raw = await response.text();
+    const data = raw ? JSON.parse(raw) : {};
+
+    if (!response.ok) {
+      const error = new Error(data.message || "Upload failed");
+      error.status = response.status;
+      throw error;
+    }
+
+    return data.imageUrl;
   }
 
   async function fetchTimeline() {

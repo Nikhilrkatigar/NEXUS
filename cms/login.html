@@ -148,20 +148,9 @@ async function login() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then((reg) => {
-        console.log('[App] Service Worker registered:', reg);
-        
-        // Check for updates periodically
-        setInterval(() => {
-          reg.update().catch(err => console.warn('[App] Update check failed:', err));
-        }, 60000); // Check every minute
-      })
-      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
-  });
-
-  // Listen for updates
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    console.log('[App] Service Worker updated');
+      .then(reg => {
+        setInterval(() => reg.update().catch(() => {}), 60000);
+      }).catch(() => {});
   });
 }
 </script>

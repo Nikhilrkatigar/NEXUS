@@ -11,6 +11,7 @@ const { seedDefaults } = require("./seed");
 const authRoutes = require("./routes/auth");
 const cmsRoutes = require("./routes/cms");
 const publicRoutes = require("./routes/public");
+const assessmentRoutes = require("./routes/assessment");
 
 dotenv.config();
 
@@ -82,6 +83,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/cms", cmsRoutes);
 app.use("/api/public", publicRoutes);
+app.use("/api/assessment", assessmentRoutes);
 
 // Serve manifest.json with correct content-type
 app.get("/manifest.json", (req, res) => {

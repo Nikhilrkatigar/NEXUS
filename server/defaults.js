@@ -47,7 +47,14 @@ const DEFAULT_SETTINGS = {
   footerDesc: "The Leadership Shift - BBA Department's flagship inter-college fest. A platform for future leaders to rise.",
   footerCollege: "BBA Department",
   registrationOpen: true,
-  teamMembers: []
+  teamMembers: [],
+  assessmentControl: {
+    phase: "waiting",
+    startedAt: null,
+    stoppedAt: null,
+    durationSeconds: 20 * 60,
+    sessionId: null
+  }
 };
 
 const DEFAULT_TIMELINE = [

@@ -21,7 +21,7 @@
     <div class="cms-card">
       <div class="cms-card-title">All Users</div>
       <table class="cms-table" id="usersTable">
-        <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Role</th><th>Event (Judges)</th><th></th>Actions</th></tr></thead>
+        <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Role</th><th>Event (Judges)</th><th>Actions</th></tr></thead>
         <tbody id="usersTbody"></tbody>
       </table>
     </div>
@@ -29,7 +29,7 @@
       <div class="cms-card-title" id="formTitle">Create New User</div>
       <div class="form-group"><label>Full Name</label><input type="text" id="u_name" placeholder="John Doe"></div>
       <div class="form-group"><label>Username</label><input type="text" id="u_username" placeholder="john_doe"></div>
-      <div class="form-group"><label>Password</label><div class="password-container" style="position:relative"><input type="password" id="u_password" placeholder="Minimum 6 characters" style="padding-right:40px"><button type="button" class="password-toggle" onclick="togglePasswordVisibility('u_password')">👁️</button></div></div>
+      <div class="form-group"><label>Password <span id="passwordHint" style="font-size:11px;font-weight:400;color:var(--muted);display:none">— leave blank to keep current</span></label><div class="password-container" style="position:relative"><input type="password" id="u_password" placeholder="Minimum 6 characters" style="padding-right:40px"><button type="button" class="password-toggle" onclick="togglePasswordVisibility('u_password')">👁️</button></div></div>
       <div class="form-group">
         <label>Role</label>
         <select id="u_role" onchange="onRoleChange()">
@@ -175,6 +175,7 @@ function editUser(id) {
   document.getElementById('formTitle').textContent = 'Edit User';
   document.getElementById('saveBtn').textContent = 'Update User';
   document.getElementById('cancelBtn').style.display = 'inline-flex';
+  document.getElementById('passwordHint').style.display = 'inline';
 }
 
 async function deleteUser(id) {
@@ -184,6 +185,8 @@ async function deleteUser(id) {
     showToast('Cannot delete admin user', 'error');
     return;
   }
+
+  if (!confirm(`Delete user "${user.name}" (@${user.username})? This cannot be undone.`)) return;
 
   try {
     await NexusCMS.deleteUser(id);
@@ -205,6 +208,7 @@ function resetForm() {
   document.getElementById('formTitle').textContent = 'Create New User';
   document.getElementById('saveBtn').textContent = 'Create User';
   document.getElementById('cancelBtn').style.display = 'none';
+  document.getElementById('passwordHint').style.display = 'none';
 }
 
 (async function () {
@@ -226,12 +230,9 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .then((reg) => {
-        console.log('[App] Service Worker registered:', reg);
-        setInterval(() => {
-          reg.update().catch(err => console.warn('[App] Update check failed:', err));
-        }, 60000);
+        setInterval(() => reg.update().catch(() => {}), 60000);
       })
-      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+      .catch(() => {});
   });
 }
 </script>

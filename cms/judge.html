@@ -48,10 +48,15 @@ body {
 
 /* ── Judge Portal Layout ── */
 .judge-main {
-  max-width: 1100px;
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 24px 20px 48px;
   min-height: 100vh;
+}
+
+.score-table-wrap {
+  overflow-x: auto;
 }
 
 /* ── Header ── */
@@ -484,6 +489,57 @@ select option {
   .scoring-header { flex-direction: column; }
 }
 
+@media (min-width: 1200px) {
+  .judge-main {
+    max-width: none;
+    width: calc(100vw - 48px);
+    padding: 24px 24px 48px;
+  }
+
+  .score-table-wrap {
+    overflow-x: visible;
+  }
+
+  .cms-table {
+    table-layout: fixed;
+  }
+
+  .cms-table th.col-idx,
+  .cms-table td.col-idx {
+    width: 56px;
+    text-align: center;
+  }
+
+  .cms-table th.col-reg,
+  .cms-table td.col-reg {
+    width: 132px;
+  }
+
+  .cms-table th.col-team,
+  .cms-table td.col-team,
+  .cms-table th.col-participant,
+  .cms-table td.col-participant {
+    width: 20%;
+  }
+
+  .cms-table th.col-criteria,
+  .cms-table td.col-criteria {
+    width: 110px;
+    text-align: center;
+  }
+
+  .cms-table th.col-total,
+  .cms-table td.col-total {
+    width: 110px;
+    text-align: center;
+  }
+
+  .score-input {
+    width: 84px;
+    max-width: 100%;
+  }
+}
+
 /* ── Focus visible for keyboard nav ── */
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -593,8 +649,12 @@ function getColumns(scoreKey) {
 
 // ─── LocalStorage persistence ──────────────────────────────────────────
 function saveToLocalStorage(scoreKey, data) {
-  localStorage.setItem(getLsKey(scoreKey), JSON.stringify(data));
-  flashSaveIndicator();
+  try {
+    localStorage.setItem(getLsKey(scoreKey), JSON.stringify(data));
+    flashSaveIndicator();
+  } catch (e) {
+    showToast('Auto-save failed: storage full', 'error');
+  }
 }
 
 function loadFromLocalStorage(scoreKey) {
@@ -606,6 +666,7 @@ function loadFromLocalStorage(scoreKey) {
 
 function flashSaveIndicator() {
   const el = document.getElementById('saveIndicator');
+  if (!el) return;
   el.classList.add('show');
   clearTimeout(el._timer);
   el._timer = setTimeout(() => el.classList.remove('show'), 2000);
@@ -640,7 +701,9 @@ function onEventChange() {
   
   let numRounds = 3;
   if (eventObj) {
-    if (eventObj.rounds) {
+    if (Array.isArray(eventObj.rounds)) {
+      numRounds = Math.max(1, eventObj.rounds.length);
+    } else if (eventObj.rounds) {
       const parsed = parseInt(eventObj.rounds, 10);
       if (!isNaN(parsed) && parsed > 0) {
         numRounds = parsed;
@@ -664,16 +727,23 @@ function onEventChange() {
 }
 
 function rebuildRoundButtons(numRounds) {
-  for (let r = 1; r <= 3; r++) {
-    const btn = document.getElementById(`roundBtn${r}`);
-    if (btn) {
-      if (r <= numRounds) {
-        btn.style.display = 'inline-flex';
-        btn.className = 'round-btn' + (r === currentRound ? ' active' : '');
-      } else {
-        btn.style.display = 'none';
-      }
+  const container = document.querySelector('#roundCard > div[style]');
+  if (!container) return;
+
+  container.innerHTML = '';
+  for (let r = 1; r <= numRounds; r++) {
+    let btn = document.getElementById(`roundBtn${r}`);
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = `roundBtn${r}`;
+      container.appendChild(btn);
+    } else {
+      container.appendChild(btn);
     }
+    btn.className = 'round-btn' + (r === currentRound ? ' active' : '');
+    btn.style.display = 'inline-flex';
+    btn.textContent = `Round ${r}`;
+    btn.onclick = (function(round) { return function() { selectRound(round); }; })(r);
   }
 }
 
@@ -813,15 +883,15 @@ function loadScoringTable() {
         When finished, click <strong>"Submit Scores"</strong> to save to the server.
       </div>
 
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <div class="score-table-wrap">
       <table class="cms-table" id="scoreTable_${escapeHtml(scoreKey)}">
         <thead><tr>
-          <th style="width:48px;text-align:center">#</th>
-          <th>Reg No</th>
-          <th>Team</th>
-          <th>Participant</th>
-          ${cols.map(col => `<th style="text-align:center">${escapeHtml(col.label)}<br><span style="color:var(--accent-dark);font-size:10px;font-weight:600">max ${col.max}</span></th>`).join('')}
-          <th style="text-align:center">Total<br><span style="color:var(--accent-dark);font-size:10px;font-weight:600">/ ${maxTotal}</span></th>
+          <th class="col-idx" style="width:48px;text-align:center">#</th>
+          <th class="col-reg">Reg No</th>
+          <th class="col-team">Team</th>
+          <th class="col-participant">Participant</th>
+          ${cols.map(col => `<th class="col-criteria" style="text-align:center">${escapeHtml(col.label)}<br><span style="color:var(--accent-dark);font-size:10px;font-weight:600">max ${col.max}</span></th>`).join('')}
+          <th class="col-total" style="text-align:center">Total<br><span style="color:var(--accent-dark);font-size:10px;font-weight:600">/ ${maxTotal}</span></th>
         </tr></thead>
         <tbody id="scoreTbody_${escapeHtml(scoreKey)}">`;
 
@@ -844,17 +914,17 @@ function loadScoringTable() {
 
       html += `
         <tr data-entry-id="${entryId}">
-          <td class="rank-cell rank-default" style="text-align:center">-</td>
-          <td><span class="reg-no-badge">#${escapeHtml(reg.code)}</span></td>
-          <td>
+          <td class="col-idx rank-cell rank-default" style="text-align:center">-</td>
+          <td class="col-reg"><span class="reg-no-badge">#${escapeHtml(reg.code)}</span></td>
+          <td class="col-team">
             <div style="font-weight:700;font-size:13px;color:var(--text)">${escapeHtml(reg.teamName || reg.college)}</div>
             <div class="participant-sub">${escapeHtml(reg.college)}</div>
           </td>
-          <td>
+          <td class="col-participant">
             <div style="font-size:13px;color:var(--text)">${escapeHtml(participantName)}</div>
           </td>
           ${cols.map(col => `
-            <td style="text-align:center">
+            <td class="col-criteria" style="text-align:center">
               <input
                 class="score-input${savedDraft && savedDraft[col.k] ? ' saved' : ''}"
                 type="number" min="0" max="${col.max}"
@@ -867,7 +937,7 @@ function loadScoringTable() {
                 aria-label="${escapeHtml(col.label)} score for ${escapeHtml(reg.teamName || reg.college)}"
               >
             </td>`).join('')}
-          <td class="total-cell" style="text-align:center" id="total_${entryId}">${total||0}</td>
+          <td class="col-total total-cell" style="text-align:center" id="total_${entryId}">${total||0}</td>
         </tr>`;
     });
   }
@@ -962,13 +1032,15 @@ async function submitScores(scoreKey) {
 
     localStorage.removeItem(getLsKey(scoreKey));
 
+    try { await NexusCMS.addAuditLog(`Judge submitted scores: ${scoreKey}`); } catch (_) {}
+
     showToast('✓ Scores submitted successfully!');
 
     loadScoringTable();
-    await NexusCMS.addAuditLog(`Judge submitted scores: ${scoreKey}`);
   } catch (err) {
     showToast(err.message || 'Failed to submit scores', 'error');
-    if (btn) { btn.disabled = false; btn.innerHTML = '<span>✓</span> Submit Scores'; }
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<span>✓</span> Submit Scores'; }
   }
 }
 
@@ -1025,7 +1097,9 @@ function updateTotals(scoreKey, cols) {
   (settings.events || []).forEach(event => {
     if (event.id) {
       let roundCount = 3;
-      if (event.rounds) {
+      if (Array.isArray(event.rounds)) {
+        roundCount = Math.max(1, event.rounds.length);
+      } else if (event.rounds) {
         const parsed = parseInt(event.rounds, 10);
         if (!isNaN(parsed) && parsed > 0) {
           roundCount = parsed;
@@ -1053,7 +1127,9 @@ function updateTotals(scoreKey, cols) {
       let numRounds = eventRounds[currentEventKey];
       if (!numRounds || isNaN(numRounds)) {
         numRounds = 3;
-        if (event.rounds) {
+        if (Array.isArray(event.rounds)) {
+          numRounds = Math.max(1, event.rounds.length);
+        } else if (event.rounds) {
           const parsed = parseInt(event.rounds, 10);
           if (!isNaN(parsed) && parsed > 0) {
             numRounds = parsed;
@@ -1073,6 +1149,18 @@ function updateTotals(scoreKey, cols) {
         currentRound = 1;
         selectRound(1);
       }
+    } else {
+      // Assigned event was removed from settings — show clear error
+      eventDisplayField.style.display = 'none';
+      eventSelector.style.display = 'none';
+      document.getElementById('scoringArea').innerHTML = `
+        <div class="step-card">
+          <div class="empty-state">
+            <div class="empty-state-icon">⚠️</div>
+            <div class="empty-state-text">Your assigned event is no longer available</div>
+            <div class="empty-state-sub">Please contact an administrator to update your event assignment.</div>
+          </div>
+        </div>`;
     }
   }
 })();

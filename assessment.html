@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>HR Assessment — NEXUS 2026</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ──────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+::selection{background:transparent}
+html,body{height:100%;min-height:100dvh;overflow-x:hidden}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#060810;
+  color:#f0f0f0;
+  overscroll-behavior:none;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  user-select:none;
+}
+
+/* ── Variables ──────────────────────────────────────────────────── */
+:root{
+  --bg:#060810;
+  --bg2:#0b0f1a;
+  --surface:#111827;
+  --surface2:#1a2235;
+  --accent:#f5a623;
+  --accent2:#e63c5c;
+  --accent3:#00d4ff;
+  --green:#10b981;
+  --text:#f0f0f0;
+  --muted:#7a8499;
+  --border:rgba(255,255,255,0.07);
+  --radius:16px;
+}
+
+/* ── Toast ──────────────────────────────────────────────────────── */
+#toastContainer{
+  position:fixed;top:16px;right:16px;left:16px;z-index:9999;
+  display:flex;flex-direction:column;gap:10px;pointer-events:none;
+}
+.toast{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 18px;
+  font-size:14px;
+  font-weight:500;
+  display:flex;align-items:center;gap:10px;
+  transform:translateY(-20px);opacity:0;
+  transition:all 0.35s cubic-bezier(.4,0,.2,1);
+  pointer-events:auto;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.warn{border-color:rgba(245,166,35,0.4);background:#1a1500}
+.toast.error{border-color:rgba(230,60,92,0.4);background:#1a0a0a}
+.toast.success{border-color:rgba(16,185,129,0.3);background:#071a12}
+.toast-icon{font-size:18px;flex-shrink:0}
+
+/* ── Overlay screens ────────────────────────────────────────────── */
+.screen{
+  min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:24px 20px;
+}
+#registerScreen{background:radial-gradient(ellipse at top,#0d1425 0%,#060810 70%)}
+#resultScreen{background:radial-gradient(ellipse at top,#071a12 0%,#060810 70%);display:none}
+#disqScreen{background:radial-gradient(ellipse at top,#1a0a0a 0%,#060810 70%);display:none}
+
+/* ── Registration Form ──────────────────────────────────────────── */
+.brand-logo{width:56px;height:56px;background:rgba(0,0,0,0.3);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;margin:0 auto 20px;overflow:hidden}
+.brand-logo img{width:100%;height:100%;object-fit:contain}
+.screen-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;text-align:center;line-height:1.2;margin-bottom:8px}
+.screen-sub{color:var(--muted);font-size:14px;text-align:center;margin-bottom:32px;line-height:1.5}
+.reg-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:28px 24px;width:100%;max-width:440px;
+}
+.wait-card,.rules-card,.result-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:28px 24px;width:100%;max-width:520px;
+}
+.wait-card{text-align:center}
+.wait-badge{
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:18px;
+  padding:8px 14px;border-radius:999px;font-size:12px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;
+  background:rgba(0,212,255,0.1);color:var(--accent3);border:1px solid rgba(0,212,255,0.2);
+}
+.wait-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1.2;margin-bottom:10px}
+.wait-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:20px;white-space:pre-line}
+.wait-meta{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:18px;
+}
+.wait-stat{
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:12px;padding:14px 12px;
+}
+.wait-stat-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent)}
+#waitParticipantName{font-size:14px;line-height:1.35;word-break:break-word;white-space:normal}
+.wait-stat-key{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+.rules-overlay{
+  position:fixed;inset:0;z-index:9998;background:rgba(4,8,18,0.88);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.rules-overlay.open{display:flex}
+.rules-card{max-width:680px;max-height:90vh;overflow:auto}
+.rules-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:10px}
+.rules-sub{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:18px}
+.rules-section{margin-bottom:18px;text-align:left}
+.rules-section h3{
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;color:var(--accent3)
+}
+.rules-list{display:flex;flex-direction:column;gap:8px}
+.rules-item{
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.6;color:var(--text)
+}
+.rules-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn-secondary{
+  background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--border);
+  border-radius:10px;padding:14px 18px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer
+}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:11px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.form-group input{
+  width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:15px;outline:none;
+  transition:border-color .2s;
+  -webkit-user-select:text;-moz-user-select:text;user-select:text;
+}
+.form-group input:focus{border-color:rgba(245,166,35,0.5)}
+.info-box{
+  background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);
+  border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#a0d8ef;
+  line-height:1.6;
+}
+.info-box strong{color:var(--accent3)}
+.btn-primary{
+  width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;
+  padding:16px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+}
+.btn-primary:hover{background:#ffc107;transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ── Exam Shell ─────────────────────────────────────────────────── */
+#examShell{display:none;flex-direction:column;min-height:100vh;min-height:100dvh}
+
+/* Sticky header */
+.exam-header{
+  position:sticky;top:0;z-index:50;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.exam-logo{width:32px;height:32px;background:rgba(0,0,0,0.4);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.exam-logo img{width:100%;height:100%;object-fit:contain}
+.exam-title-block{flex:1;min-width:0}
+.exam-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;line-height:1}
+.exam-name-tag{font-size:11px;color:var(--muted);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Timer */
+.timer-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.timer{
+  font-family:'Syne',sans-serif;font-size:18px;font-weight:800;
+  color:var(--green);min-width:52px;text-align:right;
+  transition:color .3s;
+}
+.timer.warn{color:var(--accent)}
+.timer.danger{color:var(--accent2);animation:pulse .6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.timer-icon{font-size:16px}
+
+/* Progress bar */
+.progress-bar-wrap{height:3px;background:var(--border)}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .4s ease;width:0}
+
+/* Violation badge */
+.vio-badge{
+  background:rgba(230,60,92,0.12);border:1px solid rgba(230,60,92,0.25);
+  border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;
+  color:var(--accent2);display:flex;align-items:center;gap:5px;flex-shrink:0;
+}
+
+/* ── Questions Container ─────────────────────────────────────────── */
+.questions-container{
+  flex:1;padding:16px;max-width:640px;width:100%;margin:0 auto;
+  padding-bottom:130px; /* space for sticky footer */
+}
+.q-counter{
+  font-size:12px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:20px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.q-counter span{color:var(--text)}
+.q-counter-dot{opacity:.45}
+
+/* Question card */
+.q-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;margin-bottom:16px;
+  transition:border-color .2s;
+}
+.q-card.answered{border-color:rgba(16,185,129,0.25)}
+.q-num{font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.q-text{font-size:15px;font-weight:500;line-height:1.55;margin-bottom:18px}
+.options-list{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
+.option-btn{
+  width:100%;background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);border-radius:10px;
+  padding:13px 16px;text-align:left;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:400;
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px;
+  -webkit-user-select:none;user-select:none;
+}
+.option-btn:active{transform:scale(0.98)}
+.option-btn.selected{
+  background:rgba(245,166,35,0.1);
+  border-color:rgba(245,166,35,0.4);
+  color:var(--accent);
+}
+.option-letter{
+  width:24px;height:24px;border-radius:50%;border:1px solid currentColor;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;opacity:.6;
+}
+.option-btn.selected .option-letter{opacity:1;background:rgba(245,166,35,0.2)}
+
+/* Reason box */
+.reason-label{
+  font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:7px;
+}
+.reason-input{
+  width:100%;background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:13px;
+  resize:none;outline:none;min-height:72px;max-height:140px;
+  line-height:1.5;transition:border-color .2s;
+  -webkit-user-select:text;-moz-user-select:text;user-select:text;
+}
+.reason-input::placeholder{color:var(--muted);opacity:.7}
+.reason-input:focus{border-color:rgba(245,166,35,0.4)}
+.reason-char{font-size:10px;color:var(--muted);text-align:right;margin-top:4px}
+
+/* ── Sticky Submit Footer ────────────────────────────────────────── */
+.exam-footer{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:rgba(6,8,16,0.95);backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:10px;
+  max-width:640px;margin:0 auto;left:50%;transform:translateX(-50%);
+  width:100%;
+}
+.footer-progress{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;color:var(--muted);
+}
+.footer-progress strong{color:var(--text)}
+.footer-actions{
+  display:flex;gap:10px;
+}
+.footer-actions button{flex:1}
+.btn-nav{
+  background:rgba(255,255,255,0.05);color:var(--text);
+  border:1px solid var(--border);border-radius:10px;
+  padding:15px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+}
+.btn-nav:hover{border-color:rgba(245,166,35,0.38);color:var(--accent)}
+.btn-nav:disabled{opacity:.45;cursor:not-allowed}
+.btn-submit{
+  background:var(--accent);color:#000;border:none;border-radius:10px;
+  padding:15px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;width:100%;
+}
+.btn-submit:hover{background:#ffc107}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.hidden{display:none !important}
+
+/* ── Result Screen ──────────────────────────────────────────────── */
+.result-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:32px 24px;width:100%;max-width:440px;
+  text-align:center;
+}
+.result-icon{
+  width:82px;height:82px;border-radius:50%;margin:0 auto 18px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);
+  font-size:36px;
+}
+.result-score-ring{
+  width:110px;height:110px;border-radius:50%;
+  background:conic-gradient(var(--green) var(--pct, 0%), rgba(255,255,255,0.06) 0%);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;position:relative;
+}
+.result-score-ring::before{
+  content:'';position:absolute;inset:10px;border-radius:50%;background:var(--surface);
+}
+.result-score-inner{position:relative;z-index:1}
+.result-score-num{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;
+  color:var(--green);line-height:1}
+.result-score-denom{font-size:12px;color:var(--muted);margin-top:2px}
+.result-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px}
+.result-sub{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:24px}
+.result-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;
+}
+.result-stat{
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:10px;padding:14px 12px;
+}
+.result-stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+  color:var(--accent);margin-bottom:4px}
+.result-stat-key{font-size:11px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.05em;font-weight:600}
+.pass-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 16px;border-radius:100px;font-size:12px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px;
+}
+.pass-badge.pass{background:rgba(16,185,129,0.12);color:var(--green);
+  border:1px solid rgba(16,185,129,0.3)}
+.pass-badge.fail{background:rgba(230,60,92,0.1);color:var(--accent2);
+  border:1px solid rgba(230,60,92,0.25)}
+
+/* Disq screen */
+.disq-card{
+  background:#1a0a0a;border:1px solid rgba(230,60,92,0.3);
+  border-radius:var(--radius);padding:32px 24px;width:100%;max-width:400px;text-align:center;
+}
+.disq-icon{font-size:52px;margin-bottom:16px}
+.disq-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;
+  color:var(--accent2);margin-bottom:10px}
+.disq-sub{color:var(--muted);font-size:13px;line-height:1.6}
+
+/* ── Fullscreen overlay ─────────────────────────────────────────── */
+#fsOverlay{
+  position:fixed;inset:0;z-index:8888;
+  background:rgba(6,8,16,0.97);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px;text-align:center;gap:16px;
+}
+#fsOverlay.show{display:flex}
+.fs-icon{font-size:48px}
+.fs-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent2)}
+.fs-sub{color:var(--muted);font-size:14px;line-height:1.6;max-width:320px}
+.btn-fs{
+  background:var(--accent);color:#000;border:none;border-radius:10px;
+  padding:14px 28px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;margin-top:8px;
+}
+
+/* ── Privacy Shield (anti-capture) ─────────────────────────────── */
+#privacyShield{
+  position:fixed;inset:0;z-index:8890;
+  background:rgba(3,6,14,0.985);
+  display:none;align-items:center;justify-content:center;
+  pointer-events:none;text-align:center;padding:26px;
+}
+#privacyShield.show{display:flex}
+.shield-card{
+  background:rgba(17,24,39,0.92);
+  border:1px solid rgba(245,166,35,0.35);
+  border-radius:14px;
+  padding:16px 18px;
+  max-width:360px;
+}
+.shield-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--accent)}
+.shield-sub{margin-top:6px;font-size:12px;line-height:1.5;color:var(--muted)}
+
+/* ── Security Watermark ─────────────────────────────────────────── */
+#securityWatermark{
+  position:fixed;inset:0;z-index:44;pointer-events:none;display:none;
+}
+#securityWatermark.active{display:block}
+.wm-stamp{
+  position:absolute;
+  font-family:'Syne',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.08em;
+  color:rgba(245,166,35,0.16);
+  text-transform:uppercase;
+  transform:rotate(-22deg);
+  text-shadow:0 0 1px rgba(0,0,0,0.35);
+  white-space:nowrap;
+}
+
+@media (max-width:540px){
+  .screen{padding:16px 14px}
+  .screen-title{font-size:22px}
+  .screen-sub{font-size:13px;margin-bottom:22px}
+  .reg-card,.wait-card,.rules-card,.result-card{padding:20px 16px;border-radius:14px}
+  .rules-card{max-height:92dvh}
+
+  .exam-header{
+    padding:10px 12px;
+    gap:8px;
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:center;
+  }
+  .exam-logo{width:28px;height:28px}
+  .exam-title{font-size:12px}
+  .exam-name-tag{font-size:10px}
+  .vio-badge{font-size:10px;padding:3px 8px;grid-column:2;justify-self:start}
+  .timer-wrap{gap:6px;grid-column:3;justify-self:end}
+  .timer{font-size:16px;min-width:46px}
+  .timer-icon{font-size:14px}
+
+  .questions-container{padding:12px;padding-bottom:150px}
+  .q-counter{flex-wrap:wrap;justify-content:flex-start;gap:6px;margin-bottom:14px}
+  .q-counter-dot{display:none}
+
+  .q-card{padding:16px 14px;border-radius:12px}
+  .q-text{font-size:14px;line-height:1.5}
+  .option-btn{padding:12px 12px;gap:10px;font-size:13px}
+  .option-letter{width:22px;height:22px}
+  .reason-input{font-size:13px;padding:11px 12px;min-height:80px}
+
+  .exam-footer{
+    left:0;right:0;transform:none;max-width:none;
+    padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+  }
+  .footer-progress{flex-wrap:wrap;gap:6px;font-size:11px}
+  .footer-actions{display:grid;grid-template-columns:0.9fr 1.1fr;gap:8px}
+  .footer-actions button{min-height:46px;padding:12px 10px;font-size:13px}
+}
+
+@media (max-width:380px){
+  .screen-title{font-size:20px}
+  .wait-title{font-size:22px}
+  .wait-meta{grid-template-columns:1fr}
+  .questions-container{padding:10px;padding-bottom:154px}
+  .footer-actions{grid-template-columns:1fr}
+}
+
+@media print{
+  body *{display:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- Toast container -->
+<div id="toastContainer"></div>
+
+<!-- Fullscreen enforcement overlay -->
+<div id="fsOverlay">
+  <div class="fs-icon">⛔</div>
+  <div class="fs-title">Fullscreen Required</div>
+  <div class="fs-sub">You exited fullscreen mode. Please re-enter fullscreen to continue the exam.</div>
+  <button class="btn-fs" onclick="requestFullscreen()">Re-enter Fullscreen</button>
+</div>
+
+<!-- Privacy shield overlay -->
+<div id="privacyShield" aria-hidden="true">
+  <div class="shield-card">
+    <div class="shield-title" id="shieldTitle">Capture blocked</div>
+    <div class="shield-sub" id="shieldSub">Stay focused on the exam window.</div>
+  </div>
+</div>
+
+<!-- Security watermark -->
+<div id="securityWatermark" aria-hidden="true"></div>
+
+<!-- ── SCREEN 1: Login ────────────────────────────────────────────── -->
+<div class="screen" id="registerScreen">
+  <div class="brand-logo">
+    <img src="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png" alt="NEXUS">
+  </div>
+  <div class="screen-title">HR Knowledge Assessment</div>
+  <div class="screen-sub">NEXUS 2026 &nbsp;·&nbsp; People Pulse</div>
+
+  <div class="reg-card">
+    <div class="info-box">
+      <strong>Before you begin:</strong><br>
+      Register No. = Team Code and Password = Team Code.<br>
+      20 questions &nbsp;·&nbsp; 20-minute timer<br>
+      Tab switching &amp; fullscreen exit are monitored.<br>
+      More than 2 violations = <strong>auto-disqualified.</strong>
+    </div>
+    <div class="form-group">
+      <label>Register Number</label>
+      <input type="text" id="regNumber" placeholder="e.g. 22917" autocomplete="off"
+        inputmode="text" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="form-group" style="position:relative">
+      <label>Password</label>
+      <input type="password" id="regPassword" placeholder="Use the same team code" autocomplete="current-password">
+      <button type="button" onclick="togglePwd()" style="position:absolute;right:14px;bottom:14px;
+        background:none;border:none;color:#7a8499;cursor:pointer;font-size:16px;padding:0"
+        id="pwdToggle">👁</button>
+    </div>
+    <button class="btn-primary" id="startBtn" onclick="startExam()">Login to Assessment &rarr;</button>
+  </div>
+</div>
+
+<!-- ── SCREEN 1B: Waiting ─────────────────────────────────────────── -->
+<div class="screen" id="waitingScreen" style="display:none">
+  <div class="wait-card">
+    <div class="wait-badge" id="waitBadge">Waiting for Start</div>
+    <div class="wait-title" id="waitTitle">You are checked in</div>
+    <div class="wait-sub" id="waitMessage">Please stay on this page. The event head will start the assessment from CMS.</div>
+    <div class="wait-meta">
+      <div class="wait-stat">
+        <div class="wait-stat-val" id="waitStudent">-</div>
+        <div class="wait-stat-key">Register Number</div>
+      </div>
+      <div class="wait-stat">
+        <div class="wait-stat-val" id="waitStatusValue">Waiting</div>
+        <div class="wait-stat-key">Assessment Status</div>
+      </div>
+      <div class="wait-stat">
+        <div class="wait-stat-val" id="waitParticipantName">-</div>
+        <div class="wait-stat-key">Participant Name</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCREEN 2: Exam ─────────────────────────────────────────────── -->
+<div id="examShell">
+  <div class="exam-header">
+    <div class="exam-logo">
+      <img src="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png" alt="">
+    </div>
+    <div class="exam-title-block">
+      <div class="exam-title">HR Assessment</div>
+      <div class="exam-name-tag" id="examNameTag">Student</div>
+    </div>
+    <div class="vio-badge" id="violBadge">
+      <span>⚠</span><span id="violCount">0</span>/3
+    </div>
+    <div class="timer-wrap">
+      <span class="timer-icon">⏱</span>
+      <span class="timer" id="timerDisplay">20:00</span>
+    </div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="questions-container" id="questionsContainer">
+    <div class="q-counter">
+      <span>Question <strong id="currentQuestionNo">1</strong> / <strong id="totalQuestionCount">20</strong></span>
+      <span class="q-counter-dot">•</span>
+      <span><strong id="answeredCount">0</strong> answered</span>
+    </div>
+    <div id="questionsList"></div>
+  </div>
+
+  <div class="exam-footer">
+    <div class="footer-progress">
+      <span>Progress: <strong id="footerAnswered">0 / 20</strong></span>
+      <span id="footerStatus">Use Next to continue</span>
+    </div>
+    <div class="footer-actions">
+      <button class="btn-nav" id="prevBtn" onclick="prevQuestion()">Previous</button>
+      <button class="btn-nav" id="nextBtn" onclick="nextQuestion()">Next Question</button>
+      <button class="btn-submit hidden" id="submitBtn" onclick="confirmSubmit()">Submit Exam</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCREEN 3: Result ───────────────────────────────────────────── -->
+<div class="screen" id="resultScreen">
+  <div class="result-card">
+    <div class="result-icon">✓</div>
+    <div class="result-title" id="resultTitle">Thank you for attending</div>
+    <div class="result-sub" id="resultSub">Your marks will be updated in our system.</div>
+    <div style="font-size:13px;color:var(--muted)" id="resultNote">Your response has been saved successfully. You may close this tab.</div>
+  </div>
+</div>
+
+<!-- ── SCREEN 4: Disqualified ─────────────────────────────────────── -->
+<div class="screen" id="disqScreen">
+  <div class="disq-card">
+    <div class="disq-icon">🚫</div>
+    <div class="disq-title">Disqualified</div>
+    <div class="disq-sub">You have been disqualified due to multiple anti-cheating violations.<br><br>Your attempt has been recorded. Please contact the exam coordinator if you believe this is an error.</div>
+  </div>
+</div>
+
+<!-- ── RULES MODAL ────────────────────────────────────────────────── -->
+<div class="rules-overlay" id="rulesOverlay">
+  <div class="rules-card">
+    <div class="rules-title">Assessment Rules &amp; Regulations</div>
+    <div class="rules-sub">Please read these carefully before you continue. Once you accept, you will enter the waiting room until the event head starts the assessment.</div>
+
+    <div class="rules-section">
+      <h3>Before the exam starts</h3>
+      <div class="rules-list">
+        <div class="rules-item">Stay on this page after logging in. The assessment will begin only when the event head starts it from the CMS.</div>
+        <div class="rules-item">Use only your assigned register number and password for this assessment.</div>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <h3>During the exam</h3>
+      <div class="rules-list">
+        <div class="rules-item">The assessment contains 20 questions with a 20-minute time limit.</div>
+        <div class="rules-item">Do not switch apps/tabs, open developer tools, copy, paste, or use restricted shortcuts.</div>
+        <div class="rules-item">Do not attempt screenshots, screen recording, screen sharing, or any external aid during the exam.</div>
+        <div class="rules-item">Keep the browser active. The event head can stop the assessment for everyone from the CMS if needed.</div>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <h3>Disqualification policy</h3>
+      <div class="rules-list">
+        <div class="rules-item">Violations are monitored. More than 2 violations will automatically disqualify your attempt.</div>
+        <div class="rules-item">If you break the rules, your attempt may be submitted automatically and marked as disqualified.</div>
+      </div>
+    </div>
+
+    <div class="rules-actions">
+      <button class="btn-secondary" type="button" onclick="closeRules()">Cancel</button>
+      <button class="btn-primary" type="button" onclick="acceptRules()">I Understand</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── State ────────────────────────────────────────────────────────
+  let studentName = '';
+  let studentRegNum = '';
+  let studentSubmitToken = '';
+  let questions = [];
+  let answers = []; // {selected: null|0-3, reason: ''}
+  let currentQuestionIndex = 0;
+  let timerSeconds = 20 * 60;
+  let timerInterval = null;
+  let sessionPollInterval = null;
+  let devtoolsInterval = null;
+  let watermarkInterval = null;
+  let assessmentControl = { phase: 'waiting', startedAt: null, stoppedAt: null, durationSeconds: 20 * 60, sessionId: null };
+  let violations = 0;
+  let MAX_VIOLATIONS = 3;
+  let lastViolationAt = 0;
+  let examStartTime = null;
+  let examActive = false;
+  let submitted = false;
+  let rulesAccepted = false;
+  let questionsLoaded = false;
+  let examBooting = false;
+  let privacyShieldTimer = null;
+  let wakeLockHandle = null;
+
+  const mobileDevice = (function () {
+    var ua = String(navigator.userAgent || '').toLowerCase();
+    return /android|iphone|ipad|ipod|mobile|blackberry|windows phone/.test(ua)
+      || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  })();
+  const enforceFullscreen = !mobileDevice;
+
+  // ── Toast ────────────────────────────────────────────────────────
+  function toast(msg, type) {
+    var c = document.getElementById('toastContainer');
+    var el = document.createElement('div');
+    var icons = { warn: '⚠️', error: '🚫', success: '✅', info: 'ℹ️' };
+    el.className = 'toast ' + (type || 'info');
+    el.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + '</span>' + msg;
+    c.appendChild(el);
+    setTimeout(function () { el.classList.add('show'); }, 10);
+    setTimeout(function () {
+      el.classList.remove('show');
+      setTimeout(function () { el.remove(); }, 400);
+    }, 4000);
+  }
+
+  // ── Anti-cheat helpers ───────────────────────────────────────────
+  function showScreen(screen) {
+    document.getElementById('registerScreen').style.display = screen === 'register' ? 'flex' : 'none';
+    document.getElementById('waitingScreen').style.display = screen === 'waiting' ? 'flex' : 'none';
+    document.getElementById('examShell').style.display = screen === 'exam' ? 'flex' : 'none';
+    document.getElementById('resultScreen').style.display = screen === 'result' ? 'flex' : 'none';
+    document.getElementById('disqScreen').style.display = screen === 'disq' ? 'flex' : 'none';
+
+    if (screen !== 'exam') {
+      hidePrivacyShield();
+      releaseWakeLock();
+    }
+  }
+
+  function showPrivacyShield(message, sticky) {
+    var overlay = document.getElementById('privacyShield');
+    var sub = document.getElementById('shieldSub');
+    if (!overlay || !sub) return;
+
+    sub.textContent = message || 'Stay focused on the exam window.';
+    overlay.classList.add('show');
+
+    if (!sticky) {
+      clearTimeout(privacyShieldTimer);
+      privacyShieldTimer = setTimeout(function () {
+        hidePrivacyShield();
+      }, 1200);
+    }
+  }
+
+  function hidePrivacyShield() {
+    var overlay = document.getElementById('privacyShield');
+    if (!overlay) return;
+    overlay.classList.remove('show');
+    clearTimeout(privacyShieldTimer);
+    privacyShieldTimer = null;
+  }
+
+  function onScreenshotAttempt(reason) {
+    addViolation(reason || 'Screenshot attempt detected');
+    showPrivacyShield('Screenshot or capture attempt blocked.', false);
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText('').catch(function () {});
+    }
+  }
+
+  async function requestWakeLock() {
+    if (!mobileDevice || !examActive || submitted) return;
+    if (!('wakeLock' in navigator) || !navigator.wakeLock || typeof navigator.wakeLock.request !== 'function') return;
+
+    try {
+      wakeLockHandle = await navigator.wakeLock.request('screen');
+      wakeLockHandle.addEventListener('release', function () {
+        wakeLockHandle = null;
+      });
+    } catch (_err) {
+      // Wake lock support varies by browser/device; continue without blocking exam.
+    }
+  }
+
+  function releaseWakeLock() {
+    if (!wakeLockHandle || typeof wakeLockHandle.release !== 'function') return;
+    wakeLockHandle.release().catch(function () {});
+    wakeLockHandle = null;
+  }
+
+  function resetLoginButton() {
+    var btn = document.getElementById('startBtn');
+    btn.disabled = false;
+    btn.textContent = 'Login to Assessment';
+  }
+
+  function syncAssessmentControl(control) {
+    assessmentControl = {
+      phase: control && ['waiting', 'live', 'stopped'].includes(control.phase) ? control.phase : 'waiting',
+      startedAt: control && control.startedAt ? control.startedAt : null,
+      stoppedAt: control && control.stoppedAt ? control.stoppedAt : null,
+      durationSeconds: control && Number(control.durationSeconds) > 0 ? Number(control.durationSeconds) : (20 * 60),
+      sessionId: control && control.sessionId ? control.sessionId : null
+    };
+  }
+
+  async function fetchAssessmentControl() {
+    var res = await fetch('/api/assessment/session', { cache: 'no-store' });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch assessment status.');
+    syncAssessmentControl(data.control || {});
+    return data;
+  }
+
+  function openRulesModal() {
+    document.getElementById('rulesOverlay').classList.add('open');
+  }
+
+  function closeRulesModal() {
+    document.getElementById('rulesOverlay').classList.remove('open');
+  }
+
+  function updateWaitingScreen() {
+    var title = 'You are checked in';
+    var message = 'Please stay on this page. The event head will start the assessment from CMS.';
+    var badge = 'Waiting for Start';
+
+    if (assessmentControl.phase === 'live') {
+      title = 'Assessment is starting';
+      message = 'The event head has started the assessment. Please wait while your questions load.';
+      badge = 'Assessment Live';
+    } else if (assessmentControl.phase === 'stopped') {
+      title = 'Assessment is closed';
+      message = assessmentControl.startedAt
+        ? 'The event head has ended the assessment. Please contact the event head if you need help.'
+        : 'The assessment has not been opened yet. Please wait for the event head.';
+      badge = 'Assessment Closed';
+    }
+
+    document.getElementById('waitBadge').textContent = badge;
+    document.getElementById('waitTitle').textContent = title;
+    document.getElementById('waitMessage').textContent = message;
+    document.getElementById('waitStudent').textContent = studentRegNum || '-';
+    document.getElementById('waitParticipantName').textContent = studentName || '-';
+    document.getElementById('waitStatusValue').textContent = capitalize(assessmentControl.phase);
+  }
+
+  function stopSessionPolling() {
+    if (!sessionPollInterval) return;
+    clearInterval(sessionPollInterval);
+    sessionPollInterval = null;
+  }
+
+  function startSessionPolling() {
+    stopSessionPolling();
+    sessionPollInterval = setInterval(function () {
+      refreshAssessmentControl().catch(function () {});
+    }, 3000);
+  }
+
+  function addViolation(reason) {
+    if (!examActive || submitted) return;
+
+    var now = Date.now();
+    if (now - lastViolationAt < 1200) return;
+    lastViolationAt = now;
+
+    violations++;
+    document.getElementById('violCount').textContent = violations;
+    toast(reason + ' (' + violations + '/3 violations)', 'warn');
+    if (violations >= MAX_VIOLATIONS) {
+      toast('Too many violations — submitting exam as DISQUALIFIED', 'error');
+      setTimeout(function () { doSubmit('disqualified'); }, 1200);
+    }
+  }
+
+  // Disable right-click
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  // Disable keyboard shortcuts
+  document.addEventListener('keydown', function (e) {
+    if (!examActive) return;
+
+    var key = String(e.key || '').toLowerCase();
+    var screenshotAttempt =
+      key === 'printscreen' ||
+      (e.metaKey && e.shiftKey && (key === '3' || key === '4' || key === '5' || key === 's'));
+
+    var devtoolsAttempt =
+      (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c' || key === 'k')) ||
+      key === 'f12';
+
+    var banned = [
+      e.ctrlKey && (e.key === 'c' || e.key === 'C'),
+      e.ctrlKey && (e.key === 'v' || e.key === 'V'),
+      e.ctrlKey && (e.key === 'u' || e.key === 'U'),
+      e.ctrlKey && (e.key === 'a' || e.key === 'A'),
+      e.ctrlKey && (e.key === 's' || e.key === 'S'),
+      e.ctrlKey && (e.key === 'p' || e.key === 'P'),
+      e.metaKey && (e.key === 'c' || e.key === 'C'),
+      e.metaKey && (e.key === 'v' || e.key === 'V'),
+      e.metaKey && (e.key === 'a' || e.key === 'A'),
+      e.metaKey && (e.key === 's' || e.key === 'S'),
+      e.metaKey && (e.key === 'p' || e.key === 'P'),
+      e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'),
+      e.key === 'F12',
+      e.altKey && e.key === 'Tab',
+      screenshotAttempt,
+    ];
+    if (banned.some(Boolean)) {
+      e.preventDefault();
+      if (screenshotAttempt) {
+        onScreenshotAttempt('Screenshot shortcut detected');
+      } else if (devtoolsAttempt) {
+        addViolation('Restricted shortcut detected');
+      }
+    }
+  });
+
+  document.addEventListener('keyup', function (e) {
+    if (!examActive || submitted) return;
+    var key = String(e.key || '').toLowerCase();
+    if (key === 'printscreen') {
+      e.preventDefault();
+      onScreenshotAttempt('Screenshot key detected');
+    }
+  });
+
+  document.addEventListener('touchstart', function (e) {
+    if (!examActive || submitted) return;
+    if (e.touches && e.touches.length >= 3) {
+      e.preventDefault();
+      onScreenshotAttempt('Multi-touch screenshot gesture detected');
+    }
+  }, { passive: false });
+
+  document.addEventListener('gesturestart', function (e) {
+    if (!examActive || submitted) return;
+    e.preventDefault();
+    addViolation('Pinch-zoom gesture blocked');
+  });
+
+  document.addEventListener('gesturechange', function (e) {
+    if (!examActive || submitted) return;
+    e.preventDefault();
+  });
+
+  document.addEventListener('gestureend', function (e) {
+    if (!examActive || submitted) return;
+    e.preventDefault();
+  });
+
+  document.addEventListener('dragstart', function (e) {
+    if (!examActive) return;
+    e.preventDefault();
+  });
+
+  document.addEventListener('selectstart', function (e) {
+    if (!examActive) return;
+    var target = e.target;
+    if (target && target.classList && target.classList.contains('reason-input')) return;
+    if (target && target.tagName && target.tagName.toLowerCase() === 'input') return;
+    e.preventDefault();
+  });
+
+  // Prevent copy/paste on the document (but allow reason textarea via flag)
+  document.addEventListener('copy', function (e) {
+    if (!examActive) return;
+    if (!e.target.classList.contains('reason-input')) { e.preventDefault(); }
+  });
+  document.addEventListener('paste', function (e) {
+    if (!examActive) return;
+    if (!e.target.classList.contains('reason-input')) { e.preventDefault(); }
+  });
+  document.addEventListener('cut', function (e) {
+    if (!examActive) return;
+    e.preventDefault();
+  });
+
+  // Tab / window visibility
+  document.addEventListener('visibilitychange', function () {
+    if (!examActive || submitted) return;
+    if (document.hidden) {
+      showPrivacyShield('Exam hidden. Return to continue.', true);
+      addViolation('Tab switch detected');
+    } else {
+      hidePrivacyShield();
+      requestWakeLock();
+    }
+  });
+
+  // Window blur
+  window.addEventListener('blur', function () {
+    if (!examActive || submitted) return;
+    showPrivacyShield('Window focus lost. Return to continue.', true);
+    addViolation('Window lost focus');
+  });
+
+  window.addEventListener('focus', function () {
+    if (!examActive || submitted) return;
+    if (!document.hidden) {
+      hidePrivacyShield();
+    }
+  });
+
+  window.addEventListener('beforeprint', function () {
+    if (!examActive || submitted) return;
+    onScreenshotAttempt('Print/capture attempt detected');
+  });
+
+  window.addEventListener('beforeunload', function (e) {
+    if (!examActive || submitted) return;
+    e.preventDefault();
+    e.returnValue = 'Leaving this page will submit your exam.';
+    return e.returnValue;
+  });
+
+  // Fullscreen change
+  function onFullscreenChange() {
+    if (!enforceFullscreen) return;
+    if (!examActive || submitted) return;
+    var isFs = !!(document.fullscreenElement || document.webkitFullscreenElement ||
+                  document.mozFullScreenElement || document.msFullscreenElement);
+    if (!isFs) {
+      document.getElementById('fsOverlay').classList.add('show');
+      addViolation('Fullscreen exited');
+    } else {
+      document.getElementById('fsOverlay').classList.remove('show');
+    }
+  }
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+  document.addEventListener('mozfullscreenchange', onFullscreenChange);
+  document.addEventListener('MSFullscreenChange', onFullscreenChange);
+
+  window.addEventListener('orientationchange', function () {
+    if (!examActive || submitted || !mobileDevice) return;
+    if (window.innerWidth > window.innerHeight) {
+      showPrivacyShield('Keep your phone in portrait mode for the exam.', false);
+      addViolation('Landscape orientation detected');
+    }
+  });
+
+  window.addEventListener('popstate', function () {
+    if (!examActive || submitted) return;
+    addViolation('Back navigation attempt detected');
+    showPrivacyShield('Back navigation is blocked during the exam.', false);
+    history.pushState({ examGuard: true }, '', location.href);
+  });
+
+  window.requestFullscreen = function () {
+    if (!enforceFullscreen) return;
+    var el = document.documentElement;
+    var fn = el.requestFullscreen || el.webkitRequestFullscreen ||
+             el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (fn) fn.call(el).catch(function () {});
+  };
+
+  if (navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function') {
+    navigator.mediaDevices.getDisplayMedia = function () {
+      if (examActive && !submitted) {
+        onScreenshotAttempt('Screen-sharing capture attempt detected');
+      }
+      return Promise.reject(new Error('Screen capture is blocked during assessment.'));
+    };
+  }
+
+  // DevTools detection (size heuristic)
+  function startDevtoolsDetection() {
+    clearInterval(devtoolsInterval);
+    devtoolsInterval = setInterval(function () {
+      if (!examActive || submitted) return;
+      var threshold = 160;
+      if (
+        window.outerWidth - window.innerWidth > threshold ||
+        window.outerHeight - window.innerHeight > threshold
+      ) {
+        addViolation('DevTools detected');
+      }
+    }, 2000);
+  }
+
+  function stopDevtoolsDetection() {
+    if (!devtoolsInterval) return;
+    clearInterval(devtoolsInterval);
+    devtoolsInterval = null;
+  }
+
+  function renderSecurityWatermark() {
+    var layer = document.getElementById('securityWatermark');
+    if (!layer || !examActive || submitted) return;
+
+    var safeName = (studentName || 'STUDENT').toUpperCase();
+    var safeReg = (studentRegNum || 'UNKNOWN').toUpperCase();
+    var stampText = safeReg + ' | ' + safeName + ' | ' + new Date().toLocaleTimeString();
+    var rows = 4;
+    var cols = 3;
+    var html = '';
+
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var top = (r + 0.5) * (100 / rows);
+        var left = (c + 0.5) * (100 / cols);
+        html += '<div class="wm-stamp" style="top:' + top + '%;left:' + left + '%">' + escHtml(stampText) + '</div>';
+      }
+    }
+
+    layer.innerHTML = html;
+  }
+
+  function startSecurityWatermark() {
+    var layer = document.getElementById('securityWatermark');
+    if (!layer) return;
+    layer.classList.add('active');
+    renderSecurityWatermark();
+    clearInterval(watermarkInterval);
+    watermarkInterval = setInterval(renderSecurityWatermark, 15000);
+  }
+
+  function stopSecurityWatermark() {
+    var layer = document.getElementById('securityWatermark');
+    if (layer) {
+      layer.classList.remove('active');
+      layer.innerHTML = '';
+    }
+    if (watermarkInterval) {
+      clearInterval(watermarkInterval);
+      watermarkInterval = null;
+    }
+  }
+
+  // ── Timer ────────────────────────────────────────────────────────
+  async function refreshAssessmentControl() {
+    var data = await fetchAssessmentControl();
+
+    if (!studentRegNum || !rulesAccepted || submitted) {
+      return data;
+    }
+
+    if (examActive) {
+      if (assessmentControl.phase !== 'live') {
+        toast('The event head has stopped the assessment. Submitting your response...', 'warn');
+        doSubmit('stopped');
+      }
+      return data;
+    }
+
+    if (assessmentControl.phase === 'live') {
+      await beginLiveExam();
+      return data;
+    }
+
+    updateWaitingScreen();
+    if (document.getElementById('waitingScreen').style.display === 'none') {
+      showScreen('waiting');
+    }
+    return data;
+  }
+
+  async function loadQuestionsIfNeeded() {
+    if (questionsLoaded) return;
+    var qRes = await fetch('/api/assessment/questions');
+    var qData = await qRes.json();
+    if (!qRes.ok) throw new Error(qData.message || 'Failed to load questions');
+    questions = Array.isArray(qData.questions) ? qData.questions : [];
+    questionsLoaded = true;
+    assessmentControl.durationSeconds = Number(qData.durationSeconds) > 0 ? Number(qData.durationSeconds) : assessmentControl.durationSeconds;
+  }
+
+  async function beginLiveExam() {
+    if (examActive || submitted || examBooting) return;
+
+    examBooting = true;
+    try {
+      await loadQuestionsIfNeeded();
+
+      if (!answers.length) {
+        answers = questions.map(function () { return { selected: null, reason: '' }; });
+        currentQuestionIndex = 0;
+        renderQuestions();
+        updateProgress();
+      }
+
+      examStartTime = assessmentControl.startedAt ? new Date(assessmentControl.startedAt).getTime() : Date.now();
+      timerSeconds = Math.max(0, assessmentControl.durationSeconds - Math.floor((Date.now() - examStartTime) / 1000));
+
+      if (timerSeconds <= 0) {
+        toast('The assessment window has already ended.', 'warn');
+        doSubmit('timeout');
+        return;
+      }
+
+      showScreen('exam');
+      document.getElementById('examNameTag').textContent = studentName + ' | ' + studentRegNum;
+      hidePrivacyShield();
+      history.pushState({ examGuard: true }, '', location.href);
+      requestFullscreen();
+      examActive = true;
+      requestWakeLock();
+      startTimer();
+      startDevtoolsDetection();
+      startSecurityWatermark();
+      toast('Assessment started. All the best!', 'success');
+    } finally {
+      examBooting = false;
+    }
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    updateTimerDisplay();
+    timerInterval = setInterval(function () {
+      timerSeconds--;
+      updateTimerDisplay();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        toast('Time is up! Auto-submitting...', 'error');
+        doSubmit('timeout');
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    var m = Math.floor(timerSeconds / 60);
+    var s = timerSeconds % 60;
+    var el = document.getElementById('timerDisplay');
+    el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    el.className = 'timer';
+    if (timerSeconds <= 60) el.classList.add('danger');
+    else if (timerSeconds <= 300) el.classList.add('warn');
+  }
+
+  // ── Render questions ─────────────────────────────────────────────
+  function renderQuestions() {
+    var container = document.getElementById('questionsList');
+    container.innerHTML = '';
+    var total = questions.length;
+    if (!total) {
+      container.innerHTML = '<div class="q-card"><div class="q-text">No questions are available right now. Please contact the event head.</div></div>';
+      syncQuestionNavigation();
+      return;
+    }
+
+    var i = currentQuestionIndex;
+    var q = questions[i];
+    var letters = ['A', 'B', 'C', 'D'];
+    var optionsHtml = q.options.map(function (opt, j) {
+      return '<button class="option-btn" id="opt_' + i + '_' + j + '" onclick="selectOption(' + i + ',' + j + ')">' +
+             '<span class="option-letter">' + letters[j] + '</span>' +
+             '<span>' + escHtml(opt) + '</span>' +
+             '</button>';
+    }).join('');
+
+    var card = document.createElement('div');
+    card.className = 'q-card';
+    if (answers[i] && answers[i].selected !== null) card.classList.add('answered');
+    card.id = 'qcard_' + i;
+    card.innerHTML =
+      '<div class="q-num">Question ' + (i + 1) + ' of ' + total + '</div>' +
+      '<div class="q-text">' + escHtml(q.text) + '</div>' +
+      '<div class="options-list">' + optionsHtml + '</div>' +
+      '<div class="reason-label">Why did you choose this answer?</div>' +
+      '<textarea class="reason-input" id="reason_' + i + '" ' +
+        'placeholder="Briefly explain your reasoning..." maxlength="500" ' +
+        'oninput="updateReason(' + i + ',this.value);updateCharCount(' + i + ',this.value.length)"></textarea>' +
+      '<div class="reason-char" id="rchar_' + i + '">0 / 500</div>';
+    container.appendChild(card);
+
+    var reasonEl = document.getElementById('reason_' + i);
+    if (reasonEl) {
+      var existingReason = answers[i] && typeof answers[i].reason === 'string' ? answers[i].reason : '';
+      reasonEl.value = existingReason;
+      updateCharCount(i, existingReason.length);
+    }
+
+    if (answers[i] && answers[i].selected !== null) {
+      var selected = document.getElementById('opt_' + i + '_' + answers[i].selected);
+      if (selected) selected.classList.add('selected');
+    }
+
+    syncQuestionNavigation();
+  }
+
+  function syncQuestionNavigation() {
+    var total = questions.length;
+    var prevBtn = document.getElementById('prevBtn');
+    var nextBtn = document.getElementById('nextBtn');
+    var submitBtn = document.getElementById('submitBtn');
+    if (!prevBtn || !nextBtn || !submitBtn) return;
+
+    if (!total) {
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      nextBtn.classList.add('hidden');
+      submitBtn.classList.remove('hidden');
+      submitBtn.disabled = true;
+      return;
+    }
+
+    var atFirst = currentQuestionIndex === 0;
+    var atLast = currentQuestionIndex === total - 1;
+
+    prevBtn.disabled = atFirst;
+    nextBtn.disabled = false;
+    submitBtn.disabled = false;
+    nextBtn.classList.toggle('hidden', atLast);
+    submitBtn.classList.toggle('hidden', !atLast);
+  }
+
+  function syncCurrentReasonFromDom() {
+    if (!questions.length) return;
+    if (!answers[currentQuestionIndex]) return;
+    var reasonEl = document.getElementById('reason_' + currentQuestionIndex);
+    if (!reasonEl) return;
+    answers[currentQuestionIndex].reason = reasonEl.value;
+  }
+
+  window.nextQuestion = function () {
+    syncCurrentReasonFromDom();
+    if (!questions.length) return;
+    if (currentQuestionIndex >= questions.length - 1) return;
+    currentQuestionIndex++;
+    renderQuestions();
+    updateProgress();
+  };
+
+  window.prevQuestion = function () {
+    syncCurrentReasonFromDom();
+    if (!questions.length) return;
+    if (currentQuestionIndex <= 0) return;
+    currentQuestionIndex--;
+    renderQuestions();
+    updateProgress();
+  };
+
+  window.selectOption = function (qi, optIdx) {
+    answers[qi].selected = optIdx;
+    var q = document.getElementById('qcard_' + qi);
+    q.classList.add('answered');
+    // Reset all option buttons for this question
+    for (var j = 0; j < 4; j++) {
+      var btn = document.getElementById('opt_' + qi + '_' + j);
+      if (btn) btn.classList.remove('selected');
+    }
+    var selected = document.getElementById('opt_' + qi + '_' + optIdx);
+    if (selected) selected.classList.add('selected');
+    updateProgress();
+  };
+
+  window.updateReason = function (qi, val) {
+    answers[qi].reason = val;
+  };
+
+  window.updateCharCount = function (qi, len) {
+    var el = document.getElementById('rchar_' + qi);
+    if (el) el.textContent = len + ' / 500';
+  };
+
+  function updateProgress() {
+    var total = questions.length;
+    var answered = answers.filter(function (a) { return a.selected !== null; }).length;
+    var pct = total > 0 ? (answered / total) * 100 : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('answeredCount').textContent = answered;
+    document.getElementById('footerAnswered').textContent = answered + ' / ' + total;
+    document.getElementById('currentQuestionNo').textContent = total ? (currentQuestionIndex + 1) : 0;
+    document.getElementById('totalQuestionCount').textContent = total;
+
+    if (!total) {
+      document.getElementById('footerStatus').textContent = 'No questions available';
+    } else if (answered === total) {
+      document.getElementById('footerStatus').textContent = 'All answered — ready to submit!';
+    } else {
+      document.getElementById('footerStatus').textContent = 'Question ' + (currentQuestionIndex + 1) + ' of ' + total;
+    }
+
+    syncQuestionNavigation();
+  }
+
+  // ── Password toggle ──────────────────────────────────────────────
+  window.togglePwd = function () {
+    var el = document.getElementById('regPassword');
+    var btn = document.getElementById('pwdToggle');
+    if (el.type === 'password') { el.type = 'text'; btn.textContent = '🙈'; }
+    else { el.type = 'password'; btn.textContent = '👁'; }
+  };
+
+  // ── Start exam ───────────────────────────────────────────────────
+  window.startExam = async function () {
+    var regNumEl = document.getElementById('regNumber');
+    var pwdEl = document.getElementById('regPassword');
+    var btn = document.getElementById('startBtn');
+
+    var regNum = regNumEl.value.trim().toUpperCase();
+    var pwd = pwdEl.value;
+
+    if (regNum.length < 2) { toast('Enter your register number.', 'error'); return; }
+    if (pwd.length < 1) { toast('Enter your password.', 'error'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    try {
+      var loginRes = await fetch('/api/assessment/student-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registerNumber: regNum, password: pwd })
+      });
+      var loginData = await loginRes.json();
+      if (!loginRes.ok) {
+        toast(loginData.message || 'Login failed.', 'error');
+        resetLoginButton();
+        return;
+      }
+      studentName = loginData.name;
+      studentRegNum = loginData.registerNumber;
+      studentSubmitToken = loginData.attemptToken || '';
+      if (!studentSubmitToken) {
+        throw new Error('Secure exam session could not be created. Please try again.');
+      }
+      document.getElementById('waitStudent').textContent = studentRegNum || '-';
+      document.getElementById('waitParticipantName').textContent = studentName || '-';
+    } catch (e) {
+      toast('Network error. Check your connection.', 'error');
+      resetLoginButton();
+      return;
+    }
+
+    btn.textContent = 'Preparing...';
+    try {
+      await loadQuestionsIfNeeded();
+      await fetchAssessmentControl();
+    } catch (e) {
+      toast(e.message || 'Could not prepare the assessment. Try again.', 'error');
+      studentName = '';
+      studentRegNum = '';
+      studentSubmitToken = '';
+      questions = [];
+      answers = [];
+      currentQuestionIndex = 0;
+      questionsLoaded = false;
+      rulesAccepted = false;
+      resetLoginButton();
+      return;
+    }
+
+    document.getElementById('waitStudent').textContent = studentRegNum || '-';
+    document.getElementById('waitParticipantName').textContent = studentName || '-';
+    openRulesModal();
+  };
+
+  window.closeRules = function () {
+    closeRulesModal();
+    studentName = '';
+    studentRegNum = '';
+    studentSubmitToken = '';
+    questions = [];
+    answers = [];
+    currentQuestionIndex = 0;
+    questionsLoaded = false;
+    rulesAccepted = false;
+    document.getElementById('waitStudent').textContent = '-';
+    document.getElementById('waitParticipantName').textContent = '-';
+    resetLoginButton();
+    showScreen('register');
+  };
+
+  window.acceptRules = async function () {
+    rulesAccepted = true;
+    closeRulesModal();
+    updateWaitingScreen();
+    showScreen('waiting');
+    startSessionPolling();
+    try {
+      await refreshAssessmentControl();
+    } catch (e) {
+      toast(e.message || 'Unable to refresh assessment status right now.', 'warn');
+    } finally {
+      resetLoginButton();
+    }
+  };
+
+  // ── Submit ───────────────────────────────────────────────────────
+  window.confirmSubmit = function () {
+    syncCurrentReasonFromDom();
+    var answered = answers.filter(function (a) { return a.selected !== null; }).length;
+    if (answered < questions.length) {
+      var unanswered = questions.length - answered;
+      toast(unanswered + ' question(s) unanswered. Still submitting?', 'warn');
+      // second click within 4s submits
+      var btn = document.getElementById('submitBtn');
+      btn.textContent = 'Confirm Submit (' + unanswered + ' unanswered)';
+      btn.onclick = function () { doSubmit('manual'); };
+      setTimeout(function () {
+        if (!submitted) {
+          btn.textContent = 'Submit Exam';
+          btn.onclick = function () { window.confirmSubmit(); };
+        }
+      }, 4000);
+      return;
+    }
+    doSubmit('manual');
+  };
+
+  async function doSubmit(reason) {
+    syncCurrentReasonFromDom();
+    if (submitted) return;
+    submitted = true;
+    examActive = false;
+    clearInterval(timerInterval);
+    stopDevtoolsDetection();
+    stopSecurityWatermark();
+    hidePrivacyShield();
+    releaseWakeLock();
+    stopSessionPolling();
+
+    var timeTaken = examStartTime ? Math.round((Date.now() - examStartTime) / 1000) : 0;
+    var autoSubmit = reason === 'disqualified' ? 'disqualified'
+                   : reason === 'timeout' ? 'timeout'
+                   : reason === 'stopped' ? 'stopped'
+                   : null;
+
+    var btn = document.getElementById('submitBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+
+    try {
+      var res = await fetch('/api/assessment/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          registerNumber: studentRegNum,
+          name: studentName,
+          submitToken: studentSubmitToken,
+          answers: answers,
+          timeTaken: timeTaken,
+          violations: violations,
+          autoSubmit: autoSubmit
+        })
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Submission failed');
+
+      exitFullscreen();
+      if (data.status === 'disqualified') {
+        showScreen('disq');
+      } else {
+        showResult(data);
+      }
+    } catch (e) {
+      toast('Submission error: ' + e.message, 'error');
+      submitted = false;
+      examActive = true;
+      startSessionPolling();
+      startTimer();
+      startDevtoolsDetection();
+      startSecurityWatermark();
+      if (btn) { btn.disabled = false; btn.textContent = 'Submit Exam'; }
+    }
+  }
+
+  function showResult(data) {
+    var note = 'Your response has been saved successfully. You may close this tab.';
+    if (data.status === 'auto-submitted') {
+      note = 'The assessment has been closed and your response was submitted automatically. You may close this tab.';
+    }
+
+    document.getElementById('resultTitle').textContent = 'Thank you for attending';
+    document.getElementById('resultSub').textContent = 'Your marks will be updated in our system.';
+    document.getElementById('resultNote').textContent = note;
+    showScreen('result');
+  }
+
+  function fmtTime(sec) {
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  function escHtml(v) {
+    return String(v || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function exitFullscreen() {
+    var fn = document.exitFullscreen || document.webkitExitFullscreen ||
+             document.mozCancelFullScreen || document.msExitFullscreen;
+    if (fn) fn.call(document).catch(function () {});
+  }
+
+  showScreen('register');
+
+})();
+</script>
+</body>
+</html>

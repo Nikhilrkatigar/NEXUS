@@ -368,6 +368,24 @@ section::after{content:'';position:absolute;bottom:0;left:50%;transform:translat
 .prize-2 .prize-amount{color:#c8d6e0}
 .prize-3 .prize-amount{color:#d4845a}
 
+/* Sponsors */
+#sponsors{background:var(--bg);position:relative;overflow:hidden}
+.sponsors-header{text-align:center;max-width:760px;margin:0 auto 44px}
+@media(min-width:768px){.sponsors-header{margin-bottom:60px}}
+.sponsors-grid{display:grid;grid-template-columns:1fr;gap:18px;max-width:1200px;margin:0 auto}
+@media(min-width:540px){.sponsors-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1024px){.sponsors-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}}
+.sponsor-card{background:linear-gradient(145deg,rgba(17,24,39,0.95),rgba(11,15,26,0.95));border:1px solid rgba(245,166,35,0.12);border-radius:18px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;transition:transform 0.35s var(--ease-out-expo),border-color 0.35s,box-shadow 0.35s;position:relative;overflow:hidden}
+.sponsor-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(245,166,35,0.04),transparent 55%);opacity:0;transition:opacity 0.3s}
+.sponsor-card:hover{transform:translateY(-6px);border-color:rgba(245,166,35,0.28);box-shadow:0 22px 50px rgba(0,0,0,0.28)}
+.sponsor-card:hover::before{opacity:1}
+.sponsor-logo-wrap{width:100%;max-width:240px;aspect-ratio:16/10;border-radius:14px;overflow:hidden;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center}
+.sponsor-logo-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s var(--ease-out-expo)}
+.sponsor-card:hover .sponsor-logo-wrap img{transform:scale(1.04)}
+.sponsor-tag{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.sponsor-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;line-height:1.2}
+.sponsor-note{font-size:13px;color:var(--muted);line-height:1.6;max-width:280px}
+
 /* Registration */
 #register{background:var(--bg);position:relative}
 .register-wrap{max-width:800px;margin:0 auto}
@@ -548,6 +566,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
   <a href="#timeline" onclick="closeMobileMenu()">Schedule</a>
   <a href="#events" onclick="closeMobileMenu()">Events</a>
   <a href="#prizes" onclick="closeMobileMenu()">Prizes</a>
+  <a href="#sponsors" onclick="closeMobileMenu()">Sponsors</a>
   <a href="#team" onclick="closeMobileMenu()">Team</a>
   <a href="#aboutus" onclick="closeMobileMenu()">About Us</a>
   <a href="#register" onclick="closeMobileMenu()" style="color:var(--accent)">Register Now</a>
@@ -564,6 +583,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
     <li><a href="#timeline">Schedule</a></li>
     <li><a href="#events">Events</a></li>
     <li><a href="#prizes">Prizes</a></li>
+    <li><a href="#sponsors">Sponsors</a></li>
     <li><a href="#team">Team</a></li>
     <li><a href="#aboutus">About Us</a></li>
   </ul>
@@ -643,7 +663,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
           <span style="font-size:11px;opacity:0.5">(Editable in CMS → Media)</span>
         </div>
         <div class="college-logo-area">
-          <div class="logo-circle" id="collegeLogoLarge">BA</div>
+          <div class="logo-circle" id="collegeLogoLarge">BBA</div>
           <div class="college-info">
             <h3 id="collegeFullName">Your College Name</h3>
             <p id="collegeDept">BBA Department</p>
@@ -801,6 +821,65 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
       <div class="prize-amount" id="prize1">₹30,000</div>
       <div class="prize-sub">+ Trophy + Certificate</div>
     </div>
+  </div>
+</section>
+
+<!-- Sponsors -->
+<section id="sponsors">
+  <div class="sponsors-header reveal">
+    <div class="section-tag">Sponsors</div>
+    <h2 class="section-title">Our Event Partners</h2>
+    <p class="section-sub" style="margin:14px auto 0">We are grateful to the sponsors who made NEXUS 2026 possible.</p>
+  </div>
+  <div class="sponsors-grid reveal reveal-delay-1">
+    <article class="sponsor-card">
+      <div class="sponsor-logo-wrap">
+        <img src="https://res.cloudinary.com/dp002qjcm/image/upload/v1777006205/SBI_pbc3gy.jpg" alt="SBI sponsor logo" loading="lazy">
+      </div>
+      <div class="sponsor-tag">Sponsor</div>
+      <div class="sponsor-name">SBI</div>
+      <p class="sponsor-note">Proud support from State Bank of India.</p>
+    </article>
+    <article class="sponsor-card">
+      <div class="sponsor-logo-wrap">
+        <img src="https://res.cloudinary.com/dp002qjcm/image/upload/v1777006205/Karnataka_Bank_mkvirg.jpg" alt="Karnataka Bank sponsor logo" loading="lazy">
+      </div>
+      <div class="sponsor-tag">Sponsor</div>
+      <div class="sponsor-name">Karnataka Bank</div>
+      <p class="sponsor-note">Thank you for powering the event with your partnership.</p>
+    </article>
+    <article class="sponsor-card">
+      <div class="sponsor-logo-wrap">
+        <img src="https://res.cloudinary.com/dp002qjcm/image/upload/v1777006204/HAGEL_errtsw.jpg" alt="Hagel sponsor logo" loading="lazy">
+      </div>
+      <div class="sponsor-tag">Sponsor</div>
+      <div class="sponsor-name">Hagel</div>
+      <p class="sponsor-note">Supporting NEXUS with valued sponsorship.</p>
+    </article>
+    <article class="sponsor-card">
+      <div class="sponsor-logo-wrap">
+        <img src="https://res.cloudinary.com/dp002qjcm/image/upload/q_auto/f_auto/v1777006205/PBBC_zji0lw.jpg" alt="PBBC sponsor logo" loading="lazy">
+      </div>
+      <div class="sponsor-tag">Sponsor</div>
+      <div class="sponsor-name">PBBC</div>
+      <p class="sponsor-note">We appreciate your generous sponsorship for the fest.</p>
+    </article>
+    <article class="sponsor-card">
+      <div class="sponsor-logo-wrap">
+        <img src="https://res.cloudinary.com/dp002qjcm/image/upload/q_auto/f_auto/v1777006205/IDFC_FIRST_zwyikz.jpg" alt="IDFC First Bank sponsor logo" loading="lazy">
+      </div>
+      <div class="sponsor-tag">Sponsor</div>
+      <div class="sponsor-name">IDFC First Bank</div>
+      <p class="sponsor-note">Thank you for joining us as a key sponsor.</p>
+    </article>
+    <article class="sponsor-card">
+      <div class="sponsor-logo-wrap">
+        <img src="https://res.cloudinary.com/dp002qjcm/image/upload/q_auto/f_auto/v1777006205/Apponix_vyuhdu.jpg" alt="Apponix Academy sponsor logo" loading="lazy">
+      </div>
+      <div class="sponsor-tag">Sponsor</div>
+      <div class="sponsor-name">Apponix Academy</div>
+      <p class="sponsor-note">Appreciating your support for our event community.</p>
+    </article>
   </div>
 </section>
 

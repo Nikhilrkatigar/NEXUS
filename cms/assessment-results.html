@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Assessment — NEXUS CMS</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dwqffkzp0/image/upload/v1775916069/Gemini_Generated_Image_7zzc6z7zzc6z7zzc_klsqtk.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#060810">
+<script src="cms-core.js"></script>
+<style id="cmsStyle"></style>
+<style>
+/* ── Tabs ─────────────────────────────────────────────────────────── */
+.tab-bar{display:flex;gap:4px;background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:4px;
+  margin-bottom:24px;width:fit-content}
+.tab-btn{padding:9px 20px;border-radius:8px;border:none;background:none;
+  color:#7a8499;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn.active{background:rgba(245,166,35,0.12);color:#f5a623;
+  border:1px solid rgba(245,166,35,0.2)}
+
+/* ── Filter bar ───────────────────────────────────────────────────── */
+.filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.filter-bar select,.filter-bar input{
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  border-radius:8px;padding:9px 14px;color:#f0f0f0;
+  font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.filter-bar input{min-width:220px}
+.filter-bar input:focus,.filter-bar select:focus{border-color:rgba(245,166,35,0.4)}
+.filter-bar select option{background:#111827}
+
+/* ── Score bar ────────────────────────────────────────────────────── */
+.score-bar-wrap{width:72px;height:5px;background:rgba(255,255,255,0.07);
+  border-radius:3px;display:inline-block;vertical-align:middle;margin-left:8px}
+.score-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,#10b981,#00d4ff)}
+.score-bar.low{background:linear-gradient(90deg,#e63c5c,#f5a623)}
+
+/* ── Reg-number chip ──────────────────────────────────────────────── */
+.reg-chip{
+  display:inline-flex;align-items:center;
+  background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);
+  border-radius:6px;padding:3px 10px;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  color:#00d4ff;letter-spacing:.04em;
+}
+
+/* ── Status chips ─────────────────────────────────────────────────── */
+.chip-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.chip{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;color:#7a8499}
+.chip.active{background:rgba(245,166,35,0.12);border-color:rgba(245,166,35,0.3);color:#f5a623}
+
+/* ── Modal ────────────────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.75);
+  display:none;align-items:flex-start;justify-content:center;
+  padding:24px 16px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:#0b0f1a;border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;width:100%;max-width:700px;margin:auto;padding:28px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800}
+.modal-close{background:none;border:none;color:#7a8499;font-size:20px;cursor:pointer;padding:4px 8px}
+.modal-close:hover{color:#f0f0f0}
+.modal-meta{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-bottom:24px}
+.meta-item{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  border-radius:10px;padding:12px 14px}
+.meta-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#f5a623;margin-bottom:4px}
+.meta-key{font-size:11px;color:#7a8499;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.answer-item{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);
+  border-radius:10px;padding:14px;margin-bottom:10px}
+.answer-item.correct{border-color:rgba(16,185,129,0.25)}
+.answer-item.wrong{border-color:rgba(230,60,92,0.2)}
+.answer-q{font-size:13px;font-weight:500;margin-bottom:8px;line-height:1.5}
+.answer-choice{display:flex;gap:8px;font-size:12px;color:#7a8499;flex-wrap:wrap}
+.answer-reason{margin-top:8px;font-size:12px;color:#7a8499;
+  background:rgba(255,255,255,0.02);border-radius:6px;padding:8px 10px;line-height:1.5}
+
+/* ── Add-student form ─────────────────────────────────────────────── */
+.add-form{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;padding:20px;margin-bottom:20px}
+.add-form-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
+@media(max-width:700px){.add-form-grid{grid-template-columns:1fr 1fr}}
+.add-form .form-group{margin-bottom:0}
+
+/* ── Bulk import ──────────────────────────────────────────────────── */
+.bulk-box{background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);
+  border-radius:12px;padding:20px;margin-top:16px}
+.bulk-textarea{width:100%;background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);border-radius:8px;
+  padding:12px 14px;color:#f0f0f0;font-family:'DM Sans',sans-serif;font-size:13px;
+  resize:vertical;min-height:120px;outline:none;line-height:1.6}
+.bulk-textarea:focus{border-color:rgba(245,166,35,0.4)}
+
+/* ── Empty state ──────────────────────────────────────────────────── */
+.empty-state{text-align:center;padding:48px 24px;color:#7a8499}
+.empty-state .icon{font-size:36px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* ── Attempted dot ────────────────────────────────────────────────── */
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot.yes{background:#10b981}
+.dot.no{background:#7a8499}
+
+/* Assessment control */
+.control-card{margin:18px 0 24px}
+.control-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.control-sub{margin:6px 0 0;color:#7a8499;font-size:13px;line-height:1.6}
+.control-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:108px;padding:8px 14px;border-radius:999px;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:800;letter-spacing:.06em;
+  text-transform:uppercase;border:1px solid rgba(255,255,255,0.12)
+}
+.control-badge.waiting{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.25);color:#00d4ff}
+.control-badge.live{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.25);color:#10b981}
+.control-badge.stopped{background:rgba(230,60,92,0.12);border-color:rgba(230,60,92,0.24);color:#ff6b81}
+.control-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:18px}
+.control-meta-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px}
+.control-meta-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#f5a623;margin-bottom:4px}
+.control-meta-key{font-size:11px;color:#7a8499;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.control-note{margin-top:14px;color:#a7b0c2;font-size:13px;line-height:1.6}
+.control-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.control-actions .cms-btn[disabled]{opacity:.55;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div id="sidebarContainer"></div>
+<main class="cms-main">
+  <div class="cms-header">
+    <h1>Assessment</h1>
+    <p>HR Knowledge Assessment — student results &amp; management</p>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="stat-grid" id="statsGrid"></div>
+
+  <div class="cms-card control-card">
+    <div class="control-head">
+      <div>
+        <div class="cms-card-title">Assessment Control</div>
+        <p class="control-sub">Students can log in early, read the rules, and wait here until the event head starts the exam. Stopping the exam will auto-submit active attempts for everyone.</p>
+      </div>
+      <span class="control-badge waiting" id="assessmentPhaseBadge">Waiting</span>
+    </div>
+    <div class="control-meta" id="assessmentControlMeta">
+      <div class="control-meta-card">
+        <div class="control-meta-val">--</div>
+        <div class="control-meta-key">Started At</div>
+      </div>
+      <div class="control-meta-card">
+        <div class="control-meta-val">--</div>
+        <div class="control-meta-key">Stopped At</div>
+      </div>
+      <div class="control-meta-card">
+        <div class="control-meta-val">20:00</div>
+        <div class="control-meta-key">Duration</div>
+      </div>
+    </div>
+    <div class="control-note" id="assessmentControlNote">Students who log in now will remain on the waiting screen until you start the assessment.</div>
+    <div class="control-actions" id="assessmentControlActions">
+      <button class="cms-btn cms-btn-primary" id="assessmentStartBtn" onclick="startAssessmentControl()">Start Exam</button>
+      <button class="cms-btn cms-btn-danger" id="assessmentStopBtn" onclick="stopAssessmentControl()">Stop Exam</button>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabResults" onclick="switchTab('results')">📊 Results</button>
+    <button class="tab-btn" id="tabStudents" onclick="switchTab('students')">👤 Students</button>
+  </div>
+
+  <!-- ── TAB: RESULTS ─────────────────────────────────────────────── -->
+  <div id="panelResults">
+    <div class="cms-card">
+      <div class="cms-card-title">📋 Exam Submissions</div>
+
+      <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="Search by register no. or name…" oninput="applyFilters()">
+        <select id="statusFilter" onchange="applyFilters()">
+          <option value="">All Statuses</option>
+          <option value="completed">Completed</option>
+          <option value="auto-submitted">Auto-submitted</option>
+          <option value="disqualified">Disqualified</option>
+        </select>
+        <select id="passFilter" onchange="applyFilters()">
+          <option value="">All Results</option>
+          <option value="pass">Pass (≥70%)</option>
+          <option value="fail">Fail (&lt;70%)</option>
+        </select>
+        <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+
+      <div class="chip-bar">
+        <div class="chip active" onclick="chipFilter(this,'')">All</div>
+        <div class="chip" onclick="chipFilter(this,'completed')">Completed</div>
+        <div class="chip" onclick="chipFilter(this,'auto-submitted')">Auto-submitted</div>
+        <div class="chip" onclick="chipFilter(this,'disqualified')">Disqualified</div>
+      </div>
+
+      <table class="cms-table" id="resultsTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Register No.</th>
+            <th>Name</th>
+            <th>Score</th>
+            <th>Result</th>
+            <th>Violations</th>
+            <th>Status</th>
+            <th>Time</th>
+            <th>Submitted At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="resultsTbody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyResults" style="display:none">
+        <div class="icon">📭</div>
+        <p>No results found. Students need to complete the exam first.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: STUDENTS ────────────────────────────────────────────── -->
+  <div id="panelStudents" style="display:none">
+
+    <!-- Auto-sync banner -->
+    <div class="cms-card" style="margin-bottom:20px;border-color:rgba(0,212,255,0.2);background:rgba(0,212,255,0.04)">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:5px">
+            ⚡ Auto-sync from PEOPLE PULSE Registrations
+          </div>
+          <div style="font-size:13px;color:#7a8499;line-height:1.6">
+            Pulls all registered HR participants automatically.<br>
+            <strong style="color:#00d4ff">Register No = Team Code &nbsp;·&nbsp; Password = Team Code</strong><br>
+            e.g. Team code <code style="color:#f5a623">22917</code> → login: <code style="color:#f5a623">22917</code> / <code style="color:#f5a623">22917</code><br>
+            Running sync again will refresh existing assessment passwords too.
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span id="syncStatus" style="font-size:13px;color:#7a8499"></span>
+          <button class="cms-btn cms-btn-primary" id="syncBtn" onclick="syncFromRegistrations()"
+            style="background:rgba(0,212,255,0.15);color:#00d4ff;border:1px solid rgba(0,212,255,0.3)">
+            🔄 Sync Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cms-card">
+      <div class="cms-card-title">➕ Add Student</div>
+
+      <div class="add-form">
+        <div class="add-form-grid">
+          <div class="form-group">
+            <label>Register Number</label>
+            <input type="text" id="newRegNum" placeholder="e.g. 22HR001"
+              style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          </div>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="newName" placeholder="Student full name">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" id="newPwd" placeholder="Min 4 characters">
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="cms-btn cms-btn-primary" onclick="addStudent()">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bulk import -->
+      <div class="bulk-box">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:8px">
+          📥 Bulk Import (CSV format)
+        </div>
+        <div style="font-size:12px;color:#7a8499;margin-bottom:10px;line-height:1.6">
+          One student per line: <code style="color:#00d4ff">RegisterNumber,Name,Password</code><br>
+          Example: <code style="color:#a0a0a0">22HR001,Aisha Khan,pass123</code>
+        </div>
+        <textarea class="bulk-textarea" id="bulkInput"
+          placeholder="22HR001,Aisha Khan,pass123&#10;22HR002,Rohan Sharma,pass456&#10;22HR003,Priya Nair,pass789"></textarea>
+        <div style="display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap">
+          <button class="cms-btn cms-btn-primary" onclick="bulkImport()">Import All</button>
+          <span id="bulkStatus" style="font-size:13px;color:#7a8499"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cms-card" style="margin-top:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div class="cms-card-title" style="margin-bottom:0">👤 Registered Students</div>
+        <div class="filter-bar" style="margin-bottom:0">
+          <input type="text" id="studentSearch" placeholder="Search students…" oninput="filterStudents()">
+        </div>
+      </div>
+
+      <table class="cms-table" id="studentsTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Register No.</th>
+            <th>Name</th>
+            <th>Attempted</th>
+            <th>Registered At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentsTbody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyStudents" style="display:none">
+        <div class="icon">👤</div>
+        <p>No students added yet. Add students above to allow them to take the exam.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Detail Modal ─────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Result Detail</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+(async function () {
+  const user = await NexusCMS.initPage('assessment-results', {
+    requiredRoles: ['superadmin', 'organiser', 'viewer']
+  });
+  if (!user) return;
+
+  const PASS_MARK = 14;
+  let allResults = [];
+  let allStudents = [];
+  let filteredResults = [];
+  let filteredStudents = [];
+  let assessmentControl = null;
+  let controlPollTimer = null;
+
+  // ── Tab switching ────────────────────────────────────────────────
+  window.switchTab = function (tab) {
+    document.getElementById('panelResults').style.display = tab === 'results' ? '' : 'none';
+    document.getElementById('panelStudents').style.display = tab === 'students' ? '' : 'none';
+    document.getElementById('tabResults').classList.toggle('active', tab === 'results');
+    document.getElementById('tabStudents').classList.toggle('active', tab === 'students');
+  };
+
+  function formatControlDate(value) {
+    if (!value) return '--';
+    return new Date(value).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  function renderAssessmentControl() {
+    const control = assessmentControl || {
+      phase: 'waiting',
+      startedAt: null,
+      stoppedAt: null,
+      durationSeconds: 20 * 60
+    };
+    const badge = document.getElementById('assessmentPhaseBadge');
+    const meta = document.getElementById('assessmentControlMeta');
+    const note = document.getElementById('assessmentControlNote');
+    const actions = document.getElementById('assessmentControlActions');
+    const startBtn = document.getElementById('assessmentStartBtn');
+    const stopBtn = document.getElementById('assessmentStopBtn');
+
+    badge.textContent = capitalize(control.phase);
+    badge.className = 'control-badge ' + control.phase;
+
+    meta.innerHTML = [
+      { val: formatControlDate(control.startedAt), key: 'Started At' },
+      { val: formatControlDate(control.stoppedAt), key: 'Stopped At' },
+      { val: fmtTime(Number(control.durationSeconds) || 20 * 60), key: 'Duration' }
+    ].map(item =>
+      '<div class="control-meta-card">' +
+      '<div class="control-meta-val">' + escHtml(String(item.val)) + '</div>' +
+      '<div class="control-meta-key">' + escHtml(item.key) + '</div>' +
+      '</div>'
+    ).join('');
+
+    if (control.phase === 'live') {
+      note.textContent = 'The assessment is live. Students who already accepted the rules are taking the exam now. Clicking Stop Exam will end the session and auto-submit active attempts.';
+    } else if (control.phase === 'stopped') {
+      note.textContent = 'The assessment is currently closed. Students who log in will see the closed state until you start a new session.';
+    } else {
+      note.textContent = 'Students who log in now will remain on the waiting screen until you start the assessment.';
+    }
+
+    if (NexusCMS.isViewer(user)) {
+      actions.style.display = 'none';
+      return;
+    }
+
+    actions.style.display = 'flex';
+    startBtn.disabled = control.phase === 'live';
+    stopBtn.disabled = control.phase !== 'live';
+  }
+
+  async function loadAssessmentControl(showToastOnError) {
+    try {
+      const data = await NexusCMS.request('/assessment/session');
+      assessmentControl = data.control || null;
+      renderAssessmentControl();
+    } catch (e) {
+      if (showToastOnError) {
+        NexusCMS.showToast('Failed to load assessment control: ' + e.message, 'error');
+      }
+    }
+  }
+
+  function startControlPolling() {
+    if (controlPollTimer) clearInterval(controlPollTimer);
+    controlPollTimer = setInterval(function () {
+      loadAssessmentControl(false);
+    }, 5000);
+  }
+
+  window.startAssessmentControl = async function () {
+    if (NexusCMS.isViewer(user)) return;
+    if (!confirm('Start the assessment for all logged-in students now?')) return;
+
+    const startBtn = document.getElementById('assessmentStartBtn');
+    startBtn.disabled = true;
+    startBtn.textContent = 'Starting...';
+    try {
+      await NexusCMS.request('/assessment/control/start', { method: 'POST' });
+      NexusCMS.showToast('Assessment started for all waiting students.', 'success');
+      await loadAssessmentControl(true);
+    } catch (e) {
+      NexusCMS.showToast('Failed to start assessment: ' + e.message, 'error');
+    } finally {
+      startBtn.textContent = 'Start Exam';
+      renderAssessmentControl();
+    }
+  };
+
+  window.stopAssessmentControl = async function () {
+    if (NexusCMS.isViewer(user)) return;
+    if (!confirm('Stop the assessment for everyone and auto-submit active attempts?')) return;
+
+    const stopBtn = document.getElementById('assessmentStopBtn');
+    stopBtn.disabled = true;
+    stopBtn.textContent = 'Stopping...';
+    try {
+      await NexusCMS.request('/assessment/control/stop', { method: 'POST' });
+      NexusCMS.showToast('Assessment stopped. Active attempts will be auto-submitted.', 'success');
+      await loadAssessmentControl(true);
+      setTimeout(loadAll, 1500);
+    } catch (e) {
+      NexusCMS.showToast('Failed to stop assessment: ' + e.message, 'error');
+    } finally {
+      stopBtn.textContent = 'Stop Exam';
+      renderAssessmentControl();
+    }
+  };
+
+  // ── Load data ────────────────────────────────────────────────────
+  async function loadAll() {
+    await Promise.all([loadResults(), loadStudents()]);
+  }
+
+  async function loadResults() {
+    try {
+      const data = await NexusCMS.request('/assessment/results?limit=500');
+      allResults = data.results || [];
+      renderStats();
+      applyFilters();
+    } catch (e) {
+      NexusCMS.showToast('Failed to load results: ' + e.message, 'error');
+    }
+  }
+
+  async function loadStudents() {
+    try {
+      const data = await NexusCMS.request('/assessment/students');
+      allStudents = data.students || [];
+      filteredStudents = allStudents;
+      renderStudents();
+    } catch (e) {
+      NexusCMS.showToast('Failed to load students: ' + e.message, 'error');
+    }
+  }
+
+  // ── Stats ────────────────────────────────────────────────────────
+  function renderStats() {
+    const total = allResults.length;
+    const passed = allResults.filter(r => r.status !== 'disqualified' && r.score >= PASS_MARK).length;
+    const disq = allResults.filter(r => r.status === 'disqualified').length;
+    const avgScore = total
+      ? (allResults.reduce((s, r) => s + r.score, 0) / total).toFixed(1)
+      : '—';
+
+    document.getElementById('statsGrid').innerHTML = [
+      { num: allStudents.length, label: 'Students Registered', color: '#00d4ff' },
+      { num: total, label: 'Exams Submitted' },
+      { num: passed, label: 'Passed (≥70%)', color: '#10b981' },
+      { num: disq, label: 'Disqualified', color: '#e63c5c' },
+      { num: avgScore + '/20', label: 'Avg Score' }
+    ].map(s =>
+      `<div class="stat-card">
+        <div class="stat-card-num" ${s.color ? 'style="color:' + s.color + '"' : ''}>${escHtml(String(s.num))}</div>
+        <div class="stat-card-label">${escHtml(s.label)}</div>
+      </div>`
+    ).join('');
+  }
+
+  // ── Results filters ──────────────────────────────────────────────
+  window.applyFilters = function () {
+    const search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    const status = document.getElementById('statusFilter').value;
+    const passF = document.getElementById('passFilter').value;
+
+    filteredResults = allResults.filter(r => {
+      if (status && r.status !== status) return false;
+      if (passF === 'pass' && !(r.status !== 'disqualified' && r.score >= PASS_MARK)) return false;
+      if (passF === 'fail' && r.status !== 'disqualified' && r.score >= PASS_MARK) return false;
+      if (search) {
+        const hay = ((r.registerNumber || '') + ' ' + (r.name || '')).toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+      return true;
+    });
+    renderResultsTable();
+  };
+
+  window.chipFilter = function (el, status) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('statusFilter').value = status;
+    applyFilters();
+  };
+
+  // ── Results table ────────────────────────────────────────────────
+  function renderResultsTable() {
+    const tbody = document.getElementById('resultsTbody');
+    const empty = document.getElementById('emptyResults');
+
+    if (!filteredResults.length) {
+      tbody.innerHTML = '';
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+
+    tbody.innerHTML = filteredResults.map((r, i) => {
+      const pct = Math.round((r.score / r.totalQuestions) * 100);
+      const passed = r.status !== 'disqualified' && r.score >= PASS_MARK;
+      const date = new Date(r.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
+
+      const statusBadge = {
+        completed: '<span class="badge badge-green">Completed</span>',
+        'auto-submitted': '<span class="badge badge-gold">Auto-submitted</span>',
+        disqualified: '<span class="badge badge-red">Disqualified</span>'
+      }[r.status] || '<span class="badge">' + escHtml(r.status) + '</span>';
+
+      return `<tr>
+        <td style="color:#7a8499;font-size:12px">${i + 1}</td>
+        <td><span class="reg-chip">${escHtml(r.registerNumber || '—')}</span></td>
+        <td style="font-weight:600">${escHtml(r.name)}</td>
+        <td>
+          <span style="font-family:'Syne',sans-serif;font-weight:700">${r.score}/${r.totalQuestions}</span>
+          <span class="score-bar-wrap">
+            <span class="score-bar ${pct < 70 ? 'low' : ''}" style="width:${pct}%"></span>
+          </span>
+        </td>
+        <td>${passed
+          ? '<span class="badge badge-green">✓ Pass</span>'
+          : '<span class="badge badge-red">✗ Fail</span>'}</td>
+        <td style="font-family:'Syne',sans-serif;font-weight:700;color:${r.violations >= 3 ? '#e63c5c' : r.violations > 0 ? '#f5a623' : '#10b981'}">
+          ${r.violations}
+        </td>
+        <td>${statusBadge}</td>
+        <td style="color:#7a8499;font-size:12px">${fmtTime(r.timeTaken || 0)}</td>
+        <td style="color:#7a8499;font-size:12px">${date}</td>
+        <td style="display:flex;gap:6px;align-items:center">
+          <button class="cms-btn cms-btn-sm" style="background:rgba(0,212,255,0.1);color:#00d4ff;border:none"
+            onclick="viewDetail('${r._id}')">View</button>
+          ${!NexusCMS.isViewer(user) ? `<button class="cms-btn cms-btn-sm cms-btn-danger"
+            onclick="deleteResult('${r._id}','${escHtml(r.registerNumber || '')}')">Del</button>` : ''}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Students table ───────────────────────────────────────────────
+  window.filterStudents = function () {
+    const q = (document.getElementById('studentSearch').value || '').toLowerCase();
+    filteredStudents = q
+      ? allStudents.filter(s =>
+          (s.registerNumber + ' ' + s.name).toLowerCase().includes(q))
+      : allStudents;
+    renderStudents();
+  };
+
+  function renderStudents() {
+    const tbody = document.getElementById('studentsTbody');
+    const empty = document.getElementById('emptyStudents');
+
+    if (!filteredStudents.length) {
+      tbody.innerHTML = '';
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+
+    tbody.innerHTML = filteredStudents.map((s, i) => {
+      const date = new Date(s.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
+      return `<tr>
+        <td style="color:#7a8499;font-size:12px">${i + 1}</td>
+        <td><span class="reg-chip">${escHtml(s.registerNumber)}</span></td>
+        <td style="font-weight:600">${escHtml(s.name)}</td>
+        <td>
+          <span class="dot ${s.hasAttempted ? 'yes' : 'no'}"></span>
+          ${s.hasAttempted
+            ? '<span style="color:#10b981;font-size:12px;font-weight:600">Attempted</span>'
+            : '<span style="color:#7a8499;font-size:12px">Not yet</span>'}
+        </td>
+        <td style="color:#7a8499;font-size:12px">${date}</td>
+        <td style="display:flex;gap:6px;align-items:center">
+          ${!NexusCMS.isViewer(user) && s.hasAttempted ? `
+            <button class="cms-btn cms-btn-sm" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)"
+              onclick="resetAttempt('${s._id}','${escHtml(s.registerNumber)}')">Reset</button>` : ''}
+          ${!NexusCMS.isViewer(user) ? `
+            <button class="cms-btn cms-btn-sm cms-btn-danger"
+              onclick="deleteStudent('${s._id}','${escHtml(s.registerNumber)}')">Del</button>` : ''}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Sync from registrations ──────────────────────────────────────
+  window.syncFromRegistrations = async function () {
+    const btn = document.getElementById('syncBtn');
+    const status = document.getElementById('syncStatus');
+    btn.disabled = true;
+    btn.textContent = '⏳ Syncing…';
+    status.textContent = '';
+    try {
+      const data = await NexusCMS.request('/assessment/students/sync-from-registrations', { method: 'POST' });
+      const refreshed = Array.isArray(data.refreshed) ? data.refreshed.length : 0;
+      const msg = data.created.length + ' new, ' + refreshed + ' refreshed, ' + data.skipped.length + ' skipped, ' + data.teamsScanned + ' teams scanned';
+      status.textContent = msg;
+      NexusCMS.showToast('Sync done — ' + msg, 'success');
+      await loadStudents();
+      renderStats();
+    } catch (e) {
+      NexusCMS.showToast('Sync failed: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔄 Sync Now';
+    }
+  };
+
+  // ── Add student ──────────────────────────────────────────────────
+  window.addStudent = async function () {
+    const regNum = (document.getElementById('newRegNum').value || '').trim().toUpperCase();
+    const name = (document.getElementById('newName').value || '').trim();
+    const pwd = (document.getElementById('newPwd').value || '').trim();
+
+    if (!regNum) { NexusCMS.showToast('Enter a register number.', 'error'); return; }
+    if (!name)   { NexusCMS.showToast('Enter student name.', 'error'); return; }
+    if (pwd.length < 4) { NexusCMS.showToast('Password must be at least 4 characters.', 'error'); return; }
+
+    try {
+      await NexusCMS.request('/assessment/students', {
+        method: 'POST',
+        body: { registerNumber: regNum, name, password: pwd }
+      });
+      document.getElementById('newRegNum').value = '';
+      document.getElementById('newName').value = '';
+      document.getElementById('newPwd').value = '';
+      NexusCMS.showToast('Student added: ' + regNum, 'success');
+      await loadStudents();
+      renderStats();
+    } catch (e) {
+      NexusCMS.showToast('Failed: ' + e.message, 'error');
+    }
+  };
+
+  // ── Bulk import ──────────────────────────────────────────────────
+  window.bulkImport = async function () {
+    const raw = (document.getElementById('bulkInput').value || '').trim();
+    if (!raw) { NexusCMS.showToast('Paste CSV data first.', 'error'); return; }
+
+    const students = [];
+    for (const line of raw.split('\n')) {
+      const parts = line.trim().split(',');
+      if (parts.length < 3) continue;
+      students.push({
+        registerNumber: parts[0].trim().toUpperCase(),
+        name: parts[1].trim(),
+        password: parts[2].trim()
+      });
+    }
+
+    if (!students.length) { NexusCMS.showToast('No valid rows found.', 'error'); return; }
+
+    document.getElementById('bulkStatus').textContent = 'Importing…';
+    try {
+      const data = await NexusCMS.request('/assessment/students/bulk', {
+        method: 'POST',
+        body: { students }
+      });
+      const msg = data.created + ' added' + (data.failed.length ? ', ' + data.failed.length + ' skipped' : '');
+      document.getElementById('bulkStatus').textContent = msg;
+      NexusCMS.showToast('Bulk import: ' + msg, 'success');
+      document.getElementById('bulkInput').value = '';
+      await loadStudents();
+      renderStats();
+    } catch (e) {
+      document.getElementById('bulkStatus').textContent = '';
+      NexusCMS.showToast('Import failed: ' + e.message, 'error');
+    }
+  };
+
+  // ── Reset attempt ────────────────────────────────────────────────
+  window.resetAttempt = async function (id, regNum) {
+    if (!confirm('Reset attempt for ' + regNum + '? They will be able to retake the exam.')) return;
+    try {
+      await NexusCMS.request('/assessment/students/' + id + '/reset', { method: 'PATCH' });
+      NexusCMS.showToast('Attempt reset for ' + regNum, 'success');
+      await loadStudents();
+    } catch (e) {
+      NexusCMS.showToast('Reset failed: ' + e.message, 'error');
+    }
+  };
+
+  // ── Delete student ───────────────────────────────────────────────
+  window.deleteStudent = async function (id, regNum) {
+    if (!confirm('Delete student ' + regNum + '?')) return;
+    try {
+      await NexusCMS.request('/assessment/students/' + id, { method: 'DELETE' });
+      allStudents = allStudents.filter(s => s._id !== id);
+      filteredStudents = filteredStudents.filter(s => s._id !== id);
+      renderStudents();
+      renderStats();
+      NexusCMS.showToast('Student deleted.', 'success');
+    } catch (e) {
+      NexusCMS.showToast('Delete failed: ' + e.message, 'error');
+    }
+  };
+
+  // ── Delete result ────────────────────────────────────────────────
+  window.deleteResult = async function (id, regNum) {
+    if (!confirm('Delete result for ' + regNum + '? This cannot be undone.')) return;
+    try {
+      await NexusCMS.request('/assessment/results/' + id, { method: 'DELETE' });
+      allResults = allResults.filter(r => r._id !== id);
+      renderStats();
+      applyFilters();
+      NexusCMS.showToast('Result deleted.', 'success');
+    } catch (e) {
+      NexusCMS.showToast('Delete failed: ' + e.message, 'error');
+    }
+  };
+
+  // ── Detail modal ─────────────────────────────────────────────────
+  window.viewDetail = async function (id) {
+    document.getElementById('modalTitle').textContent = 'Loading…';
+    document.getElementById('modalBody').innerHTML =
+      '<div style="text-align:center;padding:32px;color:#7a8499">Loading…</div>';
+    document.getElementById('detailModal').classList.add('open');
+
+    try {
+      const data = await NexusCMS.request('/assessment/results/' + id);
+      const r = data.result;
+      const pct = Math.round((r.score / r.totalQuestions) * 100);
+      const passed = r.status !== 'disqualified' && r.score >= PASS_MARK;
+      const date = new Date(r.createdAt).toLocaleString('en-IN');
+
+      document.getElementById('modalTitle').innerHTML =
+        '<span class="reg-chip">' + escHtml(r.registerNumber || '—') + '</span>' +
+        ' &nbsp;' + escHtml(r.name);
+
+      const metaHtml = [
+        { val: r.score + '/' + r.totalQuestions, key: 'Score' },
+        { val: pct + '%', key: 'Percentage' },
+        { val: fmtTime(r.timeTaken), key: 'Time Taken' },
+        { val: r.violations, key: 'Violations' },
+        { val: capitalize(r.status.replace('-', ' ')), key: 'Status' },
+        { val: passed ? '✓ Pass' : '✗ Fail', key: 'Result' }
+      ].map(m =>
+        `<div class="meta-item">
+          <div class="meta-val" style="${m.key === 'Result' ? 'color:' + (passed ? '#10b981' : '#e63c5c') : ''}">${escHtml(String(m.val))}</div>
+          <div class="meta-key">${escHtml(m.key)}</div>
+        </div>`
+      ).join('');
+
+      const answersHtml = (r.answers || []).map((a, i) => {
+        const L = ['A','B','C','D'];
+        const chosen = a.selected !== null && a.selected !== undefined
+          ? L[a.selected] + '. ' + (a.options[a.selected] || '?')
+          : 'Not answered';
+        const correctAns = L[a.correctOption] + '. ' + (a.options[a.correctOption] || '?');
+        const reasonText = String(a.reason || a.explanation || a.why || '').trim();
+        return `<div class="answer-item ${a.correct ? 'correct' : 'wrong'}">
+          <div class="answer-q"><strong>Q${i + 1}.</strong> ${escHtml(a.questionText)}</div>
+          <div class="answer-choice">
+            ${a.correct
+              ? '<span style="color:#10b981;font-weight:600">✓ ' + escHtml(chosen) + '</span>'
+              : '<span style="color:#e63c5c;font-weight:600">✗ ' + escHtml(chosen) + '</span>' +
+                '<span style="color:#7a8499"> &nbsp;·&nbsp; Correct: </span>' +
+                '<span style="color:#10b981;font-weight:600">' + escHtml(correctAns) + '</span>'}
+          </div>
+          <div class="answer-reason"><strong style="color:#a0a0a0">Reason:</strong> ${reasonText ? escHtml(reasonText) : '<span style="opacity:.72">Not provided</span>'}</div>
+        </div>`;
+      }).join('');
+
+      document.getElementById('modalBody').innerHTML =
+        `<p style="color:#7a8499;font-size:13px;margin-bottom:16px">${escHtml(date)}</p>
+        <div class="modal-meta">${metaHtml}</div>
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+          color:#7a8499;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">
+          Answer Breakdown
+        </div>
+        ${answersHtml}`;
+    } catch (e) {
+      document.getElementById('modalBody').innerHTML =
+        '<div style="color:#e63c5c;padding:16px">Error: ' + escHtml(e.message) + '</div>';
+    }
+  };
+
+  window.closeModal = function () {
+    document.getElementById('detailModal').classList.remove('open');
+  };
+  document.getElementById('detailModal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+
+  // ── CSV export ───────────────────────────────────────────────────
+  window.exportCSV = async function () {
+    try {
+      const token = sessionStorage.getItem('nexus_token') || '';
+      const res = await fetch('/api/assessment/export', {
+        headers: token ? { Authorization: 'Bearer ' + token } : {}
+      });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'assessment-results-' + Date.now() + '.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      NexusCMS.showToast('CSV exported!', 'success');
+    } catch (e) {
+      NexusCMS.showToast('Export failed: ' + e.message, 'error');
+    }
+  };
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function fmtTime(sec) {
+    const m = Math.floor(sec / 60), s = sec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+  function escHtml(v) {
+    return String(v || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  renderAssessmentControl();
+  await Promise.all([loadAll(), loadAssessmentControl(true)]);
+  startControlPolling();
+})();
+</script>
+</body>
+</html>

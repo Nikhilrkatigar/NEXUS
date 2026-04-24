@@ -699,7 +699,7 @@ async function doUpload(){
   btn.textContent='Uploading…';btn.disabled=true;
   const fd=new FormData();fd.append('screenshot',file);
   try{
-    const r=await fetch(`/api/public/registrations/${regCode}/payment-screenshot`,{method:'POST',body:fd});
+    const r=await fetch(`/api/public/registrations/${encodeURIComponent(regCode)}/payment-screenshot`,{method:'POST',body:fd});
     const d=await r.json();
     if(!r.ok)throw new Error(d.message||'Upload failed');
     document.getElementById('s3').classList.add('done');
@@ -744,11 +744,11 @@ document.getElementById('regForm').addEventListener('submit',async e=>{
       toast('Registrations are currently closed');
       return;
     }
-    // Demo fallback
-    regCode='NX-DEMO-2026';
-    document.getElementById('codeDisplay').textContent=regCode;
-    toast('Demo mode: server not available — proceeding','success');
-    setStep(2);
+    regCode=null;
+    localStorage.removeItem('nexusCode');
+    document.getElementById('codeDisplay').textContent='---';
+    document.getElementById('codeDisplay2').textContent='---';
+    toast(ex.message||'Registration failed. Please try again.');
   }
   finally{btn.textContent='Register Team →';btn.disabled=false;}
 });

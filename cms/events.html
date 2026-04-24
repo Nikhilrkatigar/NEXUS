@@ -280,7 +280,9 @@ function renderEvents() {
 }
 
 function renderEventEditor(eventId) {
-  const event = eventId === 'new' ? makeEvent() : events.find(e => e.id === eventId);
+  const event = (_newEventDraft && _newEventDraft.id === eventId)
+    ? _newEventDraft
+    : events.find(e => e.id === eventId);
   if (!event) return;
   
   const panel = document.getElementById('editorContent');
@@ -464,16 +466,18 @@ function renderEventEditor(eventId) {
   }
 }
 
+let _newEventDraft = null;
+
 function openEventEditor(eventId) {
-  currentEditingEventId = eventId;
-  
-  // If it's a new event, add it to the events array immediately
+  _newEventDraft = null;
+
   if (eventId === 'new') {
-    const newEvent = makeEvent();
-    currentEditingEventId = newEvent.id;
-    events.push(newEvent);
+    _newEventDraft = makeEvent();
+    currentEditingEventId = _newEventDraft.id;
+  } else {
+    currentEditingEventId = eventId;
   }
-  
+
   document.getElementById('editorTitle').textContent = eventId === 'new' ? 'Add New Event' : 'Edit Event';
   renderEventEditor(currentEditingEventId);
   document.getElementById('editorOverlay').classList.add('active');
@@ -484,14 +488,20 @@ function closeEventEditor() {
   document.getElementById('editorOverlay').classList.remove('active');
   document.body.style.overflow = '';
   currentEditingEventId = null;
+  _newEventDraft = null;
 }
 
 function saveEventEditor() {
   if (!currentEditingEventId) return;
-  
+
   const eventId = currentEditingEventId;
   const newId = slugify(document.getElementById('editor_id').value || eventId);
-  
+
+  if (_newEventDraft) {
+    events.push(_newEventDraft);
+    _newEventDraft = null;
+  }
+
   events = events.map((event) => {
     if (event.id !== eventId) return event;
     return {
@@ -529,9 +539,16 @@ function saveEventEditor() {
   });
 }
 
+function _patchEvent(id, patchFn) {
+  if (_newEventDraft && _newEventDraft.id === id) {
+    _newEventDraft = patchFn(_newEventDraft);
+    return;
+  }
+  events = events.map((event) => event.id === id ? patchFn(event) : event);
+}
+
 function updateEvent(id, key, value) {
-  events = events.map((event) => {
-    if (event.id !== id) return event;
+  _patchEvent(id, (event) => {
     const next = { ...event, [key]: value };
     if (key === 'id') next.id = slugify(value || event.name || 'event');
     if (key === 'name' && (!event.id || event.id === slugify(event.name))) next.id = slugify(value);
@@ -565,84 +582,74 @@ async function uploadEventImage(id) {
 
 function updateRound(eventId, roundId, key, value) {
   const targetRoundId = String(roundId || '').trim();
-  events = events.map((event) => event.id === eventId ? {
+  _patchEvent(eventId, (event) => ({
     ...event,
     rounds: (event.rounds || []).map((round) => String(round.id || '').trim() === targetRoundId ? { ...round, [key]: value } : round)
-  } : event);
+  }));
 }
 
 function addRound(eventId) {
-  events = events.map((event) => event.id === eventId ? {
+  _patchEvent(eventId, (event) => ({
     ...event,
     rounds: [...(event.rounds || []), { id: uid('round'), num: nextRoundLabel(event.rounds), title: '', desc: '', time: '', color: '#f5a623' }]
-  } : event);
+  }));
   renderEventEditor(eventId);
 }
 
 function removeRound(eventId, roundId) {
   const targetRoundId = String(roundId || '').trim();
-  events = events.map((event) => event.id === eventId ? {
+  _patchEvent(eventId, (event) => ({
     ...event,
     rounds: (event.rounds || []).filter((round) => String(round.id || '').trim() !== targetRoundId)
-  } : event);
+  }));
   renderEventEditor(eventId);
 }
 
 function addCoordinator(eventId, type) {
-  events = events.map((event) => {
-    if (event.id === eventId) {
-      const coordinators = event.coordinators || [];
-      coordinators.push({ type, name: '', phone: '' });
-      return { ...event, coordinators };
-    }
-    return event;
+  _patchEvent(eventId, (event) => {
+    const coordinators = [...(event.coordinators || [])];
+    coordinators.push({ type, name: '', phone: '' });
+    return { ...event, coordinators };
   });
   renderEventEditor(eventId);
 }
 
 function removeCoordinator(eventId, index) {
-  events = events.map((event) => {
-    if (event.id === eventId) {
-      const coordinators = (event.coordinators || []).filter((_, i) => i !== index);
-      return { ...event, coordinators };
-    }
-    return event;
-  });
+  _patchEvent(eventId, (event) => ({
+    ...event,
+    coordinators: (event.coordinators || []).filter((_, i) => i !== index)
+  }));
   renderEventEditor(eventId);
 }
 
 function updateCoordinator(eventId, index, field, value) {
-  events = events.map((event) => {
-    if (event.id === eventId) {
-      const coordinators = event.coordinators || [];
-      if (coordinators[index]) coordinators[index][field] = value;
-      return { ...event, coordinators };
-    }
-    return event;
+  _patchEvent(eventId, (event) => {
+    const coordinators = (event.coordinators || []).map((c, i) => i === index ? { ...c, [field]: value } : c);
+    return { ...event, coordinators };
   });
 }
 
 function updateEventRuleTitle(eventId, value) {
-  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), title: value, sections: event.rules?.sections || [] } } : event);
+  _patchEvent(eventId, (event) => ({ ...event, rules: { ...(event.rules || {}), title: value, sections: event.rules?.sections || [] } }));
 }
 
 function addRuleSection(eventId) {
-  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), title: event.rules?.title || 'Rules & Regulations', sections: [...(event.rules?.sections || []), { id: uid('section'), heading: '', rules: [''] }] } } : event);
+  _patchEvent(eventId, (event) => ({ ...event, rules: { ...(event.rules || {}), title: event.rules?.title || 'Rules & Regulations', sections: [...(event.rules?.sections || []), { id: uid('section'), heading: '', rules: [''] }] } }));
   renderEventEditor(eventId);
 }
 
 function removeRuleSection(eventId, sectionId) {
-  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), sections: (event.rules?.sections || []).filter((section) => section.id !== sectionId) } } : event);
+  _patchEvent(eventId, (event) => ({ ...event, rules: { ...(event.rules || {}), sections: (event.rules?.sections || []).filter((section) => section.id !== sectionId) } }));
   renderEventEditor(eventId);
 }
 
 function updateRuleSectionHeading(eventId, sectionId, value) {
-  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), sections: (event.rules?.sections || []).map((section) => section.id === sectionId ? { ...section, heading: value } : section) } } : event);
+  _patchEvent(eventId, (event) => ({ ...event, rules: { ...(event.rules || {}), sections: (event.rules?.sections || []).map((section) => section.id === sectionId ? { ...section, heading: value } : section) } }));
 }
 
 function updateRuleSectionRules(eventId, sectionId, value) {
   const rules = String(value || '').split('\n').map((line) => line.trim()).filter(Boolean);
-  events = events.map((event) => event.id === eventId ? { ...event, rules: { ...(event.rules || {}), sections: (event.rules?.sections || []).map((section) => section.id === sectionId ? { ...section, rules } : section) } } : event);
+  _patchEvent(eventId, (event) => ({ ...event, rules: { ...(event.rules || {}), sections: (event.rules?.sections || []).map((section) => section.id === sectionId ? { ...section, rules } : section) } }));
 }
 
 async function saveEventsSettings() {
@@ -663,7 +670,7 @@ async function saveEventsSettings() {
       type: String(coord.type || 'faculty').trim(),
       name: String(coord.name || '').trim(),
       phone: String(coord.phone || '').trim()
-    })).filter((coord) => coord.name && coord.phone),
+    })).filter((coord) => coord.name),
     imageUrl: String(event.imageUrl || '').trim(),
     rounds: (event.rounds || []).map((round, index) => ({
       id: round.id || uid('round'),
@@ -714,13 +721,9 @@ async function saveEventsSettings() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then((reg) => {
-        console.log('[App] Service Worker registered:', reg);
-        setInterval(() => {
-          reg.update().catch(err => console.warn('[App] Update check failed:', err));
-        }, 60000);
-      })
-      .catch((err) => console.warn('[App] Service Worker registration failed:', err));
+      .then(reg => {
+        setInterval(() => reg.update().catch(() => {}), 60000);
+      }).catch(() => {});
   });
 }
 </script>
