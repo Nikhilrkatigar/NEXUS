@@ -391,6 +391,23 @@ select option {
   background: #fecaca;
 }
 
+.nav-assessment-btn {
+  display: none;
+  background: var(--accent-bg);
+  color: var(--accent-dark);
+  border: 1px solid var(--accent-border);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.nav-assessment-btn:hover {
+  background: #fde68a;
+}
+
 /* ── Auto-save Indicator ── */
 .save-indicator {
   position: fixed;
@@ -576,6 +593,7 @@ html { scroll-behavior: smooth; }
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">⚖️ Judge</div>
         </div>
       </div>
+      <a href="assessment-results.html" id="assessmentResultsNav" class="nav-assessment-btn">📝 Assessment</a>
       <button onclick="logout()" class="signout-btn">Sign Out</button>
     </div>
   </div>
@@ -622,6 +640,41 @@ let currentRound = 1;
 let eventRounds = {};
 const LS_PREFIX = 'nexus_judge_';
 
+function normalizeAccessValue(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function canOpenAssessmentResultsFromJudge(user, currentSettings) {
+  if (!user || user.role !== 'judge') return false;
+
+  const eventKey = normalizeAccessValue(user.assignedEvent);
+  if (['hr', 'peoplepulse', 'humanresources', 'hrassessment', 'mindwar'].includes(eventKey)) {
+    return true;
+  }
+
+  const events = currentSettings && Array.isArray(currentSettings.events)
+    ? currentSettings.events
+    : [];
+  const assignedEvent = events.find(e => String(e.id) === String(user.assignedEvent));
+  if (!assignedEvent) {
+    return false;
+  }
+
+  const eventName = normalizeAccessValue(assignedEvent.name);
+  const eventDepartment = normalizeAccessValue(assignedEvent.department || assignedEvent.dept);
+  if (eventName.includes('peoplepulse') || eventName.includes('mindwar')) {
+    return true;
+  }
+  if (eventDepartment === 'hr' || eventDepartment === 'humanresources') {
+    return true;
+  }
+
+  return false;
+}
+
 function escapeHtml(v) {
   return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
@@ -632,6 +685,73 @@ function getScoreKey(eventKey, round) {
 
 function getLsKey(scoreKey) {
   return `${LS_PREFIX}${scoreKey}`;
+}
+
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getConfiguredRoundCount(eventObj, eventKey) {
+  const counts = [];
+
+  if (eventObj && typeof eventObj === 'object') {
+    if (Array.isArray(eventObj.rounds)) {
+      const rounds = eventObj.rounds.filter(Boolean);
+      if (rounds.length > 0) {
+        counts.push(rounds.length);
+      }
+
+      const maxLabel = rounds.reduce((max, round) => {
+        const match = String(round && round.num ? round.num : '').trim().match(/^R(\d+)$/i);
+        const value = match ? Number(match[1]) : 0;
+        return value > max ? value : max;
+      }, 0);
+      if (maxLabel > 0) {
+        counts.push(maxLabel);
+      }
+    } else if (eventObj.rounds && typeof eventObj.rounds === 'object') {
+      const keyedRounds = Object.keys(eventObj.rounds).filter((key) => /^r(ound)?\d+$/i.test(String(key)));
+      if (keyedRounds.length > 0) {
+        counts.push(keyedRounds.length);
+      }
+    }
+
+    ['rounds', 'numRounds', 'roundCount', 'roundsCount', 'totalRounds'].forEach((key) => {
+      const parsed = parseInt(eventObj[key], 10);
+      if (Number.isInteger(parsed) && parsed > 0) {
+        counts.push(parsed);
+      }
+    });
+
+    const sectionMaxRound = Array.isArray(eventObj.rules && eventObj.rules.sections)
+      ? eventObj.rules.sections.reduce((max, section) => {
+          const heading = String(section && section.heading ? section.heading : '');
+          const match = heading.match(/round\s*(\d+)/i);
+          const value = match ? Number(match[1]) : 0;
+          return value > max ? value : max;
+        }, 0)
+      : 0;
+    if (sectionMaxRound > 0) {
+      counts.push(sectionMaxRound);
+    }
+  }
+
+  if (eventKey) {
+    const keyPattern = new RegExp(`^${escapeRegExp(eventKey)}_R(\\d+)$`, 'i');
+    const maxFromScores = Object.keys(scoresStore || {}).reduce((max, scoreKey) => {
+      const match = String(scoreKey || '').match(keyPattern);
+      const value = match ? Number(match[1]) : 0;
+      return value > max ? value : max;
+    }, 0);
+    if (maxFromScores > 0) {
+      counts.push(maxFromScores);
+    }
+  }
+
+  if (counts.length === 0) {
+    return 3;
+  }
+  return Math.max(1, ...counts);
 }
 
 function getColumns(scoreKey) {
@@ -698,18 +818,8 @@ function onEventChange() {
   currentEventKey = val;
   
   const eventObj = (settings.events || []).find(e => String(e.id) === String(val));
-  
-  let numRounds = 3;
-  if (eventObj) {
-    if (Array.isArray(eventObj.rounds)) {
-      numRounds = Math.max(1, eventObj.rounds.length);
-    } else if (eventObj.rounds) {
-      const parsed = parseInt(eventObj.rounds, 10);
-      if (!isNaN(parsed) && parsed > 0) {
-        numRounds = parsed;
-      }
-    }
-  }
+
+  const numRounds = getConfiguredRoundCount(eventObj, val);
   
   eventRounds[val] = numRounds;
   
@@ -1094,17 +1204,14 @@ function updateTotals(scoreKey, cols) {
     NexusCMS.fetchSettings()
   ]);
 
+  const assessmentResultsNav = document.getElementById('assessmentResultsNav');
+  if (assessmentResultsNav && canOpenAssessmentResultsFromJudge(currentUser, settings)) {
+    assessmentResultsNav.style.display = 'inline-flex';
+  }
+
   (settings.events || []).forEach(event => {
     if (event.id) {
-      let roundCount = 3;
-      if (Array.isArray(event.rounds)) {
-        roundCount = Math.max(1, event.rounds.length);
-      } else if (event.rounds) {
-        const parsed = parseInt(event.rounds, 10);
-        if (!isNaN(parsed) && parsed > 0) {
-          roundCount = parsed;
-        }
-      }
+      const roundCount = getConfiguredRoundCount(event, event.id);
       eventRounds[event.id] = roundCount;
     }
   });
@@ -1126,15 +1233,7 @@ function updateTotals(scoreKey, cols) {
       
       let numRounds = eventRounds[currentEventKey];
       if (!numRounds || isNaN(numRounds)) {
-        numRounds = 3;
-        if (Array.isArray(event.rounds)) {
-          numRounds = Math.max(1, event.rounds.length);
-        } else if (event.rounds) {
-          const parsed = parseInt(event.rounds, 10);
-          if (!isNaN(parsed) && parsed > 0) {
-            numRounds = parsed;
-          }
-        }
+        numRounds = getConfiguredRoundCount(event, currentEventKey);
         eventRounds[currentEventKey] = numRounds;
       }
       

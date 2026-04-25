@@ -161,6 +161,8 @@
     <div class="control-actions" id="assessmentControlActions">
       <button class="cms-btn cms-btn-primary" id="assessmentStartBtn" onclick="startAssessmentControl()">Start Exam</button>
       <button class="cms-btn cms-btn-danger" id="assessmentStopBtn" onclick="stopAssessmentControl()">Stop Exam</button>
+      <button class="cms-btn" id="assessmentResetBtn" onclick="resetAssessmentControl()"
+        style="background:rgba(255,255,255,0.06);color:#f0f0f0;border:1px solid rgba(255,255,255,0.16)">Reset</button>
     </div>
   </div>
 
@@ -188,7 +190,7 @@
           <option value="pass">Pass (≥70%)</option>
           <option value="fail">Fail (&lt;70%)</option>
         </select>
-        <button class="cms-btn cms-btn-primary cms-btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="cms-btn cms-btn-primary cms-btn-sm" id="exportCsvBtn" onclick="exportCSV()">⬇ Export CSV</button>
       </div>
 
       <div class="chip-bar">
@@ -226,7 +228,7 @@
   <div id="panelStudents" style="display:none">
 
     <!-- Auto-sync banner -->
-    <div class="cms-card" style="margin-bottom:20px;border-color:rgba(0,212,255,0.2);background:rgba(0,212,255,0.04)">
+    <div class="cms-card" id="syncCard" style="margin-bottom:20px;border-color:rgba(0,212,255,0.2);background:rgba(0,212,255,0.04)">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
         <div>
           <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:5px">
@@ -249,7 +251,7 @@
       </div>
     </div>
 
-    <div class="cms-card">
+    <div class="cms-card" id="addStudentCard">
       <div class="cms-card-title">➕ Add Student</div>
 
       <div class="add-form">
@@ -335,9 +337,20 @@
 <script>
 (async function () {
   const user = await NexusCMS.initPage('assessment-results', {
-    requiredRoles: ['superadmin', 'organiser', 'viewer']
+    requiredRoles: ['superadmin', 'organiser', 'viewer', 'judge']
   });
   if (!user) return;
+
+  const canManageAssessment = !NexusCMS.isViewer(user) && !NexusCMS.isJudge(user);
+
+  if (!canManageAssessment) {
+    const syncCard = document.getElementById('syncCard');
+    const addStudentCard = document.getElementById('addStudentCard');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    if (syncCard) syncCard.style.display = 'none';
+    if (addStudentCard) addStudentCard.style.display = 'none';
+    if (exportCsvBtn) exportCsvBtn.style.display = 'none';
+  }
 
   const PASS_MARK = 14;
   let allResults = [];
@@ -373,6 +386,7 @@
     const actions = document.getElementById('assessmentControlActions');
     const startBtn = document.getElementById('assessmentStartBtn');
     const stopBtn = document.getElementById('assessmentStopBtn');
+    const resetBtn = document.getElementById('assessmentResetBtn');
 
     badge.textContent = capitalize(control.phase);
     badge.className = 'control-badge ' + control.phase;
@@ -396,7 +410,7 @@
       note.textContent = 'Students who log in now will remain on the waiting screen until you start the assessment.';
     }
 
-    if (NexusCMS.isViewer(user)) {
+    if (!canManageAssessment) {
       actions.style.display = 'none';
       return;
     }
@@ -404,6 +418,8 @@
     actions.style.display = 'flex';
     startBtn.disabled = control.phase === 'live';
     stopBtn.disabled = control.phase !== 'live';
+    const canReset = control.phase !== 'waiting' || !!control.startedAt || !!control.stoppedAt || !!control.sessionId;
+    resetBtn.disabled = !canReset;
   }
 
   async function loadAssessmentControl(showToastOnError) {
@@ -426,7 +442,7 @@
   }
 
   window.startAssessmentControl = async function () {
-    if (NexusCMS.isViewer(user)) return;
+    if (!canManageAssessment) return;
     if (!confirm('Start the assessment for all logged-in students now?')) return;
 
     const startBtn = document.getElementById('assessmentStartBtn');
@@ -445,7 +461,7 @@
   };
 
   window.stopAssessmentControl = async function () {
-    if (NexusCMS.isViewer(user)) return;
+    if (!canManageAssessment) return;
     if (!confirm('Stop the assessment for everyone and auto-submit active attempts?')) return;
 
     const stopBtn = document.getElementById('assessmentStopBtn');
@@ -460,6 +476,26 @@
       NexusCMS.showToast('Failed to stop assessment: ' + e.message, 'error');
     } finally {
       stopBtn.textContent = 'Stop Exam';
+      renderAssessmentControl();
+    }
+  };
+
+  window.resetAssessmentControl = async function () {
+    if (!canManageAssessment) return;
+    if (!confirm('Reset assessment control to Waiting state? This clears start/stop timestamps and opens waiting mode.')) return;
+
+    const resetBtn = document.getElementById('assessmentResetBtn');
+    resetBtn.disabled = true;
+    resetBtn.textContent = 'Resetting...';
+    try {
+      await NexusCMS.request('/assessment/control/reset', { method: 'POST' });
+      NexusCMS.showToast('Assessment control reset to waiting state.', 'success');
+      await loadAssessmentControl(true);
+      setTimeout(loadAll, 1200);
+    } catch (e) {
+      NexusCMS.showToast('Failed to reset assessment: ' + e.message, 'error');
+    } finally {
+      resetBtn.textContent = 'Reset';
       renderAssessmentControl();
     }
   };
@@ -585,7 +621,7 @@
         <td style="display:flex;gap:6px;align-items:center">
           <button class="cms-btn cms-btn-sm" style="background:rgba(0,212,255,0.1);color:#00d4ff;border:none"
             onclick="viewDetail('${r._id}')">View</button>
-          ${!NexusCMS.isViewer(user) ? `<button class="cms-btn cms-btn-sm cms-btn-danger"
+          ${canManageAssessment ? `<button class="cms-btn cms-btn-sm cms-btn-danger"
             onclick="deleteResult('${r._id}','${escHtml(r.registerNumber || '')}')">Del</button>` : ''}
         </td>
       </tr>`;
@@ -627,10 +663,10 @@
         </td>
         <td style="color:#7a8499;font-size:12px">${date}</td>
         <td style="display:flex;gap:6px;align-items:center">
-          ${!NexusCMS.isViewer(user) && s.hasAttempted ? `
+          ${canManageAssessment && s.hasAttempted ? `
             <button class="cms-btn cms-btn-sm" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)"
               onclick="resetAttempt('${s._id}','${escHtml(s.registerNumber)}')">Reset</button>` : ''}
-          ${!NexusCMS.isViewer(user) ? `
+          ${canManageAssessment ? `
             <button class="cms-btn cms-btn-sm cms-btn-danger"
               onclick="deleteStudent('${s._id}','${escHtml(s.registerNumber)}')">Del</button>` : ''}
         </td>

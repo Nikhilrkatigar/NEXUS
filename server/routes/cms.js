@@ -951,6 +951,112 @@ router.post("/team-randomizer/remove", requireRole("superadmin", "organiser"), a
   }
 });
 
+// GET search registrations for manual override
+router.get("/team-randomizer/search", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const q = String(req.query.q || "").trim();
+    if (!q || q.length < 2) {
+      return res.json({ results: [] });
+    }
+    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    const registrations = await Registration.find({
+      $or: [
+        { code: regex },
+        { teamName: regex },
+        { leader: regex },
+        { college: regex }
+      ]
+    })
+      .select("_id code teamName teamNameBackup teamNameRandomized college leader")
+      .limit(10)
+      .lean();
+
+    res.json({
+      results: registrations.map((r) => ({
+        id: String(r._id),
+        code: r.code || "",
+        teamName: r.teamName || "",
+        teamNameBackup: r.teamNameBackup || "",
+        teamNameRandomized: r.teamNameRandomized || false,
+        college: r.college || "",
+        leader: r.leader || ""
+      }))
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST manually override the team name for a single on-spot registration
+router.post("/team-randomizer/override", requireRole("superadmin", "organiser"), async (req, res, next) => {
+  try {
+    const registrationId = String(req.body.registrationId || "").trim();
+    const newTeamName = String(req.body.teamName || "").trim();
+
+    if (!registrationId) {
+      throw makeError("Registration ID is required.", 400);
+    }
+    if (!newTeamName || newTeamName.length < 1) {
+      throw makeError("Team name is required.", 400);
+    }
+
+    const registration = await Registration.findById(registrationId);
+    if (!registration) {
+      throw makeError("Registration not found.", 404);
+    }
+
+    const previousName = registration.teamName || "";
+
+    await Registration.updateOne(
+      { _id: registrationId },
+      {
+        $set: {
+          teamName: newTeamName,
+          teamNameBackup: registration.teamNameRandomized ? registration.teamNameBackup : previousName,
+          teamNameRandomized: true
+        }
+      }
+    );
+
+    // Also update the stored assignments in settings so the record is consistent
+    const settings = await Settings.findOne({ key: "team-randomizer" });
+    if (settings && Array.isArray(settings.values?.assignments)) {
+      const idx = settings.values.assignments.findIndex(
+        (a) => String(a.registrationId) === registrationId
+      );
+      if (idx !== -1) {
+        settings.values.assignments[idx].randomName = newTeamName;
+      } else {
+        settings.values.assignments.push({
+          registrationId,
+          originalName: previousName,
+          previousTeamName: previousName,
+          randomName: newTeamName,
+          code: registration.code || "",
+          manualOverride: true
+        });
+      }
+      settings.markModified("values");
+      await settings.save();
+    }
+
+    await writeAuditLog({
+      action: `Manual team name override: ${registration.code || registrationId} → "${newTeamName}"`,
+      req,
+      user: req.user
+    });
+
+    res.json({
+      ok: true,
+      id: registrationId,
+      teamName: newTeamName,
+      message: `Team name updated to "${newTeamName}".`
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ──── Check-In Management ────────────────────────────────────
 router.get("/checkins", requireRole("checkin", "superadmin", "organiser"), async (req, res, next) => {
   try {

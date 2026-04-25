@@ -18,8 +18,80 @@
     { id: "settings", label: "Page Settings", href: "settings.html", roles: ["superadmin"] },
     { id: "users", label: "Users", href: "users.html", roles: ["superadmin"] },
     { id: "audit", label: "Audit Log", href: "audit.html", roles: ["superadmin"] },
-    { id: "assessment-results", label: "📝 Assessment", href: "assessment-results.html", roles: ["superadmin", "organiser", "viewer"] }
+    {
+      id: "assessment-results",
+      label: "📝 Assessment",
+      href: "assessment-results.html",
+      roles: ["superadmin", "organiser", "viewer", "judge"],
+      access: isAssessmentResultsAccessAllowed
+    }
   ];
+
+  function normalizeAccessValue(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+  }
+
+  function isPeoplePulseHrEvent(event) {
+    if (!event) {
+      return false;
+    }
+
+    const eventName = normalizeAccessValue(event.name);
+    const eventDepartment = normalizeAccessValue(event.department);
+    if (eventName.includes("peoplepulse") || eventName.includes("mindwar")) {
+      return true;
+    }
+    return eventDepartment === "hr" || eventDepartment === "humanresources";
+  }
+
+  function isPeoplePulseHrJudge(user) {
+    if (!user || user.role !== "judge") {
+      return false;
+    }
+
+    const eventKey = normalizeAccessValue(user.assignedEvent);
+    if (!eventKey) {
+      return false;
+    }
+
+    return ["hr", "peoplepulse", "humanresources", "hrassessment", "mindwar"].includes(eventKey);
+  }
+
+  async function canJudgeAccessAssessmentResults(user) {
+    if (!user || user.role !== "judge") {
+      return false;
+    }
+
+    if (isPeoplePulseHrJudge(user)) {
+      return true;
+    }
+
+    try {
+      const data = await request("/cms/settings");
+      const events = data && data.settings && Array.isArray(data.settings.events)
+        ? data.settings.events
+        : [];
+      const assignedEvent = events.find((event) => String(event.id) === String(user.assignedEvent));
+      return isPeoplePulseHrEvent(assignedEvent);
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function isAssessmentResultsAccessAllowed(user) {
+    if (!user) {
+      return false;
+    }
+
+    if (["superadmin", "organiser", "viewer"].includes(user.role)) {
+      return true;
+    }
+
+    return isPeoplePulseHrJudge(user);
+  }
 
   function escapeHtml(value) {
     return String(value || "")
@@ -107,8 +179,16 @@
     }, 3000);
   }
 
-  function canAccess(user, allowedRoles) {
-    return !!user && allowedRoles.includes(user.role);
+  function canAccess(user, link) {
+    if (!user || !link || !Array.isArray(link.roles) || !link.roles.includes(user.role)) {
+      return false;
+    }
+
+    if (typeof link.access === "function") {
+      return !!link.access(user);
+    }
+
+    return true;
   }
 
   function getHomePageForRole(user) {
@@ -129,7 +209,7 @@
 
   function renderSidebar(active) {
     const user = getStoredUser() || {};
-    const links = NAV_LINKS.filter((link) => canAccess(user, link.roles));
+    const links = NAV_LINKS.filter((link) => canAccess(user, link));
 
     return `
       <aside class="cms-sidebar">
@@ -201,8 +281,10 @@
       return null;
     }
 
-    // Judges: can ONLY access judge.html — redirect them there from anywhere else
-    if (user.role === "judge" && active !== "judge") {
+    const judgeAssessmentResultsAccess = active === "assessment-results" && await canJudgeAccessAssessmentResults(user);
+
+    // Judges: can access judge.html and only People Pulse HR judges can access assessment-results.html
+    if (user.role === "judge" && active !== "judge" && !judgeAssessmentResultsAccess) {
       window.location.href = "judge.html";
       return null;
     }

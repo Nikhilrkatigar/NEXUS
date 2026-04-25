@@ -27,6 +27,22 @@
 .status-text{font-size:12px;color:var(--muted);margin-top:8px}
 .section-divider{height:1px;background:rgba(255,255,255,0.1);margin:24px 0}
 .action-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.override-search-wrap{display:flex;gap:8px;margin-bottom:12px}
+.override-search-wrap input{flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
+.override-search-wrap input:focus{border-color:rgba(245,166,35,0.5)}
+.override-results{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.override-result-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;cursor:pointer;transition:background .15s}
+.override-result-item:hover,.override-result-item.selected{background:rgba(245,166,35,0.08);border-color:rgba(245,166,35,0.35)}
+.override-result-item .reg-code{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase}
+.override-result-item .reg-detail{font-size:13px;color:var(--text);margin-top:2px}
+.override-result-item .reg-current{font-size:11px;color:var(--muted);margin-top:2px}
+.override-name-row{display:flex;gap:8px;align-items:center;margin-top:10px}
+.override-name-row input{flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
+.override-name-row input:focus{border-color:rgba(245,166,35,0.5)}
+.override-selected-info{background:rgba(245,166,35,0.07);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:13px}
+.override-selected-info span{color:var(--accent);font-weight:700}
+.override-current-name{color:var(--muted);font-weight:400}
+.override-status-text{margin-top:8px}
 </style>
 </head>
 <body>
@@ -83,6 +99,37 @@
     <div class="action-grid">
       <button class="cms-btn cms-btn-primary" onclick="applyAssignments()">Apply Assignments</button>
       <button class="cms-btn" onclick="generateRandomAssignment()" style="background:rgba(255,255,255,0.05);color:#f0f0f0;border:1px solid rgba(255,255,255,0.1)">Generate Again</button>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- Manual Override for on-spot registrations -->
+  <div class="cms-card">
+    <h2>Manual Override — On-Spot Registrations</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+      Use this when a team registered on the spot after the main randomization was already applied.
+      Search by team code, name, or college, select the registration, type their assigned name, and save.
+      Other teams are not affected.
+    </p>
+
+    <div class="override-search-wrap">
+      <input type="text" id="overrideSearchInput" placeholder="Search by code, team name, or college…" oninput="debounceOverrideSearch()" autocomplete="off">
+      <button class="cms-btn" onclick="clearOverride()" style="background:rgba(255,255,255,0.05);color:#f0f0f0;border:1px solid rgba(255,255,255,0.1);white-space:nowrap">Clear</button>
+    </div>
+
+    <div class="override-results" id="overrideResults"></div>
+
+    <div id="overrideSelectedInfo" style="display:none">
+      <div class="override-selected-info">
+        Selected: <span id="overrideSelectedLabel">—</span>
+        <span id="overrideCurrentName" class="override-current-name"></span>
+      </div>
+      <div class="override-name-row">
+        <input type="text" id="overrideNameInput" placeholder="Enter assigned team name…" maxlength="80" autocomplete="off">
+        <button type="button" class="cms-btn cms-btn-primary" onclick="applyOverride()" id="overrideApplyBtn">Save Override</button>
+      </div>
+      <div class="status-text override-status-text" id="overrideStatus"></div>
     </div>
   </div>
 
@@ -293,6 +340,106 @@ function resetState(){
 
 function showError(message){
   NexusCMS.showToast(message, "error");
+}
+
+// ── Manual Override ──────────────────────────────────────────────────────────
+let overrideSelected = null;
+let overrideSearchTimer = null;
+
+function debounceOverrideSearch(){
+  clearTimeout(overrideSearchTimer);
+  overrideSearchTimer = setTimeout(runOverrideSearch, 280);
+}
+
+async function runOverrideSearch(){
+  const q = document.getElementById("overrideSearchInput").value.trim();
+  const resultsEl = document.getElementById("overrideResults");
+  if(q.length < 2){ resultsEl.innerHTML = ""; return; }
+
+  try{
+    const data = await apiRequest("/cms/team-randomizer/search?q=" + encodeURIComponent(q));
+    if(!data.results || data.results.length === 0){
+      resultsEl.innerHTML = "<div style='font-size:13px;color:var(--muted);padding:6px 2px'>No registrations found.</div>";
+      return;
+    }
+    resultsEl.innerHTML = data.results.map((r) => {
+      const currentLabel = r.teamNameRandomized
+        ? "Randomized: <strong>" + escapeHtml(r.teamName) + "</strong> (original: " + escapeHtml(r.teamNameBackup) + ")"
+        : "Current: <strong>" + escapeHtml(r.teamName) + "</strong>";
+      return `<div class="override-result-item" data-id="${escapeHtml(r.id)}"
+                   data-code="${escapeHtml(r.code)}"
+                   data-name="${escapeHtml(r.teamName)}"
+                   data-randomized="${r.teamNameRandomized}"
+                   onclick="selectOverrideResult(this)">
+        <div class="reg-code">${escapeHtml(r.code)}</div>
+        <div class="reg-detail">${escapeHtml(r.teamName || r.leader || "")}${r.college ? " — " + escapeHtml(r.college) : ""}</div>
+        <div class="reg-current">${currentLabel}</div>
+      </div>`;
+    }).join("");
+  }catch(err){
+    showError(err.message);
+  }
+}
+
+function selectOverrideResult(el){
+  document.querySelectorAll(".override-result-item").forEach((item) => item.classList.remove("selected"));
+  el.classList.add("selected");
+
+  overrideSelected = {
+    id: el.dataset.id,
+    code: el.dataset.code,
+    name: el.dataset.name,
+    randomized: el.dataset.randomized === "true"
+  };
+
+  document.getElementById("overrideSelectedLabel").textContent = overrideSelected.code + " — " + overrideSelected.name;
+  const currentSpan = document.getElementById("overrideCurrentName");
+  currentSpan.textContent = overrideSelected.randomized ? " (already randomized)" : "";
+  document.getElementById("overrideSelectedInfo").style.display = "block";
+  document.getElementById("overrideNameInput").focus();
+  document.getElementById("overrideStatus").textContent = "";
+}
+
+async function applyOverride(){
+  if(!overrideSelected){ showError("Select a registration first."); return; }
+  const teamName = document.getElementById("overrideNameInput").value.trim();
+  if(!teamName){ showError("Enter a team name."); return; }
+
+  const btn = document.getElementById("overrideApplyBtn");
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+
+  try{
+    const data = await apiRequest("/cms/team-randomizer/override", {
+      method: "POST",
+      body: { registrationId: overrideSelected.id, teamName }
+    });
+    const statusEl = document.getElementById("overrideStatus");
+    statusEl.textContent = data.message || "Saved.";
+    statusEl.style.color = "#4caf50";
+    document.getElementById("overrideNameInput").value = "";
+    overrideSelected = null;
+    document.querySelectorAll(".override-result-item").forEach((item) => item.classList.remove("selected"));
+    document.getElementById("overrideSelectedInfo").style.display = "none";
+    document.getElementById("overrideResults").innerHTML = "";
+    document.getElementById("overrideSearchInput").value = "";
+    NexusCMS.showToast(data.message || "Team name overridden.", "success");
+    await updateStatus();
+  }catch(err){
+    showError(err.message);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "Save Override";
+  }
+}
+
+function clearOverride(){
+  overrideSelected = null;
+  document.getElementById("overrideSearchInput").value = "";
+  document.getElementById("overrideResults").innerHTML = "";
+  document.getElementById("overrideSelectedInfo").style.display = "none";
+  document.getElementById("overrideNameInput").value = "";
+  document.getElementById("overrideStatus").textContent = "";
 }
 
 (async function(){

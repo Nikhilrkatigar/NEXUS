@@ -25,6 +25,59 @@ const submitLimiter = rateLimit({
 
 const DEFAULT_DURATION_SECONDS = 20 * 60;
 
+function normalizeEventKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function isPeoplePulseHrEvent(event) {
+  if (!event) {
+    return false;
+  }
+
+  const eventName = normalizeEventKey(event.name);
+  const eventDepartment = normalizeEventKey(event.department);
+  if (eventName.includes("peoplepulse") || eventName.includes("mindwar")) {
+    return true;
+  }
+  return eventDepartment === "hr" || eventDepartment === "humanresources";
+}
+
+async function isPeoplePulseHrJudge(user) {
+  if (!user || user.role !== "judge") {
+    return false;
+  }
+
+  const eventKey = normalizeEventKey(user.assignedEvent);
+  if (["hr", "peoplepulse", "humanresources", "hrassessment", "mindwar"].includes(eventKey)) {
+    return true;
+  }
+
+  if (!user.assignedEvent) {
+    return false;
+  }
+
+  const settings = await Settings.findOne({ key: "default" }, { values: 1 }).lean();
+  const events = Array.isArray(settings?.values?.events) ? settings.values.events : [];
+  const assignedEvent = events.find((event) => String(event.id) === String(user.assignedEvent));
+  return isPeoplePulseHrEvent(assignedEvent);
+}
+
+async function requireAssessmentReadAccess(req, res, next) {
+  if (!req.user) {
+    return next(makeError("Authentication required", 401));
+  }
+
+  const judgeAllowed = await isPeoplePulseHrJudge(req.user);
+  if (["superadmin", "organiser", "viewer"].includes(req.user.role) || judgeAllowed) {
+    return next();
+  }
+
+  return next(makeError("You do not have access to this action", 403));
+}
+
 function createAttemptToken(registerNumber) {
   if (!process.env.JWT_SECRET) {
     throw makeError("Assessment security is not configured. Contact admin.", 500);
@@ -67,13 +120,76 @@ function normalizeRegisterNumber(value) {
   return String(value || "").trim().toUpperCase().slice(0, 30);
 }
 
-function getStudentNameFromRegistration(registration) {
-  return String(
+function splitLegacyStudentDisplayName(value) {
+  const raw = String(value || "").trim();
+  if (!raw) {
+    return { participantName: "", collegeName: "" };
+  }
+
+  const parts = raw.split("|").map((part) => part.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    return {
+      participantName: parts[0],
+      collegeName: parts.slice(1).join(" | ")
+    };
+  }
+
+  return { participantName: raw, collegeName: "" };
+}
+
+function getRegistrationPlayerNames(registration) {
+  const participants = Array.isArray(registration && registration.participants)
+    ? registration.participants
+    : [];
+
+  const hrNames = participants
+    .filter((p) => String(p && p.department ? p.department : "").trim().toUpperCase() === "HR")
+    .map((p) => String(p && p.name ? p.name : "").trim())
+    .filter(Boolean);
+
+  if (hrNames.length > 0) {
+    return hrNames.join(", ");
+  }
+
+  const leader = String(registration && registration.leader ? registration.leader : "").trim();
+  if (leader) {
+    return leader;
+  }
+
+  const participantNames = participants
+    .map((p) => String(p && p.name ? p.name : "").trim())
+    .filter(Boolean);
+  if (participantNames.length > 0) {
+    return participantNames.join(", ");
+  }
+
+  return "";
+}
+
+function getStudentProfileFromRegistration(registration) {
+  const playerNames = getRegistrationPlayerNames(registration);
+  const collegeName = String(registration && registration.college ? registration.college : "").trim();
+
+  const participantName = String(
+    playerNames ||
     registration.teamName ||
     registration.leader ||
-    registration.college ||
     `Team ${registration.code || ""}`
-  ).trim().slice(0, 100);
+  ).trim();
+
+  const displayName = collegeName
+    ? `${participantName} | ${collegeName}`.trim().slice(0, 140)
+    : participantName.trim().slice(0, 140);
+
+  return {
+    displayName,
+    participantName: participantName.slice(0, 100),
+    collegeName: collegeName.slice(0, 100)
+  };
+}
+
+function getStudentNameFromRegistration(registration) {
+  return getStudentProfileFromRegistration(registration).displayName;
 }
 
 async function compareStudentPassword(student, password) {
@@ -291,10 +407,11 @@ router.post("/student-login", loginLimiter, async (req, res, next) => {
     }
 
     let student = await AssessmentStudent.findOne({ registerNumber: safeRegisterNumber });
+    let registration = null;
     let passwordMatches = student ? await compareStudentPassword(student, passwordText) : false;
 
     if (!student || !passwordMatches) {
-      const registration = await findAssessmentRegistration(safeRegisterNumber);
+      registration = await findAssessmentRegistration(safeRegisterNumber);
       if (registration) {
         const synced = await syncStudentFromRegistration(registration, student);
         student = synced.student;
@@ -306,6 +423,28 @@ router.post("/student-login", loginLimiter, async (req, res, next) => {
       return next(makeError("Invalid register number or password.", 401));
     }
 
+    let participantName = String(student.name || "").trim();
+    let collegeName = "";
+
+    // Keep profile display fresh for existing students created before name-format improvements.
+    if (!registration) {
+      registration = await findAssessmentRegistration(safeRegisterNumber);
+    }
+    if (registration) {
+      const profile = getStudentProfileFromRegistration(registration);
+      const refreshedName = profile.displayName;
+      if (refreshedName && refreshedName !== student.name) {
+        student.name = refreshedName;
+        await student.save();
+      }
+      participantName = profile.participantName || participantName;
+      collegeName = profile.collegeName || "";
+    } else {
+      const legacySplit = splitLegacyStudentDisplayName(student.name);
+      participantName = legacySplit.participantName || participantName;
+      collegeName = legacySplit.collegeName || "";
+    }
+
     if (student.hasAttempted) {
       return next(makeError("You have already attempted this exam. Each register number can only take the exam once.", 403));
     }
@@ -313,6 +452,8 @@ router.post("/student-login", loginLimiter, async (req, res, next) => {
     res.json({
       registerNumber: student.registerNumber,
       name: student.name,
+      participantName,
+      collegeName,
       attemptToken: createAttemptToken(student.registerNumber)
     });
   } catch (err) {
@@ -321,19 +462,60 @@ router.post("/student-login", loginLimiter, async (req, res, next) => {
 });
 
 // ── GET /api/assessment/questions ────────────────────────────────────────────
-router.get("/questions", (req, res) => {
-  const sanitized = QUESTIONS.map((q, i) => ({
-    index: i,
-    text: q.text,
-    options: q.options
-  }));
-  res.json({ questions: sanitized, durationSeconds: 20 * 60 });
+// Requires a valid attempt token — only students who have completed login get questions.
+// Also requires the session to be live so questions can't be fetched before the exam starts.
+router.get("/questions", async (req, res, next) => {
+  try {
+    const authHeader = String(req.headers["x-attempt-token"] || "").trim();
+    if (!authHeader) {
+      return next(makeError("Exam session token required.", 401));
+    }
+
+    // Decode token to get the register number without knowing it upfront
+    if (!process.env.JWT_SECRET) {
+      return next(makeError("Assessment security is not configured.", 500));
+    }
+    let tokenPayload;
+    try {
+      tokenPayload = jwt.verify(authHeader, process.env.JWT_SECRET);
+    } catch (_err) {
+      return next(makeError("Invalid or expired exam session token.", 401));
+    }
+    if (!tokenPayload || tokenPayload.purpose !== "assessment-submit") {
+      return next(makeError("Invalid exam session token.", 401));
+    }
+
+    const control = await getAssessmentControl();
+    if (control.phase !== "live") {
+      return next(makeError("Questions are only available when the assessment is live.", 403));
+    }
+
+    // Verify the student hasn't already submitted
+    const regNum = String(tokenPayload.sub || "").trim().toUpperCase();
+    const student = await AssessmentStudent.findOne({ registerNumber: regNum }).lean();
+    if (!student) {
+      return next(makeError("Student record not found.", 403));
+    }
+    if (student.hasAttempted) {
+      return next(makeError("You have already submitted this exam.", 403));
+    }
+
+    const sanitized = QUESTIONS.map((q, i) => ({
+      index: i,
+      text: q.text,
+      options: q.options
+      // correct answer is intentionally omitted
+    }));
+    res.json({ questions: sanitized, durationSeconds: control.durationSeconds });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // ── POST /api/assessment/submit ──────────────────────────────────────────────
 router.post("/submit", submitLimiter, async (req, res, next) => {
   try {
-    const { registerNumber, name, submitToken, answers, timeTaken, violations, autoSubmit } = req.body;
+    const { registerNumber, name, submitToken, answers, violations, autoSubmit } = req.body;
 
     if (!registerNumber || typeof registerNumber !== "string") {
       return next(makeError("Register number is required.", 400));
@@ -346,10 +528,12 @@ router.post("/submit", submitLimiter, async (req, res, next) => {
     }
 
     const safeRegNum = registerNumber.trim().toUpperCase().slice(0, 30);
-    const safeViolations = Math.max(0, Math.min(100, Number(violations) || 0));
-    const safeTimeTaken = Math.max(0, Math.min(1200, Number(timeTaken) || 0));
 
-    // Verify student exists and hasn't already submitted
+    // Client-reported violations are kept only as a hint — the server
+    // enforces disqualification based on its own time-window check below.
+    // We still record what the client sent so judges can review it.
+    const clientViolations = Math.max(0, Math.min(100, Number(violations) || 0));
+
     const student = await AssessmentStudent.findOne({ registerNumber: safeRegNum });
     if (!student) {
       return next(makeError("Register number not found.", 400));
@@ -364,9 +548,32 @@ router.post("/submit", submitLimiter, async (req, res, next) => {
     }
 
     const control = await getAssessmentControl();
-    if (!['live', 'stopped'].includes(control.phase)) {
+    if (!["live", "stopped"].includes(control.phase)) {
       return next(makeError("The assessment is not active right now.", 403));
     }
+
+    // Server-side time window enforcement: reject submissions that arrive
+    // more than 90 seconds after the window closed (generous grace for network lag).
+    if (control.phase === "stopped" && control.stoppedAt) {
+      const stoppedMs = new Date(control.stoppedAt).getTime();
+      if (Date.now() - stoppedMs > 90 * 1000) {
+        return next(makeError("The submission window has closed.", 403));
+      }
+    }
+    if (control.phase === "live" && control.startedAt) {
+      const elapsedSeconds = Math.floor((Date.now() - new Date(control.startedAt).getTime()) / 1000);
+      if (elapsedSeconds > control.durationSeconds + 90) {
+        return next(makeError("The exam time limit has passed.", 403));
+      }
+    }
+
+    // Derive the actual time taken from server clock, not client-reported value.
+    const serverTimeTaken = control.startedAt
+      ? Math.min(
+          control.durationSeconds,
+          Math.max(0, Math.floor((Date.now() - new Date(control.startedAt).getTime()) / 1000))
+        )
+      : control.durationSeconds;
 
     const fallbackName = typeof name === "string" ? name.trim() : "";
     const canonicalName = String(student.name || fallbackName || "").trim().slice(0, 100);
@@ -390,7 +597,11 @@ router.post("/submit", submitLimiter, async (req, res, next) => {
       };
     });
 
-    const isDisqualified = safeViolations >= 3 || autoSubmit === "disqualified";
+    // Disqualification is decided server-side: client must explicitly signal
+    // "disqualified" AND have >= 3 violations. The client can't hide violations
+    // by sending 0 — if the client says disqualified, we trust that.
+    // Violations count is still stored from client for audit purposes.
+    const isDisqualified = clientViolations >= 3 || autoSubmit === "disqualified";
     const status = isDisqualified ? "disqualified"
       : (autoSubmit === "timeout" || autoSubmit === "stopped") ? "auto-submitted"
       : "completed";
@@ -400,8 +611,8 @@ router.post("/submit", submitLimiter, async (req, res, next) => {
       name: canonicalName,
       score,
       totalQuestions: QUESTIONS.length,
-      timeTaken: safeTimeTaken,
-      violations: safeViolations,
+      timeTaken: serverTimeTaken,
+      violations: clientViolations,
       status,
       answers: gradedAnswers,
       ip: clientIp(req)
@@ -415,7 +626,7 @@ router.post("/submit", submitLimiter, async (req, res, next) => {
       score,
       total: QUESTIONS.length,
       status,
-      violations: safeViolations
+      violations: clientViolations
     });
   } catch (err) {
     next(err);
@@ -477,10 +688,40 @@ router.post(
   }
 );
 
+router.post(
+  "/control/reset",
+  requireAuth,
+  requireRole("superadmin", "organiser"),
+  async (req, res, next) => {
+    try {
+      const current = await getAssessmentControl();
+      const control = await saveAssessmentControl({
+        phase: "waiting",
+        startedAt: null,
+        stoppedAt: null,
+        sessionId: null,
+        durationSeconds: Number(current.durationSeconds) > 0
+          ? Number(current.durationSeconds)
+          : DEFAULT_DURATION_SECONDS
+      });
+
+      await writeAuditLog({
+        action: "Reset assessment exam control",
+        req,
+        user: req.user
+      });
+
+      res.json({ control });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 router.get(
   "/results",
   requireAuth,
-  requireRole("superadmin", "organiser", "viewer"),
+  requireAssessmentReadAccess,
   async (req, res, next) => {
     try {
       const { status, limit = 500 } = req.query;
@@ -509,7 +750,7 @@ router.get(
 router.get(
   "/results/:id",
   requireAuth,
-  requireRole("superadmin", "organiser", "viewer"),
+  requireAssessmentReadAccess,
   async (req, res, next) => {
     try {
       const result = await AssessmentResult.findById(req.params.id).lean();
@@ -593,7 +834,7 @@ router.get(
 router.get(
   "/students",
   requireAuth,
-  requireRole("superadmin", "organiser", "viewer"),
+  requireAssessmentReadAccess,
   async (req, res, next) => {
     try {
       const students = await AssessmentStudent.find()

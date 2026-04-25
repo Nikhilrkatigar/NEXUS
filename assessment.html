@@ -101,7 +101,15 @@ body{
   border-radius:12px;padding:14px 12px;
 }
 .wait-stat-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent)}
-#waitParticipantName{font-size:14px;line-height:1.35;word-break:break-word;white-space:normal}
+#waitParticipantName,#waitCollegeName{
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  line-height:1.35;
+  word-break:break-word;
+  white-space:normal;
+}
 .wait-stat-key{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
 .rules-overlay{
   position:fixed;inset:0;z-index:9998;background:rgba(4,8,18,0.88);
@@ -534,6 +542,10 @@ body{
         <div class="wait-stat-val" id="waitParticipantName">-</div>
         <div class="wait-stat-key">Participant Name</div>
       </div>
+      <div class="wait-stat">
+        <div class="wait-stat-val" id="waitCollegeName">-</div>
+        <div class="wait-stat-key">Participant College</div>
+      </div>
     </div>
   </div>
 </div>
@@ -620,6 +632,7 @@ body{
       <div class="rules-list">
         <div class="rules-item">The assessment contains 20 questions with a 20-minute time limit.</div>
         <div class="rules-item">Do not switch apps/tabs, open developer tools, copy, paste, or use restricted shortcuts.</div>
+        <div class="rules-item">On mobile, split-screen, popup view, or floating window modes are not allowed during the exam.</div>
         <div class="rules-item">Do not attempt screenshots, screen recording, screen sharing, or any external aid during the exam.</div>
         <div class="rules-item">Keep the browser active. The event head can stop the assessment for everyone from the CMS if needed.</div>
       </div>
@@ -647,6 +660,8 @@ body{
   // ── State ────────────────────────────────────────────────────────
   let studentName = '';
   let studentRegNum = '';
+  let participantName = '';
+  let participantCollege = '';
   let studentSubmitToken = '';
   let questions = [];
   let answers = []; // {selected: null|0-3, reason: ''}
@@ -655,6 +670,8 @@ body{
   let timerInterval = null;
   let sessionPollInterval = null;
   let devtoolsInterval = null;
+  let mobilePopupInterval = null;
+  let mobilePopupModeActive = false;
   let watermarkInterval = null;
   let assessmentControl = { phase: 'waiting', startedAt: null, stoppedAt: null, durationSeconds: 20 * 60, sessionId: null };
   let violations = 0;
@@ -810,8 +827,23 @@ body{
     document.getElementById('waitTitle').textContent = title;
     document.getElementById('waitMessage').textContent = message;
     document.getElementById('waitStudent').textContent = studentRegNum || '-';
-    document.getElementById('waitParticipantName').textContent = studentName || '-';
+    document.getElementById('waitParticipantName').textContent = participantName || studentName || '-';
+    document.getElementById('waitCollegeName').textContent = participantCollege || '-';
     document.getElementById('waitStatusValue').textContent = capitalize(assessmentControl.phase);
+  }
+
+  function splitParticipantProfile(displayValue) {
+    var raw = String(displayValue || '').trim();
+    if (!raw) return { name: '', college: '' };
+
+    var parts = raw.split('|').map(function (p) { return p.trim(); }).filter(Boolean);
+    if (parts.length >= 2) {
+      return {
+        name: parts[0],
+        college: parts.slice(1).join(' | ')
+      };
+    }
+    return { name: raw, college: '' };
   }
 
   function stopSessionPolling() {
@@ -845,6 +877,85 @@ body{
 
   // Disable right-click
   document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  function isTextEntryFocused() {
+    var el = document.activeElement;
+    if (!el) return false;
+    var tag = String(el.tagName || '').toLowerCase();
+    return tag === 'input' || tag === 'textarea' || !!el.isContentEditable;
+  }
+
+  function isLikelyMobilePopupMode() {
+    if (!mobileDevice) return false;
+
+    // Ignore temporary viewport changes while typing on the on-screen keyboard.
+    if (isTextEntryFocused()) return false;
+
+    var s = window.screen || {};
+    // Use physical screen dimensions (constant regardless of window mode)
+    // rather than availWidth/Height which can reflect the popup's own size.
+    var screenW = Number(s.width || 0);
+    var screenH = Number(s.height || 0);
+    if (!screenW || !screenH) return false;
+
+    var shortSide = Math.min(screenW, screenH);
+    var longSide = Math.max(screenW, screenH);
+    var viewportW = Number(window.innerWidth || document.documentElement.clientWidth || 0);
+    var viewportH = Number(window.innerHeight || document.documentElement.clientHeight || 0);
+
+    if (!viewportW || !viewportH) return false;
+
+    // Flag if viewport is less than 75% of the short side (narrow popup)
+    // or less than 60% of the long side (short popup / split-screen).
+    var tooNarrow = viewportW < shortSide * 0.75;
+    var tooShort = viewportH < longSide * 0.60;
+
+    var vv = window.visualViewport;
+    if (vv && vv.width && vv.height) {
+      tooNarrow = tooNarrow || Number(vv.width) < shortSide * 0.75;
+      tooShort = tooShort || Number(vv.height) < longSide * 0.60;
+    }
+
+    // Also catch Picture-in-Picture mode if the API exposes it
+    if (document.pictureInPictureElement) return true;
+
+    return tooNarrow || tooShort;
+  }
+
+  function evaluateMobilePopupMode() {
+    if (!mobileDevice || !examActive || submitted) return;
+
+    if (isLikelyMobilePopupMode()) {
+      if (!mobilePopupModeActive) {
+        mobilePopupModeActive = true;
+        showPrivacyShield('Popup or split-screen mode is blocked during the exam.', false);
+        addViolation('Popup/split-screen mode detected');
+      }
+      return;
+    }
+
+    mobilePopupModeActive = false;
+  }
+
+  function startMobilePopupDetection() {
+    if (!mobileDevice) return;
+    stopMobilePopupDetection();
+    mobilePopupModeActive = false;
+    mobilePopupInterval = setInterval(evaluateMobilePopupMode, 800);
+    evaluateMobilePopupMode();
+  }
+
+  function stopMobilePopupDetection() {
+    mobilePopupModeActive = false;
+    if (!mobilePopupInterval) return;
+    clearInterval(mobilePopupInterval);
+    mobilePopupInterval = null;
+  }
+
+  window.addEventListener('resize', function () {
+    if (!mobileDevice || !examActive || submitted) return;
+    evaluateMobilePopupMode();
+  });
 
   // Disable keyboard shortcuts
   document.addEventListener('keydown', function (e) {
@@ -1128,7 +1239,10 @@ body{
 
   async function loadQuestionsIfNeeded() {
     if (questionsLoaded) return;
-    var qRes = await fetch('/api/assessment/questions');
+    if (!studentSubmitToken) throw new Error('No exam session token — please log in again.');
+    var qRes = await fetch('/api/assessment/questions', {
+      headers: { 'x-attempt-token': studentSubmitToken }
+    });
     var qData = await qRes.json();
     if (!qRes.ok) throw new Error(qData.message || 'Failed to load questions');
     questions = Array.isArray(qData.questions) ? qData.questions : [];
@@ -1168,6 +1282,7 @@ body{
       requestWakeLock();
       startTimer();
       startDevtoolsDetection();
+      startMobilePopupDetection();
       startSecurityWatermark();
       toast('Assessment started. All the best!', 'success');
     } finally {
@@ -1382,13 +1497,21 @@ body{
         return;
       }
       studentName = loginData.name;
+      participantName = String(loginData.participantName || '').trim();
+      participantCollege = String(loginData.collegeName || '').trim();
+      if (!participantName || !participantCollege) {
+        var parsedProfile = splitParticipantProfile(studentName);
+        if (!participantName) participantName = parsedProfile.name;
+        if (!participantCollege) participantCollege = parsedProfile.college;
+      }
       studentRegNum = loginData.registerNumber;
       studentSubmitToken = loginData.attemptToken || '';
       if (!studentSubmitToken) {
         throw new Error('Secure exam session could not be created. Please try again.');
       }
       document.getElementById('waitStudent').textContent = studentRegNum || '-';
-      document.getElementById('waitParticipantName').textContent = studentName || '-';
+      document.getElementById('waitParticipantName').textContent = participantName || studentName || '-';
+      document.getElementById('waitCollegeName').textContent = participantCollege || '-';
     } catch (e) {
       toast('Network error. Check your connection.', 'error');
       resetLoginButton();
@@ -1397,7 +1520,8 @@ body{
 
     btn.textContent = 'Preparing...';
     try {
-      await loadQuestionsIfNeeded();
+      // Only fetch session state here — questions are loaded later, once the
+      // session goes live, so they can't be harvested before the exam starts.
       await fetchAssessmentControl();
     } catch (e) {
       toast(e.message || 'Could not prepare the assessment. Try again.', 'error');
@@ -1414,7 +1538,8 @@ body{
     }
 
     document.getElementById('waitStudent').textContent = studentRegNum || '-';
-    document.getElementById('waitParticipantName').textContent = studentName || '-';
+    document.getElementById('waitParticipantName').textContent = participantName || studentName || '-';
+    document.getElementById('waitCollegeName').textContent = participantCollege || '-';
     openRulesModal();
   };
 
@@ -1422,6 +1547,8 @@ body{
     closeRulesModal();
     studentName = '';
     studentRegNum = '';
+    participantName = '';
+    participantCollege = '';
     studentSubmitToken = '';
     questions = [];
     answers = [];
@@ -1430,6 +1557,7 @@ body{
     rulesAccepted = false;
     document.getElementById('waitStudent').textContent = '-';
     document.getElementById('waitParticipantName').textContent = '-';
+    document.getElementById('waitCollegeName').textContent = '-';
     resetLoginButton();
     showScreen('register');
   };
@@ -1478,6 +1606,7 @@ body{
     examActive = false;
     clearInterval(timerInterval);
     stopDevtoolsDetection();
+    stopMobilePopupDetection();
     stopSecurityWatermark();
     hidePrivacyShield();
     releaseWakeLock();
@@ -1522,6 +1651,7 @@ body{
       startSessionPolling();
       startTimer();
       startDevtoolsDetection();
+      startMobilePopupDetection();
       startSecurityWatermark();
       if (btn) { btn.disabled = false; btn.textContent = 'Submit Exam'; }
     }
